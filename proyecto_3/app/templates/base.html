@@ -1,7 +1,11 @@
 {% load static %}
+
 <!DOCTYPE html>
+
 <html lang="es">
+
 <head>
+
     <meta charset="UTF-8">
     <title>Inventario - Grupo 3</title>
 
@@ -11,11 +15,33 @@
     <!-- FontAwesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <!-- CSS base -->
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
 </head>
 
 <body>
+
+<!-- ================= BARRA SUPERIOR ================= -->
+<nav class="navbar navbar-dark bg-dark">
+    <div class="container-fluid">
+        <span class="navbar-brand mb-0 h1">
+            <i class="fa-solid fa-shop me-2"></i>Sistema de Inventario
+        </span>
+        <div class="d-flex">
+            <a href="{% url 'registro_administrador' %}" class="btn btn-outline-light me-2">
+                <i class="fa-solid fa-user-plus me-1"></i>Registrarse
+            </a>
+            <button class="btn btn-light" type="button">
+                <i class="fa-solid fa-right-to-bracket me-1"></i>Iniciar Sesión
+            </button>
+        </div>
+    </div>
+</nav>
+<!-- ================= FIN BARRA SUPERIOR ================= -->
 
 <div class="d-flex min-vh-100">
 
@@ -41,7 +67,6 @@
     </aside>
     <!-- ================= FIN MENÚ ================= -->
 
-
     <!-- ================= CONTENIDO ================= -->
     <main class="flex-fill p-4">
 
@@ -51,8 +76,37 @@
         <h1 class="mb-4">Panel de Gestión del Inventario</h1>
 
         <p class="text-muted">
-            Sistema de inventario desarrollado por el Grupo 3
+            Sistema de inventario por el Grupo 3
         </p>
+
+        <!-- ===== MENÚ SUPERIOR - BÚSQUEDA Y FILTROS ===== -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <!-- Búsqueda -->
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <input type="text" 
+                               id="searchInput" 
+                               class="form-control" 
+                               placeholder="Buscar producto...">
+                    </div>
+                </div>
+
+                <!-- Filtros -->
+                <div class="row">
+                    <div class="col-12">
+                        <label class="form-label">Filtrar por stock:</label>
+                        <select id="filtroStock" class="form-select" style="max-width: 300px;">
+                            <option value="all">Todos</option>
+                            <option value="stock-alto">Stock alto (>50)</option>
+                            <option value="stock-medio">Stock medio (11-50)</option>
+                            <option value="stock-bajo">Stock bajo (1-10)</option>
+                            <option value="sin-stock">Sin stock (0)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- ===== TABLA PRODUCTOS ===== -->
         <div class="card mt-4">
@@ -64,23 +118,15 @@
                 <table class="table table-bordered">
                     <thead class="table-dark">
                         <tr>
+                            <th>ID</th>
                             <th>Nombre</th>
                             <th>Precio</th>
                             <th>Stock</th>
-                            <th>Acciones</th>
+                            <th>Accion</th>
                         </tr>
                     </thead>
-                    <tbody>
-                        <tr>
-                            <td>Producto ejemplo</td>
-                            <td>$10.000</td>
-                            <td>50</td>
-                            <td>
-                                <button type="button" class="btn btn-primary">
-                                    <i class="fa-solid fa-pen"></i>
-                                </button>
-                            </td>
-                        </tr>
+                    <tbody id="productosTabla">
+                        <!-- Los productos se cargarán dinámicamente aquí -->
                     </tbody>
                 </table>
             </div>
@@ -101,5 +147,168 @@
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
+<!-- Script dinámico -->
+<script>
+    // Datos de ejemplo
+    let productos = [
+        { id: 1, nombre: "Harina", precio: 5000, stock: 25 },
+        { id: 2, nombre: "Jabon Axion", precio: 8000, stock: 120 },
+        { id: 3, nombre: "Queso", precio: 25000, stock: 8 },
+        { id: 4, nombre: "Leche", precio: 3500, stock: 35 },
+        { id: 5, nombre: "Pan", precio: 2000, stock: 0 },
+        { id: 6, nombre: "Chocolate Corona", precio: 28000, stock: 15 },
+        { id: 7, nombre: "Café", precio: 18000, stock: 5 },
+        { id: 8, nombre: "Arroz", precio: 7000, stock: 60 }
+    ];
+
+    function renderizarProductos() {
+        const tbody = document.getElementById('productosTabla');
+        const busqueda = document.getElementById('searchInput').value.toLowerCase();
+        const filtro = document.getElementById('filtroStock').value;
+        
+        // Filtrar productos
+        let productosFiltrados = productos.filter(p => {
+            // Búsqueda
+            const cumpleBusqueda = p.nombre.toLowerCase().includes(busqueda);
+            
+            // Filtro de stock
+            let cumpleFiltro = true;
+            if (filtro === 'stock-alto') cumpleFiltro = p.stock > 50;
+            else if (filtro === 'stock-medio') cumpleFiltro = p.stock >= 11 && p.stock <= 50;
+            else if (filtro === 'stock-bajo') cumpleFiltro = p.stock >= 1 && p.stock <= 10;
+            else if (filtro === 'sin-stock') cumpleFiltro = p.stock === 0;
+            
+            return cumpleBusqueda && cumpleFiltro;
+        });
+
+        // Renderizar filas
+        tbody.innerHTML = productosFiltrados.map(p => `
+            <tr>
+                <td>${p.id}</td>
+                <td>${p.nombre}</td>
+                <td>$${p.precio.toLocaleString('es-CO')}</td>
+                <td>${p.stock}</td>
+                <td>
+                    <button type="button" class="btn btn-primary" onclick="editarProducto(${p.id})">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="eliminarProducto(${p.id})">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    // ===== FUNCIÓN EDITAR PRODUCTO =====
+    async function editarProducto(id) {
+        const producto = productos.find(p => p.id === id);
+        
+        if (!producto) return;
+
+        const { value: formValues } = await Swal.fire({
+            title: 'Editar Producto',
+            html: `
+                <div class="mb-3">
+                    <label class="form-label">Nombre del producto</label>
+                    <input id="swal-nombre" class="form-control" value="${producto.nombre}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Precio</label>
+                    <input id="swal-precio" type="number" class="form-control" value="${producto.precio}">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Stock</label>
+                    <input id="swal-stock" type="number" class="form-control" value="${producto.stock}">
+                </div>
+            `,
+            focusConfirm: false,
+            showCancelButton: true,
+            confirmButtonText: 'Guardar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#198754',
+            cancelButtonColor: '#6c757d',
+            preConfirm: () => {
+                const nombre = document.getElementById('swal-nombre').value;
+                const precio = document.getElementById('swal-precio').value;
+                const stock = document.getElementById('swal-stock').value;
+
+                if (!nombre || !precio || !stock) {
+                    Swal.showValidationMessage('Todos los campos son obligatorios');
+                    return false;
+                }
+
+                return {
+                    nombre: nombre,
+                    precio: parseFloat(precio),
+                    stock: parseInt(stock)
+                }
+            }
+        });
+
+        if (formValues) {
+            // Actualizar el producto
+            const index = productos.findIndex(p => p.id === id);
+            productos[index] = {
+                ...productos[index],
+                ...formValues
+            };
+
+            // Mostrar mensaje de éxito
+            Swal.fire({
+                title: '¡Actualizado!',
+                text: 'El producto ha sido actualizado correctamente',
+                icon: 'success',
+                confirmButtonColor: '#198754'
+            });
+
+            // Actualizar la tabla
+            renderizarProductos();
+        }
+    }
+
+    // ===== FUNCIÓN ELIMINAR PRODUCTO =====
+    function eliminarProducto(id) {
+        const producto = productos.find(p => p.id === id);
+        
+        if (!producto) return;
+
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: `¿Deseas eliminar el producto "${producto.nombre}"?`,
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#dc3545',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Eliminar el producto del array
+                productos = productos.filter(p => p.id !== id);
+
+                // Mostrar mensaje de éxito
+                Swal.fire({
+                    title: '¡Eliminado!',
+                    text: 'El producto ha sido eliminado correctamente',
+                    icon: 'success',
+                    confirmButtonColor: '#198754'
+                });
+
+                // Actualizar la tabla
+                renderizarProductos();
+            }
+        });
+    }
+
+    // Eventos
+    document.getElementById('searchInput').addEventListener('input', renderizarProductos);
+    document.getElementById('filtroStock').addEventListener('change', renderizarProductos);
+
+    // Cargar productos al iniciar
+    renderizarProductos();
+</script>
+
 </body>
+
 </html>
