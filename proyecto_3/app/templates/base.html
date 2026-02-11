@@ -149,7 +149,12 @@
 
 <!-- Script dinámico -->
 <script>
+<<<<<<< HEAD
     // Datos de ejemplo
+=======
+document.addEventListener("DOMContentLoaded", function () {
+
+>>>>>>> diego
     let productos = [
         { id: 1, nombre: "Harina", precio: 5000, stock: 25 },
         { id: 2, nombre: "Jabon Axion", precio: 8000, stock: 120 },
@@ -163,6 +168,7 @@
 
     function renderizarProductos() {
         const tbody = document.getElementById('productosTabla');
+<<<<<<< HEAD
         const busqueda = document.getElementById('searchInput').value.toLowerCase();
         const filtro = document.getElementById('filtroStock').value;
         
@@ -172,6 +178,19 @@
             const cumpleBusqueda = p.nombre.toLowerCase().includes(busqueda);
             
             // Filtro de stock
+=======
+        const searchInput = document.getElementById('searchInput');
+        const filtroStock = document.getElementById('filtroStock');
+
+        if (!tbody || !searchInput || !filtroStock) return;
+
+        const busqueda = searchInput.value.toLowerCase();
+        const filtro = filtroStock.value;
+        
+        let productosFiltrados = productos.filter(p => {
+            const cumpleBusqueda = p.nombre.toLowerCase().includes(busqueda);
+            
+>>>>>>> diego
             let cumpleFiltro = true;
             if (filtro === 'stock-alto') cumpleFiltro = p.stock > 50;
             else if (filtro === 'stock-medio') cumpleFiltro = p.stock >= 11 && p.stock <= 50;
@@ -181,7 +200,10 @@
             return cumpleBusqueda && cumpleFiltro;
         });
 
+<<<<<<< HEAD
         // Renderizar filas
+=======
+>>>>>>> diego
         tbody.innerHTML = productosFiltrados.map(p => `
             <tr>
                 <td>${p.id}</td>
@@ -189,10 +211,17 @@
                 <td>$${p.precio.toLocaleString('es-CO')}</td>
                 <td>${p.stock}</td>
                 <td>
+<<<<<<< HEAD
                     <button type="button" class="btn btn-primary" onclick="editarProducto(${p.id})">
                         <i class="fa-solid fa-pen"></i>
                     </button>
                     <button type="button" class="btn btn-danger" onclick="eliminarProducto(${p.id})">
+=======
+                    <button type="button" class="btn btn-primary">
+                        <i class="fa-solid fa-pen"></i>
+                    </button>
+                    <button type="button" class="btn btn-danger">
+>>>>>>> diego
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </td>
@@ -200,6 +229,7 @@
         `).join('');
     }
 
+<<<<<<< HEAD
     // ===== FUNCIÓN EDITAR PRODUCTO =====
     async function editarProducto(id) {
         const producto = productos.find(p => p.id === id);
@@ -307,6 +337,16 @@
 
     // Cargar productos al iniciar
     renderizarProductos();
+=======
+    const searchInput = document.getElementById('searchInput');
+    const filtroStock = document.getElementById('filtroStock');
+
+    if (searchInput) searchInput.addEventListener('input', renderizarProductos);
+    if (filtroStock) filtroStock.addEventListener('change', renderizarProductos);
+
+    renderizarProductos();
+});
+>>>>>>> diego
 </script>
 
 </body>

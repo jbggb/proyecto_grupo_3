@@ -36,6 +36,7 @@ class Cliente(models.Model):
 
 
 class Marca(models.Model):
+    idMarca = models.AutoField(primary_key=True, db_column='idMarca')  # ← AGREGAR
     nombreMarca = models.CharField(max_length=100)
     
     def __str__(self):
@@ -48,8 +49,9 @@ class Marca(models.Model):
 
 
 class TipoProductos(models.Model):
-    nombre_tipo = models.CharField(max_length=100)
-    descripcion = models.TextField()
+    idTipo = models.AutoField(primary_key=True, db_column='idTipo') 
+    nombre_tipo = models.CharField(max_length=100, db_column='nombre')  
+    descripcion = models.TextField(db_column='descripcion')
 
     def __str__(self):
         return self.nombre_tipo
@@ -57,12 +59,13 @@ class TipoProductos(models.Model):
     class Meta:
         verbose_name = "tipo_producto"
         verbose_name_plural = "tipos_productos"
-        db_table = "tipo_productos"
+        db_table = "tipoproducto"
 
 
 class unidad_medida(models.Model):
-    nombre_unidad = models.CharField(max_length=100)
-    abreviatura = models.CharField(max_length=10)
+    idUnidad = models.AutoField(primary_key=True, db_column='idUnidad')
+    nombre_unidad = models.CharField(max_length=100, db_column='nombreUnidad')  
+    abreviatura = models.CharField(max_length=10, db_column='abreviatura')
     
     def __str__(self):
         return self.nombre_unidad
@@ -70,10 +73,11 @@ class unidad_medida(models.Model):
     class Meta:
         verbose_name = "unidad_medida"
         verbose_name_plural = "unidades_medida"
-        db_table = "unidad_medida"
+        db_table = "unidadmedida"
 
 
 class Producto(models.Model):
+    idProducto = models.AutoField(primary_key=True, db_column='idProducto')  # ← AGREGAR ESTA LÍNEA
     idTipo = models.ForeignKey(TipoProductos, on_delete=models.CASCADE, db_column='idTipo')
     idMarca = models.ForeignKey(Marca, on_delete=models.CASCADE, db_column='idMarca')
     idUnidad = models.ForeignKey(unidad_medida, on_delete=models.CASCADE, db_column='idUnidad')
