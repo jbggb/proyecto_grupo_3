@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de ventas </title>
+    
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    
+    <style>
+        body {
+            background-color: #f4f6f9;
+            font-family: Arial, sans-serif;
+        }
+        
+        .sidebar {
+            background-color: #343a40;
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+        
+        .sidebar h4 {
+            color: white;
+            padding: 0 20px;
+            margin-bottom: 30px;
+        }
+        
+        .sidebar .nav-link {
+            color: #c2c7d0;
+            padding: 12px 20px;
+            transition: all 0.3s;
+        }
+        
+        .sidebar .nav-link:hover {
+            background-color: #495057;
+            color: white;
+        }
+        
+        .sidebar .nav-link.active {
+            background-color: #007bff;
+            color: white;
+        }
+        
+        .navbar-custom {
+            background-color: #343a40;
+            padding: 15px 30px;
+        }
+        
+        .content-header {
+            background-color: white;
+            padding: 20px 30px;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #007bff;
+        }
+        
+        .card-stat {
+            border-left: 3px solid #007bff;
+        }
+        
+        .table-container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .table thead {
+            background-color: #343a40;
+            color: white;
+        }
+        
+        .btn-action {
+            margin: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar px-0">
+                <h4><i class="fas fa-cube"></i> Inventario</h4>
+                <nav class="nav flex-column">
+                    <a class="nav-link" href="/inicio">
+                        <i class="fas fa-home"></i> Inicio
+                    </a>
+                    <a class="nav-link" href="/productos">
+                        <i class="fas fa-box"></i> Productos
+                    </a>
+                    <a class="nav-link" href="/clientes">
+                        <i class="fas fa-users"></i> Clientes
+                    </a>
+                    <a class="nav-link active" href="/ventas">
+                        <i class="fas fa-shopping-cart"></i> Ventas
+                    </a>
+                </nav>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 px-0">
+                <!-- Top Navbar -->
+                <nav class="navbar navbar-dark navbar-custom">
+                    <span class="navbar-brand">
+                        <i class="fas fa-box"></i> Sistema de Control de Inventario
+                    </span>
+                </nav>
+                
+                <!-- Content Header -->
+                <div class="content-header">
+                    <h2>Panel de Gestión de Ventas</h2>
+                    <p class="text-muted mb-0">Sistema de ventas</p>
+                </div>
+                
+                
+                <div class="container-fluid px-4">
+                    <!-- Stats Cards -->
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card card-stat">
+                                <div class="card-body">
+                                    <h6 class="text-muted">Ventas  de Hoy</h6>
+                                    <h3>$100.000</h3>
+                                    <small class="text-success"><i class="fas fa-arrow-up"></i> 12% vs ayer</small>
+                                </div>
+                            </div>
+                        </div>
+                        <! -- Precips de las ventas d--!>
+                        <div class="col-md-3">
+                            <div class="card card-stat">
+                                <div class="card-body">
+                                    <h6 class="text-muted">Total Mes</h6>
+                                    <h3>$1.250.000</h3>
+                                    <small class="text-success"><i class="fas fa-arrow-up"></i> 8% vs mes anterior</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card card-stat">
+                                <div class="card-body">
+                                    <h6 class="text-muted">Ventas Realizadas</h6>
+                                    <h3>47</h3>
+                                    <small class="text-muted">Este mes</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card card-stat">
+                                <div class="card-body">
+                                    <h6 class="text-muted">Ticket Promedio</h6>
+                                    <h3>$73.404</h3>
+                                    <small class="text-info"><i class="fas fa-minus"></i> Sin cambios</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Search and Filter -->
+                    <div class="table-container">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <input type="text" class="form-control" placeholder="Buscar venta...">
+                            </div>
+                            <div class="col-md-3">
+                                <select class="form-select">
+                                    <option>Filtrar por fecha</option>
+                                    <option>Hoy</option>
+                                    <option>Esta semana</option>
+                                    <option>Este mes</option>
+                                    <option>Todas</option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <button class="btn btn-primary w-100" onclick="nuevaVenta()">
+                                    <i class="fas fa-plus"></i> Nueva Venta
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Sales Table -->
+                        <h5 class="bg-dark text-white p-2 mb-0">VENTAS REGISTRADAS</h5>
+<table class="table table-hover mb-0">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Productos</th>
+            <th>Total</th>
+            <th>Estado de pago</th>
+            <th>Acción</th>
+        </tr>
+    </thead>
+    <tbody id="ventasTableBody">
+        <tr>
+            <td>1</td>
+            <td>05/02/2026 10:30</td>
+            <td>Juan Pérez</td>
+            <td>Harina, Queso</td>
+            <td>$30.000</td>
+            <td><span class="badge bg-success">Completada</span></td>
+            <td>
+                <button class="btn btn-primary btn-sm btn-action" onclick="verDetalle(1, 'Juan Pérez', 'Harina, Queso', '$30.000', '05/02/2026 10:30')">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-info btn-sm btn-action" onclick="imprimirVenta(1)">
+                    <i class="fas fa-print"></i>
+                </button>
+                <button class="btn btn-danger btn-sm btn-action" onclick="eliminarVenta(this, 1, 'Juan Pérez')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+        <tr>
+            <td>2</td>
+            <td>05/02/2026 11:45</td>
+            <td>María García</td>
+            <td>Jabon Axion</td>
+            <td>$16.000</td>
+            <td><span class="badge bg-success">Completada</span></td>
+            <td>
+                <button class="btn btn-primary btn-sm btn-action" onclick="verDetalle(2, 'María García', 'Jabon Axion', '$16.000', '05/02/2026 11:45')">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-info btn-sm btn-action" onclick="imprimirVenta(2)">
+                    <i class="fas fa-print"></i>
+                </button>
+                <button class="btn btn-danger btn-sm btn-action" onclick="eliminarVenta(this, 2, 'María García')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+        <tr>
+            <td>3</td>
+            <td>05/02/2026 14:20</td>
+            <td>Carlos Rodríguez</td>
+            <td>Queso, Harina, Jabon</td>
+            <td>$38.000</td>
+            <td><span class="badge bg-warning text-dark">Pendiente</span></td>
+            <td>
+                <button class="btn btn-primary btn-sm btn-action" onclick="verDetalle(3, 'Carlos Rodríguez', 'Queso, Harina, Jabon', '$38.000', '05/02/2026 14:20')">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-info btn-sm btn-action" onclick="imprimirVenta(3)">
+                    <i class="fas fa-print"></i>
+                </button>
+                <button class="btn btn-danger btn-sm btn-action" onclick="eliminarVenta(this, 3, 'Carlos Rodríguez')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+        <tr>
+            <td>4</td>
+            <td>04/02/2026 16:10</td>
+            <td>Ana Martínez</td>
+            <td>Harina</td>
+            <td>$10.000</td>
+            <td><span class="badge bg-success">Completada</span></td>
+            <td>
+                <button class="btn btn-primary btn-sm btn-action" onclick="verDetalle(4, 'Ana Martínez', 'Harina', '$10.000', '04/02/2026 16:10')">
+                    <i class="fas fa-eye"></i>
+                </button>
+                <button class="btn btn-info btn-sm btn-action" onclick="imprimirVenta(4)">
+                    <i class="fas fa-print"></i>
+                </button>
+                <button class="btn btn-danger btn-sm btn-action" onclick="eliminarVenta(this, 4, 'Ana Martínez')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    </tbody>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+// Función para actualizar estadísticas
+function actualizarEstadisticas() {
+    const tbody = document.getElementById('ventasTableBody');
+    const filas = tbody.querySelectorAll('tr:not([style*="display: none"])');
+    
+    // Contar ventas visibles
+    const totalVentas = filas.length;
+    
+    // Calcular total del mes
+    let totalMes = 0;
+    filas.forEach(fila => {
+        const totalTexto = fila.children[4].textContent.replace('$', '').replace(/\./g, '').replace(',', '');
+        totalMes += parseFloat(totalTexto) || 0;
+    });
+    
+    // Calcular ventas de hoy
+    const hoy = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    let ventasHoy = 0;
+    filas.forEach(fila => {
+        const fechaVenta = fila.children[1].textContent.split(' ')[0];
+        if (fechaVenta === hoy) {
+            const totalTexto = fila.children[4].textContent.replace('$', '').replace(/\./g, '').replace(',', '');
+            ventasHoy += parseFloat(totalTexto) || 0;
+        }
+    });
+    
+    // Calcular ticket promedio
+    const ticketPromedio = totalVentas > 0 ? totalMes / totalVentas : 0;
+    
+    // Actualizar las tarjetas
+    document.querySelector('.col-md-3:nth-child(1) h3').textContent = '$' + ventasHoy.toLocaleString('es-CO');
+    document.querySelector('.col-md-3:nth-child(2) h3').textContent = '$' + totalMes.toLocaleString('es-CO');
+    document.querySelector('.col-md-3:nth-child(3) h3').textContent = totalVentas;
+    document.querySelector('.col-md-3:nth-child(4) h3').textContent = '$' + Math.round(ticketPromedio).toLocaleString('es-CO');
+}
+
+// Función para ver detalle de venta
+function verDetalle(ventaId, cliente, productos, total, fecha) {
+    Swal.fire({
+        title: `Detalle de Venta #${ventaId}`,
+        html: `
+            <div style="text-align: left; padding: 10px;">
+                <p><strong>📅 Fecha:</strong> ${fecha}</p>
+                <p><strong>👤 Cliente:</strong> ${cliente}</p>
+                <p><strong>📦 Productos:</strong> ${productos}</p>
+                <p><strong>💰 Total:</strong> ${total}</p>
+            </div>
+        `,
+        icon: 'info',
+        confirmButtonText: 'Cerrar',
+        confirmButtonColor: '#007bff'
+    });
+}
+
+// Función para imprimir factura
+function imprimirVenta(ventaId) {
+    Swal.fire({
+        title: '¿Imprimir factura?',
+        text: `¿Deseas imprimir la factura de la venta #${ventaId}?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#17a2b8',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, imprimir',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire({
+                title: '¡Imprimiendo!',
+                text: `Factura de venta #${ventaId} enviada a impresora`,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+    });
+}
+
+// Función para eliminar venta
+function eliminarVenta(boton, ventaId, cliente) {
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: `¿Deseas eliminar la venta de ${cliente}?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const fila = boton.closest('tr');
+            fila.style.transition = 'opacity 0.5s';
+            fila.style.opacity = '0';
+            
+            setTimeout(() => {
+                fila.remove();
+                actualizarEstadisticas();
+                Swal.fire({
+                    title: '¡Eliminada!',
+                    text: `Venta #${ventaId} eliminada correctamente`,
+                    icon: 'success',
+                    timer: 2000,
+                    showConfirmButton: false
+                });
+            }, 500);
+        }
+    });
+}
+
+// Función para nueva venta
+function nuevaVenta() {
+    Swal.fire({
+        title: 'Nueva Venta',
+        html: `
+            <div style="text-align: left;">
+                <label style="display: block; margin-bottom: 5px; color: #6c757d;">Cliente</label>
+                <input type="text" id="clienteVenta" class="swal2-input" placeholder="Nombre del cliente" style="width: 90%; margin: 0 0 15px 0;">
+                
+                <label style="display: block; margin-bottom: 5px; color: #6c757d;">Productos</label>
+                <input type="text" id="productosVenta" class="swal2-input" placeholder="Ej: Harina, Queso, Jabon" style="width: 90%; margin: 0 0 15px 0;">
+                
+                <label style="display: block; margin-bottom: 5px; color: #6c757d;">Total</label>
+                <input type="number" id="totalVenta" class="swal2-input" placeholder="0" style="width: 90%; margin: 0 0 15px 0;">
+                
+                <label style="display: block; margin-bottom: 5px; color: #6c757d;">Estado</label>
+                <select id="estadoVenta" class="swal2-input" style="width: 90%; margin: 0;">
+                    <option value="Completada">Completada</option>
+                    <option value="Pendiente">Pendiente</option>
+                </select>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Guardar',
+        cancelButtonText: 'Cancelar',
+        width: '500px',
+        preConfirm: () => {
+            const cliente = document.getElementById('clienteVenta').value;
+            const productos = document.getElementById('productosVenta').value;
+            const total = document.getElementById('totalVenta').value;
+            const estado = document.getElementById('estadoVenta').value;
+            
+            if (!cliente || !productos || !total) {
+                Swal.showValidationMessage('Por favor completa todos los campos');
+                return false;
+            }
+            
+            return { cliente, productos, total, estado };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const { cliente, productos, total, estado } = result.value;
+            
+            const ahora = new Date();
+            const fecha = `${String(ahora.getDate()).padStart(2, '0')}/${String(ahora.getMonth() + 1).padStart(2, '0')}/${ahora.getFullYear()} ${String(ahora.getHours()).padStart(2, '0')}:${String(ahora.getMinutes()).padStart(2, '0')}`;
+            
+            const tbody = document.getElementById('ventasTableBody');
+            const ultimaFila = tbody.querySelector('tr:last-child');
+            const ultimoId = ultimaFila ? parseInt(ultimaFila.querySelector('td:first-child').textContent) : 0;
+            const nuevoId = ultimoId + 1;
+            
+            const nuevaFila = document.createElement('tr');
+            nuevaFila.innerHTML = `
+                <td>${nuevoId}</td>
+                <td>${fecha}</td>
+                <td>${cliente}</td>
+                <td>${productos}</td>
+                <td>$${parseFloat(total).toLocaleString('es-CO')}</td>
+                <td><span class="badge bg-${estado === 'Completada' ? 'success' : 'warning text-dark'}">${estado}</span></td>
+                <td>
+                    <button class="btn btn-primary btn-sm btn-action" onclick="verDetalle(${nuevoId}, '${cliente}', '${productos}', '$${parseFloat(total).toLocaleString('es-CO')}', '${fecha}')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-info btn-sm btn-action" onclick="imprimirVenta(${nuevoId})">
+                        <i class="fas fa-print"></i>
+                    </button>
+                    <button class="btn btn-danger btn-sm btn-action" onclick="eliminarVenta(this, ${nuevoId}, '${cliente}')">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            `;
+            
+            nuevaFila.style.opacity = '0';
+            nuevaFila.style.transition = 'opacity 0.5s';
+            tbody.appendChild(nuevaFila);
+            
+            setTimeout(() => {
+                nuevaFila.style.opacity = '1';
+                actualizarEstadisticas();
+            }, 100);
+            
+            Swal.fire({
+                title: '¡Venta registrada!',
+                text: `La venta #${nuevoId} fue registrada correctamente`,
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }
+    });
+}
+
+// Búsqueda en tiempo real
+document.querySelector('input[placeholder="Buscar venta..."]').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('#ventasTableBody tr');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(searchTerm) ? '' : 'none';
+    });
+    
+    actualizarEstadisticas();
+});
+
+// Filtro por fecha
+document.querySelector('select.form-select').addEventListener('change', function(e) {
+    const filter = e.target.value;
+    const rows = document.querySelectorAll('#ventasTableBody tr');
+    const hoy = new Date();
+    
+    rows.forEach(row => {
+        const fechaTexto = row.children[1].textContent;
+        const [dia, mes, anio] = fechaTexto.split(' ')[0].split('/');
+        const fechaVenta = new Date(anio, mes - 1, dia);
+        
+        let mostrar = true;
+        
+        if (filter === 'Hoy') {
+            mostrar = fechaVenta.toDateString() === hoy.toDateString();
+        } else if (filter === 'Esta semana') {
+            const inicioSemana = new Date(hoy);
+            inicioSemana.setDate(hoy.getDate() - hoy.getDay());
+            const finSemana = new Date(inicioSemana);
+            finSemana.setDate(inicioSemana.getDate() + 6);
+            mostrar = fechaVenta >= inicioSemana && fechaVenta <= finSemana;
+        } else if (filter === 'Este mes') {
+            mostrar = fechaVenta.getMonth() === hoy.getMonth() && fechaVenta.getFullYear() === hoy.getFullYear();
+        } else if (filter === 'Todas') {
+            mostrar = true;
+        }
+        
+        row.style.display = mostrar ? '' : 'none';
+    });
+    
+    actualizarEstadisticas();
+    
+    if (filter !== 'Filtrar por fecha') {
+        Swal.fire({
+            title: 'Filtro aplicado',
+            text: `Mostrando ventas: ${filter}`,
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    }
+});
+</script>
+</body>
+</html>
