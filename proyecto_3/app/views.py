@@ -2,74 +2,70 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import ListView, CreateView
 from django.urls import reverse_lazy
 from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from .models import (
-    Administrador, Producto, Cliente, Venta, 
-    Marca, TipoProductos, unidad_medida
+    Administrador, Producto, Cliente, Venta,
+    Marca, TipoProductos, unidad_medida, Proveedor
 )
 from .forms import AdministradorRegistroForm
 
 
+# ===== INICIO =====
 def index(request):
-    return render(request, "base.html")
+    try:
+        total_productos = Producto.objects.count()
+        total_clientes = Cliente.objects.count()
+        total_ventas = Venta.objects.count()
+    except:
+        total_productos = 0
+        total_clientes = 0
+        total_ventas = 0
+
+    context = {
+        'total_productos': total_productos,
+        'total_clientes': total_clientes,
+        'total_ventas': total_ventas,
+    }
+    return render(request, "index.html", context)
 
 
+# ===== PRODUCTOS =====
 def productos(request):
     lista_productos = Producto.objects.all().select_related('idMarca', 'idTipo', 'idUnidad')
-    
-    # Obtener datos para los selects del modal
     marcas = Marca.objects.all()
     tipos = TipoProductos.objects.all()
     unidades = unidad_medida.objects.all()
-    
     context = {
         'productos': lista_productos,
         'marcas': marcas,
         'tipos': tipos,
         'unidades': unidades
     }
-    
-    return render(request, "administrador/productos.html", context)
+    return render(request, "Productos/productos.html", context)
 
 
 def crear_producto(request):
     if request.method == 'POST':
         try:
-            # Obtener datos del formulario
             nombre = request.POST.get('nombre')
             precio = request.POST.get('precio')
             stock = request.POST.get('stock')
             id_marca = request.POST.get('idMarca')
             id_tipo = request.POST.get('idTipo')
             id_unidad = request.POST.get('idUnidad')
-            
-            # Debug: imprimir los valores recibidos
-            print(f"Datos recibidos - Nombre: {nombre}, Precio: {precio}, Stock: {stock}")
-            print(f"IDs - Marca: {id_marca}, Tipo: {id_tipo}, Unidad: {id_unidad}")
-            
-            # Crear el producto
-            producto = Producto.objects.create(
-                nombre=nombre,
-                precio=precio,
-                stock=stock,
-                idMarca_id=id_marca,
-                idTipo_id=id_tipo,
-                idUnidad_id=id_unidad
+            Producto.objects.create(
+                nombre=nombre, precio=precio, stock=stock,
+                idMarca_id=id_marca, idTipo_id=id_tipo, idUnidad_id=id_unidad
             )
-            
             messages.success(request, f'Producto "{nombre}" creado exitosamente.')
-            return redirect('productos')
-            
         except Exception as e:
-            print(f"Error completo: {e}")  # Debug: mostrar error en consola
             messages.error(request, f'Error al crear el producto: {str(e)}')
-            return redirect('productos')
-    
     return redirect('productos')
 
 
 def editar_producto(request, id):
     producto = get_object_or_404(Producto, idProducto=id)
-    
     if request.method == 'POST':
         try:
             producto.nombre = request.POST.get('nombre')
@@ -79,97 +75,138 @@ def editar_producto(request, id):
             producto.idTipo_id = request.POST.get('idTipo')
             producto.idUnidad_id = request.POST.get('idUnidad')
             producto.save()
-            
             messages.success(request, f'Producto "{producto.nombre}" actualizado exitosamente.')
-            return redirect('productos')
-            
         except Exception as e:
             messages.error(request, f'Error al actualizar el producto: {str(e)}')
-    
     return redirect('productos')
 
 
 def eliminar_producto(request, id):
     producto = get_object_or_404(Producto, idProducto=id)
     nombre = producto.nombre
-    
     try:
         producto.delete()
         messages.success(request, f'Producto "{nombre}" eliminado exitosamente.')
     except Exception as e:
         messages.error(request, f'Error al eliminar el producto: {str(e)}')
-    
     return redirect('productos')
 
 
+# ===== CLIENTES =====
 def clientes(request):
     lista_clientes = Cliente.objects.all()
     return render(request, "cliente/clientes.html", {'clientes': lista_clientes})
 
 
+# ===== VENTAS =====
 def ventas(request):
     lista_ventas = Venta.objects.all().select_related('idAdministrador', 'idCliente', 'idProducto')
-    return render(request, "ventas.html", {'ventas': lista_ventas})
+    return render(request, "Ventas.html", {'ventas': lista_ventas})
+
+
+# ===== PROVEEDORES =====
+from django.core import serializers
+
+def proveedores(request):
+    lista_proveedores = Proveedor.objects.all().select_related('idTipo', 'idProducto')
+    lista_productos = Producto.objects.all()
+    lista_tipos = TipoProductos.objects.all()
+    
+    # Serializar para el JS
+    productos_json = serializers.serialize('json', lista_productos, fields=['nombre'])
+    tipos_json = serializers.serialize('json', lista_tipos, fields=['nombre_tipo'])
+    
+    context = {
+        'proveedores': lista_proveedores,
+        'productos': lista_productos,
+        'tipos': lista_tipos,
+        'productos_json': productos_json,
+        'tipos_json': tipos_json,
+    }
+    return render(request, 'proveedores/proveedores.html', context)
+
+
+def crear_proveedor(request):
+    if request.method == 'POST':
+        try:
+            Proveedor.objects.create(
+                nombre=request.POST.get('nombre'),
+                telefono=request.POST.get('telefono'),
+                email=request.POST.get('email'),
+                idTipo_id=request.POST.get('idTipo'),
+                idProducto_id=request.POST.get('idProducto'),
+                stock=request.POST.get('stock'),
+                envio=request.POST.get('envio') == 'True',
+            )
+            messages.success(request, 'Proveedor registrado exitosamente.')
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
+    return redirect('proveedores')
+
+
+def editar_proveedor(request, id):
+    proveedor = get_object_or_404(Proveedor, id=id)
+    if request.method == 'POST':
+        try:
+            proveedor.nombre = request.POST.get('nombre')
+            proveedor.telefono = request.POST.get('telefono')
+            proveedor.email = request.POST.get('email')
+            proveedor.idTipo_id = request.POST.get('idTipo')
+            proveedor.idProducto_id = request.POST.get('idProducto')
+            proveedor.stock = request.POST.get('stock')
+            proveedor.envio = request.POST.get('envio') == 'True'
+            proveedor.save()
+            messages.success(request, f'Proveedor "{proveedor.nombre}" actualizado.')
+        except Exception as e:
+            messages.error(request, f'Error: {str(e)}')
+    return redirect('proveedores')
+
+
+def eliminar_proveedor(request, id):
+    proveedor = get_object_or_404(Proveedor, id=id)
+    try:
+        nombre = proveedor.nombre
+        proveedor.delete()
+        messages.success(request, f'Proveedor "{nombre}" eliminado.')
+    except Exception as e:
+        messages.error(request, f'Error: {str(e)}')
+    return redirect('proveedores')
 
 
 # ===== REGISTRO DE ADMINISTRADOR =====
-
 def registrar_administrador(request):
     if request.method == 'POST':
         form = AdministradorRegistroForm(request.POST)
-        
         if form.is_valid():
-            administrador = form.save(commit=False)
-            administrador.save()
-            
+            form.save()
             messages.success(request, '¡Administrador registrado exitosamente!')
             return redirect('inicio')
         else:
             messages.error(request, 'Por favor corrige los errores del formulario.')
     else:
         form = AdministradorRegistroForm()
-    
-    return render(request, 'administrador/registro.html', {'form': form})
+    return render(request, 'registro.html', {'form': form})
 
 
-# ===== VISTAS BASADAS EN CLASES =====
-
-class ProductoListView(ListView):
-    template_name = "productos.html"
-    context_object_name = 'productos'
-    
-    def dispatch(self, request, *args, **kwargs):
-        if request.method == 'GET':
-            return super().dispatch(request, *args, **kwargs)
-        return super().dispatch(request, *args, **kwargs)
-
-
-class ProductoCreateView(CreateView):
-    template_name = "producto/create.html"
-    success_url = reverse_lazy('productos')
-    
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+# ===== LOGIN =====
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('inicio')
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            messages.success(request, f'¡Bienvenido, {user.username}!')
+            return redirect('inicio')
+        else:
+            messages.error(request, 'Usuario o contraseña incorrectos.')
+    return render(request, 'login.html')
 
 
-class ClienteCreateView(CreateView):
-    template_name = "cliente/create.html"
-    success_url = reverse_lazy('clientes')
-
-
-class VentaCreateView(CreateView):
-    template_name = "venta/create.html"
-    success_url = reverse_lazy('ventas')
-
-
-class CategoriaCreateView(CreateView):
-    template_name = "categoria/create.html"
-    success_url = reverse_lazy('productos')
-    
-    def dispatch(self, request, *args, **kwargs):
-        if request.method == 'GET':
-            return super().dispatch(request, *args, **kwargs)
-        return super().dispatch(request, *args, **kwargs)
-    
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+# ===== LOGOUT =====
+def logout_view(request):
+    logout(request)
+    messages.success(request, 'Sesión cerrada correctamente.')
+    return redirect('login')
