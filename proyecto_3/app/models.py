@@ -21,9 +21,17 @@ class Administrador(models.Model):
 
 
 class Cliente(models.Model):
+    ESTADO_CHOICES = [
+        ('activo', 'Activo'),
+        ('inactivo', 'Inactivo'),
+    ]
+
     nombre = models.CharField(max_length=150)
-    telefono = models.CharField(max_length=20)
-    email = models.EmailField(max_length=100)
+    documento = models.CharField(max_length=12, unique=True)
+    telefono = models.CharField(max_length=10)
+    email = models.EmailField(max_length=100, unique=True)
+    direccion = models.CharField(max_length=255)
+    estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='activo')
     fechaRegistro = models.DateField(default=datetime.now)
     
     def __str__(self):

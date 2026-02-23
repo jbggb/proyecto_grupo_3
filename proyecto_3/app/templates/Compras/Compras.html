@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<h1>Gestión de Compras</h1>
+<p class="text-muted">Sistema de inventario por el Grupo 3</p>
+
+<!-- Botón agregar -->
+<button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalCompra">
+  🛒 Agregar Compra
+</button>
+
+<!-- Filtros -->
+<div class="mb-3">
+  <input type="text" class="form-control mb-2" placeholder="Buscar compra..." id="inputBuscar">
+  <label>Filtrar por estado:</label>
+  <select class="form-select" id="selEstado">
+    <option value="">Todos</option>
+    <option>Completada</option>
+    <option>Pendiente</option>
+    <option>En proceso</option>
+    <option>Anulada</option>
+  </select>
+</div>
+
+<!-- Tabla -->
+<div class="card">
+  <div class="card-header bg-dark text-white">Compras registradas</div>
+  <div class="card-body p-0">
+    <table class="table table-bordered table-hover mb-0" id="tablaCompras">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>N° Orden</th>
+          <th>Proveedor</th>
+          <th>Fecha</th>
+          <th>Tipo de Producto</th>
+          <th>Marca de Producto</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody id="tbodyCompras">
+        <tr data-estado="Completada" data-id="1">
+          <td>1</td>
+          <td>ORD-2025-001</td>
+          <td>Distribuidora ABC</td>
+          <td>2025-01-10</td>
+          <td>paquetes</td>
+          <td>Papas Margarita</td>
+          <td>$250,000</td>
+          <td><span class="badge bg-success">Completada</span></td>
+          <td>
+            <button class="btn btn-sm btn-primary">✏️</button>
+            <button class="btn btn-sm btn-danger">🗑</button>
+          </td>
+        </tr>
+        <tr data-estado="Pendiente" data-id="2">
+          <td>2</td>
+          <td>ORD-2025-002</td>
+          <td>Proveedores XYZ</td>
+          <td>2025-01-15</td>
+          <td>Cerveza</td>
+          <td>Poker</td>
+          <td>$120,000</td>
+          <td><span class="badge bg-warning text-dark">Pendiente</span></td>
+          <td>
+            <button class="btn btn-sm btn-primary">✏️</button>
+            <button class="btn btn-sm btn-danger">🗑</button>
+          </td>
+        </tr>
+        <tr data-estado="En proceso" data-id="3">
+          <td>3</td>
+          <td>ORD-2025-003</td>
+          <td>Suministros 123</td>
+          <td>2025-01-20</td>
+          <td>gaseosas</td>
+          <td>Pepsi</td>
+          <td>$500,000</td>
+          <td><span class="badge bg-primary">En proceso</span></td>
+          <td>
+            <button class="btn btn-sm btn-primary">✏️</button>
+            <button class="btn btn-sm btn-danger">🗑</button>
+          </td>
+        </tr>
+        <tr data-estado="Anulada" data-id="4">
+          <td>4</td>
+          <td>ORD-2025-004</td>
+          <td>Importadora DEF</td>
+          <td>2025-01-22</td>
+          <td>Alimentos</td>
+          <td>Nestlé</td>
+          <td>$540,000</td>
+          <td><span class="badge bg-danger">Anulada</span></td>
+          <td>
+            <button class="btn btn-sm btn-primary">✏️</button>
+            <button class="btn btn-sm btn-danger">🗑</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal agregar / editar compra -->
+<div class="modal fade" id="modalCompra" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title" id="modalTitulo">Nueva Compra</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="filaEditando">
+
+        <div class="mb-3">
+          <label class="form-label">Proveedor</label>
+          <select class="form-select" id="inpProveedor">
+            <option value="">— Seleccionar —</option>
+            <option>Distribuidora ABC</option>
+            <option>Proveedores XYZ</option>
+            <option>Suministros 123</option>
+            <option>Importadora DEF</option>
+          </select>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Tipo de Producto</label>
+          <input type="text" class="form-control" id="inpTipo" placeholder="Ej: Paquetes">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Marca de Producto</label>
+          <input type="text" class="form-control" id="inpMarca" placeholder="Ej: Papas Margarita">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Fecha</label>
+          <input type="date" class="form-control" id="inpFecha">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Total</label>
+          <input type="number" class="form-control" id="inpTotal" placeholder="0">
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Estado</label>
+          <select class="form-select" id="inpEstado">
+            <option>Pendiente</option>
+            <option>En proceso</option>
+            <option>Completada</option>
+            <option>Anulada</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-success" id="btnGuardar">Guardar compra</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
