@@ -28,4 +28,12 @@ urlpatterns = [
     path('proveedores/crear/', views.crear_proveedor, name='crear_proveedor'),
     path('proveedores/editar/<int:id>/', views.editar_proveedor, name='editar_proveedor'),
     path('proveedores/eliminar/<int:id>/', views.eliminar_proveedor, name='eliminar_proveedor'),
+    
+    # Administrador (diego)
+    path('admin/productos/', views.admin_productos, name='admin_productos'),
+    path('admin/registro/', views.admin_registro, name='admin_registro'),
+    path('reportes/', views.reportes, name='reportes'),
+    
+    # Compras (MOJICA)
+    path('compras/', views.compras, name='compras'),
 ]

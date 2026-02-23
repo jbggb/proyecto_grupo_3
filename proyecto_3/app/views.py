@@ -210,3 +210,35 @@ def logout_view(request):
     logout(request)
     messages.success(request, 'Sesión cerrada correctamente.')
     return redirect('login')
+
+# ===== ADMINISTRADOR (diego) =====
+def admin_productos(request):
+    """Vista de productos para administrador"""
+    lista_productos = Producto.objects.all().select_related('idMarca', 'idTipo', 'idUnidad')
+    marcas = Marca.objects.all()
+    context = {
+        'productos': lista_productos,
+        'marcas': marcas,
+    }
+    return render(request, 'administrador/productos.html', context)
+
+def admin_registro(request):
+    """Vista de registro para administrador"""
+    if request.method == 'POST':
+        form = AdministradorRegistroForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, '¡Registro exitoso!')
+            return redirect('inicio')
+    else:
+        form = AdministradorRegistroForm()
+    return render(request, 'administrador/registro.html', {'form': form})
+
+def reportes(request):
+    """Vista de reportes (diego)"""
+    return render(request, 'administrador/reportes.html')
+
+# ===== COMPRAS (MOJICA) =====
+def compras(request):
+    """Vista de compras"""
+    return render(request, 'Compras/compras.html')
