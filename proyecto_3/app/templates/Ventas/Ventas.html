@@ -1,216 +1,137 @@
-
+{% extends 'base.html' %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Ventas - Inventario</title>
+{% block content %}
 
-    <!-- Bootstrap -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+    .product-item-select {
+        padding: 10px;
+        margin-bottom: 8px;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .product-item-select:hover {
+        background-color: #f8f9fa;
+        border-color: #0d6efd;
+    }
+    .carrito-producto {
+        background-color: #f8f9fa;
+        padding: 12px;
+        margin-bottom: 10px;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+    }
+    .cantidad-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .cantidad-control button {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border-radius: 4px;
+    }
+    .cantidad-control input {
+        width: 60px;
+        text-align: center;
+        border-radius: 4px;
+    }
+    .resumen-total {
+        background-color: #e7f5ff;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #0d6efd;
+    }
+</style>
 
-    <!-- FontAwesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+<h1 class="mb-4">Panel de Gestión de Ventas</h1>
+<p class="text-muted">Sistema de ventas</p>
 
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-
-    <!-- CSS base -->
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
-
-    <style>
-        .product-item-select {
-            padding: 10px;
-            margin-bottom: 8px;
-            border: 1px solid #dee2e6;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.2s ease;
-        }
-        .product-item-select:hover {
-            background-color: #f8f9fa;
-            border-color: #0d6efd;
-        }
-        .carrito-producto {
-            background-color: #f8f9fa;
-            padding: 12px;
-            margin-bottom: 10px;
-            border-radius: 6px;
-            border: 1px solid #dee2e6;
-        }
-        .cantidad-control {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .cantidad-control button {
-            width: 32px;
-            height: 32px;
-            padding: 0;
-            border-radius: 4px;
-        }
-        .cantidad-control input {
-            width: 60px;
-            text-align: center;
-            border-radius: 4px;
-        }
-        .resumen-total {
-            background-color: #e7f5ff;
-            padding: 15px;
-            border-radius: 8px;
-            border-left: 4px solid #0d6efd;
-        }
-    </style>
-
-</head>
-
-<body>
-
-<!-- BARRA SUPERIOR -->
-<nav class="navbar navbar-dark bg-dark fixed-top">
-    <div class="container-fluid">
-        <span class="navbar-brand mb-0 h1">
-            <i class="fa-solid fa-shop me-2"></i>Sistema de Inventario
-        </span>
-        <div class="d-flex">
-            <a href="{% url 'registro_administrador' %}" class="btn btn-outline-light me-2">
-                <i class="fa-solid fa-user-plus me-1"></i>Registrarse
-            </a>
-            <button class="btn btn-light" type="button">
-                <i class="fa-solid fa-right-to-bracket me-1"></i>Iniciar Sesión
-            </button>
+<!-- TARJETAS DE ESTADÍSTICAS -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h6 class="text-muted">Ventas de Hoy</h6>
+                <h3 class="mb-0" id="ventasHoy">$0</h3>
+            </div>
         </div>
     </div>
-</nav>
-
-<!-- Espaciado -->
-<div style="height: 56px; background-color: #212529;"></div>
-
-<div class="d-flex min-vh-100">
-
-    <!-- MENÚ LATERAL -->
-    <aside class="bg-dark text-light p-3" style="width: 250px; border: none;">
-        <h4 class="text-center mb-4">Inventario</h4>
-
-        <a href="{% url 'inicio' %}" class="d-block text-light mb-3 text-decoration-none">
-            <i class="fa-solid fa-house me-2"></i> Inicio
-        </a>
-
-        <a href="{% url 'productos' %}" class="d-block text-light mb-3 text-decoration-none">
-            <i class="fa-solid fa-box me-2"></i> Productos
-        </a>
-
-        <a href="{% url 'clientes' %}" class="d-block text-light mb-3 text-decoration-none">
-            <i class="fa-solid fa-users me-2"></i> Clientes
-        </a>
-
-        <a href="{% url 'ventas' %}" class="d-block text-light text-decoration-none">
-            <i class="fa-solid fa-cart-shopping me-2"></i> Ventas
-        </a>
-    </aside>
-
-    <!-- CONTENIDO PRINCIPAL -->
-    <main class="flex-fill p-4">
-
-        <h1 class="mb-4">Panel de Gestión de Ventas</h1>
-        <p class="text-muted">Sistema de ventas</p>
-
-        <!-- TARJETAS DE ESTADÍSTICAS -->
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h6 class="text-muted">Ventas de Hoy</h6>
-                        <h3 class="mb-0" id="ventasHoy">$0</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h6 class="text-muted">Total Mes</h6>
-                        <h3 class="mb-0" id="totalMes">$0</h3>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card h-100">
-                    <div class="card-body">
-                        <h6 class="text-muted">Ventas Realizadas</h6>
-                        <h3 class="mb-0" id="ventasRealizadas">0</h3>
-                    </div>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- BARRA DE BÚSQUEDA Y BOTÓN -->
-        <div class="card mb-3">
+    <div class="col-md-4">
+        <div class="card h-100">
             <div class="card-body">
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <input type="text" 
-                               id="searchInput" 
-                               class="form-control" 
-                               placeholder="Buscar venta..."
-                               onkeyup="buscarVenta()">
-                    </div>
-                    <div class="col-md-3">
-                        <select id="filtroFecha" class="form-select" onchange="filtrarPorFecha()">
-                            <option value="todas">Todas las fechas</option>
-                            <option value="hoy">Hoy</option>
-                            <option value="semana">Esta semana</option>
-                            <option value="mes">Este mes</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <button class="btn btn-primary w-100" onclick="nuevaVenta()">
-                            <i class="fas fa-plus"></i> Nueva Venta
-                        </button>
-                    </div>
-                </div>
+                <h6 class="text-muted">Total Mes</h6>
+                <h3 class="mb-0" id="totalMes">$0</h3>
             </div>
         </div>
-
-        <!-- TABLA DE VENTAS -->
-        <div class="card mt-4">
-            <div class="card-header bg-dark text-light">
-                VENTAS REGISTRADAS
-            </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
             <div class="card-body">
-                <table class="table table-bordered">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>ID</th>
-                            <th>Fecha</th>
-                            <th>Cliente</th>
-                            <th>Productos</th>
-                            <th>Total</th>
-                            <th>Estado de pago</th>
-                            <th>Acción</th>
-                        </tr>
-                    </thead>
-                    <tbody id="ventasTableBody"></tbody>
-                </table>
+                <h6 class="text-muted">Ventas Realizadas</h6>
+                <h3 class="mb-0" id="ventasRealizadas">0</h3>
             </div>
         </div>
-
-    </main>
-
+    </div>
 </div>
 
-<!-- FOOTER -->
-<footer class="bg-dark text-light text-center py-2">
-    <small>Proyecto Inventario - Grupo 3 © 2025</small>
-</footer>
+<!-- BARRA DE BÚSQUEDA Y BOTÓN -->
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <input type="text" 
+                       id="searchInput" 
+                       class="form-control" 
+                       placeholder="Buscar venta..."
+                       onkeyup="buscarVenta()">
+            </div>
+            <div class="col-md-3">
+                <select id="filtroFecha" class="form-select" onchange="filtrarPorFecha()">
+                    <option value="todas">Todas las fechas</option>
+                    <option value="hoy">Hoy</option>
+                    <option value="semana">Esta semana</option>
+                    <option value="mes">Este mes</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-primary w-100" onclick="nuevaVenta()">
+                    <i class="fas fa-plus"></i> Nueva Venta
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
-<!-- Bootstrap JS -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- TABLA DE VENTAS -->
+<div class="card mt-4">
+    <div class="card-header bg-dark text-light">
+        VENTAS REGISTRADAS
+    </div>
+    <div class="card-body">
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Productos</th>
+                    <th>Total</th>
+                    <th>Estado de pago</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="ventasTableBody"></tbody>
+        </table>
+    </div>
+</div>
 
 <script>
-    // ==================== DATOS GLOBALES ====================
-    // lista de productos disponibles para la venta con stock y precios
+    // ==================== datos globales ====================
+    // lista de productos disponibles para la venta con stock y presios
     const productosDisponibles = [
         { id: 1, nombre: "Harina", precio: 10000, stock: 50 },
         { id: 2, nombre: "Queso", precio: 15000, stock: 30 },
@@ -274,17 +195,29 @@
     // carrito temporal para nueva venta
     let carrito = [];
 
-    // ==================== INICIALIZACION ====================
+    // ==================== inicializasion ====================
     // se ejecuta cuando la pagina termina de cargar
     window.onload = function() {
         actualizarTablaVentas();  // muestra las ventas en la tabla
-        actualizarEstadisticas(); // actualiza las tarjetas de estadisticas
+        actualizarEstadisticas(); // actualisa las tarjetas de estadisticas
     };
 
-    // ==== neuva venta en el carrito
-    // abre un modal con dos columnas: productos disponibles y carrito de compras
-    function nuevaVenta() { //modal nueva venta
-        carrito = []; //limpia el carrito antes de empezar
+    // ==================== funsion para validar solo letras ====================
+    // bloquea que se escriban numeros en el input del cliente
+    function soloLetras(event) {
+        const char = String.fromCharCode(event.keyCode || event.which);
+        const regex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]$/; // solo letras y espasios
+        if (!regex.test(char)) {
+            event.preventDefault();
+            return false;
+        }
+        return true;
+    }
+
+    // ==================== nueva venta con carrito ====================
+    // abre un modal con dos columnas productos disponibles y carrito de compras
+    function nuevaVenta() {
+        carrito = []; // limpiar carrito antes de empesar
 
         Swal.fire({
             title: '<i class="fas fa-shopping-cart"></i> Nueva Venta',
@@ -312,7 +245,7 @@
                             <hr>
                             <div class="text-start mb-3">
                                 <label class="form-label fw-bold"><i class="fas fa-user"></i> Cliente:</label>
-                                <input type="text" id="clienteVenta" class="form-control form-control-sm" placeholder="Nombre del cliente">
+                                <input type="text" id="clienteVenta" class="form-control form-control-sm" placeholder="Nombre del cliente" onkeypress="return soloLetras(event)">
                             </div>
                             <div class="text-start mb-3">
                                 <label class="form-label fw-bold"><i class="fas fa-check-circle"></i> Estado:</label>
@@ -342,14 +275,34 @@
             cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
             confirmButtonColor: '#198754',
             cancelButtonColor: '#6c757d',
-            preConfirm: () => {  
-                const cliente = document.getElementById('clienteVenta').value || 'Cliente General';
+            preConfirm: () => {
+                const cliente = document.getElementById('clienteVenta').value.trim();
                 const estado = document.getElementById('estadoVenta').value;
 
-                if (carrito.length === 0) { // validacion que se encarga de validar que el carrito no este vacio//
-                    Swal.showValidationMessage('Debes agregar al menos un producto');
+                // validasion: el carrito no puede estar vacio
+                if (carrito.length === 0) {
+                    Swal.showValidationMessage('debes agregar al menos un producto');
                     return false;
                 }
+                
+                // validasion: el cliente no puede estar vacio
+                if (!cliente) {
+                    Swal.showValidationMessage('debes escribir el nombre del cliente');
+                    return false;
+                }
+                
+                // validasion: el nombre del cliente no puede tener numeros
+                if (/\d/.test(cliente)) {
+                    Swal.showValidationMessage('el nombre del cliente no puede contener numeros');
+                    return false;
+                }
+                
+                // validasion: el nombre del cliente debe tener al menos 3 caracteres
+                if (cliente.length < 3) {
+                    Swal.showValidationMessage('el nombre debe tener al menos 3 caracteres');
+                    return false;
+                }
+                
                 return { cliente, estado };
             }
         }).then((result) => {
@@ -410,7 +363,7 @@
         actualizarCarrito();
     }
 
-    // actualiza la visualizacion del carrito en el modal
+    // actualisa la visualisasion del carrito en el modal
     function actualizarCarrito() {
         const carritoDiv = document.getElementById('carritoContenido');
 
@@ -448,10 +401,12 @@
     }
 
     // cambia la cantidad de un producto en el carrito mas o menos
-    function cambiarCantidad(productoId, cambio) { //validacion cmabiar contidad con + o - 
+    function cambiarCantidad(productoId, cambio) {
         const item = carrito.find(i => i.id === productoId);
         if (!item) return;
         const nuevaCantidad = item.cantidad + cambio;
+        
+        // validasion: si la cantidad es menor a 1 elimina el producto
         if (nuevaCantidad < 1) {
             eliminarDelCarrito(productoId);
         } else {
@@ -460,12 +415,14 @@
         }
     }
 
-    // establece la cantidad de un producto escribiendo directamente en el input
-    function setCantidad(productoId, valor) { //al escribir un numero diferente en el csmpo de canidada a nuemro entero por ejempo si es -1 lo convierte en 1
+    // establese la cantidad de un producto escribiendo directamente en el input
+    function setCantidad(productoId, valor) {
         const item = carrito.find(i => i.id === productoId);
-        if (!item) return; 
+        if (!item) return;
         const cantidad = parseInt(valor);
-        if (cantidad < 1) {
+        
+        // validasion: si la cantidad es menor a 1 elimina el producto
+        if (cantidad < 1 || isNaN(cantidad)) {
             eliminarDelCarrito(productoId);
         } else {
             item.cantidad = cantidad;
@@ -489,7 +446,7 @@
         document.getElementById('totalCarrito').textContent = `$${Math.round(total).toLocaleString('es-CO')}`;
     }
 
-    // procesa la venta guarda en el array de ventas y actualiza la tabla
+    // prosesa la venta guarda en el array de ventas y actualisa la tabla
     function procesarVenta(cliente, estado) {
         const ahora = new Date();
         const fecha = ahora.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
@@ -524,8 +481,8 @@
         });
     }
 
-    // ==================== TABLA DE VENTAS ====================
-    // genera y muestra todas las ventas en la tabla html
+    // ==================== tabla de ventas ====================
+    // jenera y muestra todas las ventas en la tabla html
     function actualizarTablaVentas() {
         const tbody = document.getElementById('ventasTableBody');
 
@@ -562,14 +519,186 @@
         }).join('');
     }
 
-    // ==================== EDITAR VENTA ====================
-    // boton de editar sin funcionalidad
+    // ==================== editar venta ====================
+    // permite editar todos los campos de una venta
     function editarVenta(ventaId) {
-        // sin funcionalidad por ahora
+        const venta = ventas.find(v => v.id === ventaId);
+        if (!venta) return;
+
+        // validasion: las ventas completadas no se pueden editar
+        if (venta.estado === 'Completada') {
+            Swal.fire({
+                icon: 'error',
+                title: 'no se puede editar',
+                text: 'lo sentimos las ventas completadas no pueden ser editadas',
+                confirmButtonColor: '#dc3545'
+            });
+            return;
+        }
+
+        // jenerar html de productos existentes
+        const productosHtml = venta.productos.map((p, index) => `
+            <div class="d-flex align-items-center gap-2 mb-2" id="productoEdit${index}">
+                <input type="text" class="form-control form-control-sm" 
+                       id="editProdNombre${index}" value="${p.nombre}" placeholder="Producto">
+                <input type="number" class="form-control form-control-sm" style="width:70px"
+                       id="editProdCantidad${index}" value="${p.cantidad}" min="1" placeholder="Cant." onchange="recalcularTotal()">
+                <input type="number" class="form-control form-control-sm" style="width:100px"
+                       id="editProdPrecio${index}" value="${p.precio}" placeholder="Precio" onchange="recalcularTotal()">
+                <button class="btn btn-sm btn-outline-danger" onclick="this.closest('.d-flex').remove(); recalcularTotal();">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        `).join('');
+
+        Swal.fire({
+            title: `Editar Venta #${ventaId}`,
+            html: `
+                <div style="text-align: left;">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">👤 Cliente:</label>
+                        <input type="text" id="editCliente" class="form-control" value="${venta.cliente}" onkeypress="return soloLetras(event)">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">📅 Fecha:</label>
+                        <input type="text" id="editFecha" class="form-control" value="${venta.fecha}" placeholder="DD/MM/AAAA HH:MM">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">📦 Productos:</label>
+                        <div id="listaProductosEdit">
+                            ${productosHtml}
+                        </div>
+                        <button class="btn btn-sm btn-outline-primary mt-2" onclick="agregarFilaProducto()">
+                            <i class="fas fa-plus"></i> Agregar producto
+                        </button>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">💰 Total calculado:</label>
+                        <input type="number" id="editTotal" class="form-control bg-light" value="${venta.total}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">📋 Estado:</label>
+                        <select id="editEstado" class="form-select">
+                            <option value="Completada" ${venta.estado === 'Completada' ? 'selected' : ''}>Completada</option>
+                            <option value="Pendiente" ${venta.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
+                        </select>
+                    </div>
+                </div>
+            `,
+            width: '600px',
+            showCancelButton: true,
+            confirmButtonText: 'Guardar cambios',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#ffc107',
+            cancelButtonColor: '#6c757d',
+            preConfirm: () => {
+                const cliente = document.getElementById('editCliente').value.trim();
+                const fecha = document.getElementById('editFecha').value;
+                const estado = document.getElementById('editEstado').value;
+
+                // validasion: el cliente no puede estar vacio
+                if (!cliente) {
+                    Swal.showValidationMessage('por favor escribe el nombre del cliente');
+                    return false;
+                }
+                
+                // validasion: el nombre del cliente no puede tener numeros
+                if (/\d/.test(cliente)) {
+                    Swal.showValidationMessage('el nombre del cliente no puede contener numeros');
+                    return false;
+                }
+                
+                // validasion: el nombre del cliente debe tener al menos 3 caracteres
+                if (cliente.length < 3) {
+                    Swal.showValidationMessage('el nombre debe tener al menos 3 caracteres');
+                    return false;
+                }
+                
+                // validasion: la fecha no puede estar vasia
+                if (!fecha) {
+                    Swal.showValidationMessage('por favor escribe la fecha');
+                    return false;
+                }
+
+                // recojer productos editados y calcular total
+                const productosEditados = [];
+                const filas = document.getElementById('listaProductosEdit').children;
+                let total = 0;
+                for (let i = 0; i < filas.length; i++) {
+                    const nombre = filas[i].querySelector('[id^="editProdNombre"]')?.value || '';
+                    const cantidad = parseInt(filas[i].querySelector('[id^="editProdCantidad"]')?.value) || 0;
+                    const precio = parseFloat(filas[i].querySelector('[id^="editProdPrecio"]')?.value) || 0;
+                    
+                    // validasion: todos los campos del producto deben estar llenos
+                    if (nombre && cantidad > 0 && precio >= 0) {
+                        productosEditados.push({ nombre, cantidad, precio });
+                        total += cantidad * precio;
+                    }
+                }
+
+                // validasion: debe aver al menos un producto
+                if (productosEditados.length === 0) {
+                    Swal.showValidationMessage('debe aver al menos un producto');
+                    return false;
+                }
+
+                return { cliente, fecha, total, estado, productos: productosEditados };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                venta.cliente = result.value.cliente;
+                venta.fecha = result.value.fecha;
+                venta.total = result.value.total;
+                venta.estado = result.value.estado;
+                venta.productos = result.value.productos;
+                actualizarTablaVentas();
+                actualizarEstadisticas();
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Venta actualizada!',
+                    confirmButtonColor: '#198754'
+                });
+            }
+        });
     }
 
-    // ==================== BUSCAR Y FILTRAR ====================
-    // filtra las ventas mostradas segun el texto de busqueda
+    // agrega una fila vasia para un nuevo producto en el modal de edision
+    function agregarFilaProducto() {
+        const lista = document.getElementById('listaProductosEdit');
+        const index = Date.now();
+        const nueva = document.createElement('div');
+        nueva.className = 'd-flex align-items-center gap-2 mb-2';
+        nueva.innerHTML = `
+            <input type="text" class="form-control form-control-sm" 
+                   id="editProdNombre${index}" placeholder="Producto">
+            <input type="number" class="form-control form-control-sm" style="width:70px"
+                   id="editProdCantidad${index}" value="1" min="1" placeholder="Cant." onchange="recalcularTotal()">
+            <input type="number" class="form-control form-control-sm" style="width:100px"
+                   id="editProdPrecio${index}" placeholder="Precio" onchange="recalcularTotal()">
+            <button class="btn btn-sm btn-outline-danger" onclick="this.closest('.d-flex').remove(); recalcularTotal();">
+                <i class="fas fa-trash"></i>
+            </button>
+        `;
+        lista.appendChild(nueva);
+    }
+
+    // recalcula el total automaticamente al cambiar cantidades o presios
+    function recalcularTotal() {
+        const lista = document.getElementById('listaProductosEdit');
+        if (!lista) return;
+        const filas = lista.children;
+        let total = 0;
+        for (let i = 0; i < filas.length; i++) {
+            const cantidad = parseInt(filas[i].querySelector('[id^="editProdCantidad"]')?.value) || 0;
+            const precio = parseFloat(filas[i].querySelector('[id^="editProdPrecio"]')?.value) || 0;
+            total += cantidad * precio;
+        }
+        const editTotal = document.getElementById('editTotal');
+        if (editTotal) editTotal.value = total;
+    }
+
+    // ==================== buscar y filtrar ====================
+    // filtra las ventas mostradas segun el testo de busqueda
     function buscarVenta() {
         const searchTerm = document.getElementById('searchInput').value.toLowerCase();
         const tbody = document.getElementById('ventasTableBody');
@@ -580,7 +709,7 @@
         }
     }
 
-    // filtra las ventas por rango de fecha hoy semana mes todas
+    // filtra las ventas por rango de fecha oy semana mes todas
     function filtrarPorFecha() {
         const filtro = document.getElementById('filtroFecha').value;
         const tbody = document.getElementById('ventasTableBody');
@@ -613,7 +742,7 @@
         }
     }
 
-    // ==================== ACCIONES DE VENTAS ====================
+    // ==================== aksiones de ventas ====================
     // muestra un modal con todos los detalles de una venta
     function verDetalle(ventaId) {
         const venta = ventas.find(v => v.id === ventaId);
@@ -715,7 +844,8 @@
         });
     }
 
-    // ==================== ESTADÍSTICAS ====================
+    //estadisticas
+    // calcula y actualisa las tarjetas de ventas de oy total mes y ventas realisadas
     function actualizarEstadisticas() {
         const totalVentas = ventas.length;
         let totalMes = 0;
@@ -727,13 +857,10 @@
             if (venta.fecha.split(' ')[0] === hoy) ventasHoy += venta.total;
         });
 
-        const ticketPromedio = totalVentas > 0 ? totalMes / totalVentas : 0;
-
         document.getElementById('ventasHoy').textContent = '$' + ventasHoy.toLocaleString('es-CO');
         document.getElementById('totalMes').textContent = '$' + totalMes.toLocaleString('es-CO');
         document.getElementById('ventasRealizadas').textContent = totalVentas;
     }
 </script>
 
-</body>
-</html>
+{% endblock %}

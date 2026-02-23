@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include  # ← CAMBIO AQUÍ
 from . import views
 
 urlpatterns = [
@@ -14,7 +14,7 @@ urlpatterns = [
     path('clientes/', views.clientes, name='clientes'),
     
     # Ventas
-    path('ventas/', views.ventas, name='ventas'),
+    path('ventas/', include('ventas.urls')),  # ← CAMBIO AQUÍ
     
     # Registro
     path('registro/', views.registrar_administrador, name='registro_administrador'),
