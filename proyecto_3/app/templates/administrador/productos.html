@@ -4,7 +4,7 @@
 {% block title %}Productos - Sistema de Inventario{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom no-print">
     <h1 class="h2">Gestión de Productos</h1>
     <div class="btn-toolbar mb-2 mb-md-0">
         <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addProductModal">
@@ -13,7 +13,7 @@
     </div>
 </div>
 
-<div class="row mb-3">
+<div class="row mb-3 no-print">
     <div class="col-md-6">
         <input type="text" class="form-control" id="searchProduct" placeholder="Buscar producto por nombre...">
     </div>
@@ -32,13 +32,24 @@
     </div>
 </div>
 
+<!-- Título solo para impresión -->
+<div class="print-only">
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h2 style="margin: 0; font-size: 28px; color: #2c3e50;">LISTA DE PRODUCTOS</h2>
+        <p style="margin: 5px 0; font-size: 16px; color: #34495e;">Sistema de Inventario</p>
+        <p style="margin: 5px 0; font-size: 14px; color: #7f8c8d;">Fecha de impresión: <span id="print-date"></span></p>
+        <hr style="border: 2px solid #2c3e50; margin: 15px auto; width: 80%;">
+    </div>
+</div>
+
+<div id="print-container">
 <div class="card shadow">
-    <div class="card-header bg-primary text-white">
+    <div class="card-header bg-primary text-white no-print">
         <h5 class="mb-0"><i class="fas fa-box"></i> Lista de Productos</h5>
     </div>
     <div class="card-body p-0">
         <div class="table-responsive">
-            <table class="table table-striped table-hover mb-0">
+            <table class="table table-striped table-hover mb-0" id="productosTable">
                 <thead class="table-dark">
                     <tr>
                         <th>ID</th>
@@ -47,7 +58,7 @@
                         <th>Stock</th>
                         <th>Marca</th>
                         <th>Tipo</th>
-                        <th>Acciones</th>
+                        <th class="no-print">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -63,14 +74,17 @@
                         </td>
                         <td>{{ producto.idMarca.nombreMarca }}</td>
                         <td>{{ producto.idTipo.nombre_tipo }}</td>
-                        <td>
-                            <button class="btn btn-sm btn-info" title="Ver">
+                        <td class="no-print">
+                            <button class="btn btn-sm btn-info" title="Ver" 
+                                    onclick="verProducto({{ producto.idProducto }}, '{{ producto.nombre }}', {{ producto.precio }}, {{ producto.stock }}, '{{ producto.idMarca.nombreMarca }}', '{{ producto.idTipo.nombre_tipo }}', '{{ producto.idUnidad.nombre_unidad }}')">
                                 <i class="fas fa-eye"></i>
                             </button>
-                            <button class="btn btn-sm btn-warning" title="Editar">
+                            <button class="btn btn-sm btn-warning" title="Editar" 
+                                    onclick="editarProducto({{ producto.idProducto }}, '{{ producto.nombre }}', {{ producto.precio }}, {{ producto.stock }}, {{ producto.idMarca.idMarca }}, {{ producto.idTipo.idTipo }}, {{ producto.idUnidad.idUnidad }})">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <button class="btn btn-sm btn-danger" title="Eliminar">
+                            <button class="btn btn-sm btn-danger" title="Eliminar" 
+                                    onclick="confirmarEliminar({{ producto.idProducto }}, '{{ producto.nombre }}')">
                                 <i class="fas fa-trash"></i>
                             </button>
                         </td>
@@ -91,11 +105,14 @@
             </table>
         </div>
     </div>
-    <div class="card-footer">
+    <div class="card-footer no-print">
         <small class="text-muted">Total de productos: {{ productos|length }}</small>
     </div>
 </div>
+</div>
+<!-- Fin del contenedor de impresión -->
 
+<!-- Modal Agregar Producto -->
 <div class="modal fade" id="addProductModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -170,7 +187,292 @@
     </div>
 </div>
 
+<!-- Modal Ver Producto -->
+<div class="modal fade" id="viewProductModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-eye"></i> Detalles del Producto
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered">
+                    <tr>
+                        <th width="40%">ID:</th>
+                        <td id="view_id"></td>
+                    </tr>
+                    <tr>
+                        <th>Nombre:</th>
+                        <td id="view_nombre"></td>
+                    </tr>
+                    <tr>
+                        <th>Precio:</th>
+                        <td id="view_precio"></td>
+                    </tr>
+                    <tr>
+                        <th>Stock:</th>
+                        <td id="view_stock"></td>
+                    </tr>
+                    <tr>
+                        <th>Marca:</th>
+                        <td id="view_marca"></td>
+                    </tr>
+                    <tr>
+                        <th>Tipo:</th>
+                        <td id="view_tipo"></td>
+                    </tr>
+                    <tr>
+                        <th>Unidad:</th>
+                        <td id="view_unidad"></td>
+                    </tr>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Producto -->
+<div class="modal fade" id="editProductModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit"></i> Editar Producto
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" id="formEditarProducto">
+                    {% csrf_token %}
+                    <input type="hidden" id="edit_id" name="edit_id">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_nombre" class="form-label">Nombre del Producto *</label>
+                            <input type="text" class="form-control" id="edit_nombre" name="nombre" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_precio" class="form-label">Precio *</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" step="0.01" class="form-control" id="edit_precio" name="precio" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_stock" class="form-label">Stock *</label>
+                            <input type="number" class="form-control" id="edit_stock" name="stock" min="0" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_idMarca" class="form-label">Marca *</label>
+                            <select class="form-select" id="edit_idMarca" name="idMarca" required>
+                                <option value="">Seleccione una marca</option>
+                                {% for marca in marcas %}
+                                <option value="{{ marca.idMarca }}">{{ marca.nombreMarca }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_idTipo" class="form-label">Tipo de Producto *</label>
+                            <select class="form-select" id="edit_idTipo" name="idTipo" required>
+                                <option value="">Seleccione un tipo</option>
+                                {% for tipo in tipos %}
+                                <option value="{{ tipo.idTipo }}">{{ tipo.nombre_tipo }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="edit_idUnidad" class="form-label">Unidad de Medida *</label>
+                            <select class="form-select" id="edit_idUnidad" name="idUnidad" required>
+                                <option value="">Seleccione una unidad</option>
+                                {% for unidad in unidades %}
+                                <option value="{{ unidad.idUnidad }}">{{ unidad.nombre_unidad }} ({{ unidad.abreviatura }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> Cancelar
+                </button>
+                <button type="button" class="btn btn-warning" onclick="confirmarEdicion()">
+                    <i class="fas fa-save"></i> Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Estilos para impresión -->
+<style>
+@media print {
+    /* Ocultar TODOS los elementos excepto la tabla */
+    body * {
+        visibility: hidden;
+    }
+    
+    /* Ocultar elementos específicos */
+    .no-print,
+    .navbar,
+    .sidebar,
+    nav,
+    .btn,
+    button,
+    .card-header,
+    .card-footer,
+    .modal,
+    .modal-backdrop,
+    header,
+    footer,
+    aside,
+    .container-fluid > .row > .col-md-3,
+    .container-fluid > .row > .col-md-2,
+    .container-fluid > .row > .col-lg-2,
+    .container-fluid > .row > aside {
+        display: none !important;
+        visibility: hidden !important;
+    }
+    
+    /* Mostrar solo el contenedor de impresión y la tabla */
+    #print-container,
+    #print-container * {
+        visibility: visible !important;
+    }
+    
+    .print-only {
+        display: block !important;
+        visibility: visible !important;
+    }
+    
+    /* Ajustar el contenedor principal */
+    #print-container {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+    }
+    
+    /* Ajustar tabla para impresión */
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    .card-body {
+        padding: 0 !important;
+    }
+    
+    table {
+        width: 100% !important;
+        font-size: 11px;
+        border-collapse: collapse !important;
+    }
+    
+    th {
+        background-color: #2c3e50 !important;
+        color: white !important;
+        padding: 12px 8px !important;
+        border: 1px solid #000 !important;
+        text-align: left !important;
+        font-weight: bold !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    td {
+        padding: 10px 8px !important;
+        border: 1px solid #ddd !important;
+    }
+    
+    /* Alternar colores de filas */
+    tbody tr:nth-child(even) {
+        background-color: #f8f9fa !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    /* Badges de stock */
+    .badge {
+        padding: 4px 8px;
+        border-radius: 3px;
+        font-weight: bold;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+    
+    .badge.bg-success {
+        background-color: #28a745 !important;
+        color: white !important;
+    }
+    
+    .badge.bg-warning {
+        background-color: #ffc107 !important;
+        color: #000 !important;
+    }
+    
+    .badge.bg-danger {
+        background-color: #dc3545 !important;
+        color: white !important;
+    }
+    
+    /* Forzar saltos de página apropiados */
+    tr {
+        page-break-inside: avoid;
+    }
+    
+    /* Configuración de página */
+    @page {
+        margin: 2cm 1.5cm;
+        size: landscape;
+    }
+    
+    body {
+        margin: 0;
+        padding: 0;
+    }
+    
+    /* Título de impresión */
+    .print-only {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .print-only h2 {
+        font-size: 24px;
+        font-weight: bold;
+        color: #2c3e50;
+        margin-bottom: 5px;
+    }
+    
+    .print-only p {
+        font-size: 14px;
+        color: #666;
+        margin: 5px 0;
+    }
+    
+    .print-only hr {
+        border: 1px solid #333;
+        margin: 15px 0;
+    }
+}
+
+/* Ocultar por defecto */
+.print-only {
+    display: none;
+}
+</style>
+
 <script>
+// Función para buscar productos
 document.getElementById('searchProduct').addEventListener('keyup', function() {
     const searchValue = this.value.toLowerCase();
     const tableRows = document.querySelectorAll('tbody tr');
@@ -182,6 +484,7 @@ document.getElementById('searchProduct').addEventListener('keyup', function() {
     });
 });
 
+// Función para filtrar por stock
 document.getElementById('stockFilter').addEventListener('change', function() {
     const filterValue = this.value;
     const tableRows = document.querySelectorAll('tbody tr');
@@ -204,5 +507,95 @@ document.getElementById('stockFilter').addEventListener('change', function() {
         row.style.display = showRow ? '' : 'none';
     });
 });
+
+// Función para ver detalles del producto
+function verProducto(id, nombre, precio, stock, marca, tipo, unidad) {
+    document.getElementById('view_id').textContent = id;
+    document.getElementById('view_nombre').textContent = nombre;
+    document.getElementById('view_precio').textContent = '$' + parseFloat(precio).toFixed(2);
+    document.getElementById('view_stock').textContent = stock;
+    document.getElementById('view_marca').textContent = marca;
+    document.getElementById('view_tipo').textContent = tipo;
+    document.getElementById('view_unidad').textContent = unidad;
+    
+    const modal = new bootstrap.Modal(document.getElementById('viewProductModal'));
+    modal.show();
+}
+
+// Función para abrir modal de editar
+function editarProducto(id, nombre, precio, stock, idMarca, idTipo, idUnidad) {
+    document.getElementById('edit_id').value = id;
+    document.getElementById('edit_nombre').value = nombre;
+    document.getElementById('edit_precio').value = precio;
+    document.getElementById('edit_stock').value = stock;
+    document.getElementById('edit_idMarca').value = idMarca;
+    document.getElementById('edit_idTipo').value = idTipo;
+    document.getElementById('edit_idUnidad').value = idUnidad;
+    
+    const modal = new bootstrap.Modal(document.getElementById('editProductModal'));
+    modal.show();
+}
+
+// Función para confirmar edición con SweetAlert
+function confirmarEdicion() {
+    const nombre = document.getElementById('edit_nombre').value;
+    
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: `¿Deseas guardar los cambios del producto "${nombre}"?`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#ffc107',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, guardar cambios',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Enviar formulario
+            const form = document.getElementById('formEditarProducto');
+            const id = document.getElementById('edit_id').value;
+            form.action = "{% url 'editar_producto' 0 %}".replace('0', id);
+            form.submit();
+        }
+    });
+}
+
+// Función para confirmar eliminación con SweetAlert
+function confirmarEliminar(id, nombre) {
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: `¿Deseas eliminar el producto "${nombre}"? Esta acción no se puede deshacer.`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            // Redirigir a la URL de eliminar
+            window.location.href = "{% url 'eliminar_producto' 0 %}".replace('0', id);
+        }
+    });
+}
 </script>
+
+<!-- SweetAlert2 CDN -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+// Agregar fecha actual al imprimir
+window.addEventListener('beforeprint', function() {
+    const now = new Date();
+    const fecha = now.toLocaleDateString('es-CO', { 
+        day: '2-digit', 
+        month: 'long', 
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+    document.getElementById('print-date').textContent = fecha;
+});
+</script>
+
 {% endblock %}

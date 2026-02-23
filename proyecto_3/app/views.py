@@ -6,7 +6,7 @@ from .models import (
     Administrador, Producto, Cliente, Venta, 
     Marca, TipoProductos, unidad_medida
 )
-from .forms import AdministradorRegistroForm
+from .forms import AdministradorRegistroForm, ProductoForm
 
 
 def index(request):
@@ -33,35 +33,24 @@ def productos(request):
 
 def crear_producto(request):
     if request.method == 'POST':
-        try:
-            # Obtener datos del formulario
-            nombre = request.POST.get('nombre')
-            precio = request.POST.get('precio')
-            stock = request.POST.get('stock')
-            id_marca = request.POST.get('idMarca')
-            id_tipo = request.POST.get('idTipo')
-            id_unidad = request.POST.get('idUnidad')
-            
-            # Debug: imprimir los valores recibidos
-            print(f"Datos recibidos - Nombre: {nombre}, Precio: {precio}, Stock: {stock}")
-            print(f"IDs - Marca: {id_marca}, Tipo: {id_tipo}, Unidad: {id_unidad}")
-            
-            # Crear el producto
-            producto = Producto.objects.create(
-                nombre=nombre,
-                precio=precio,
-                stock=stock,
-                idMarca_id=id_marca,
-                idTipo_id=id_tipo,
-                idUnidad_id=id_unidad
-            )
-            
-            messages.success(request, f'Producto "{nombre}" creado exitosamente.')
-            return redirect('productos')
-            
-        except Exception as e:
-            print(f"Error completo: {e}")  # Debug: mostrar error en consola
-            messages.error(request, f'Error al crear el producto: {str(e)}')
+        # Usar el formulario con validaciones
+        form = ProductoForm(request.POST)
+        
+        if form.is_valid():
+            try:
+                # Guardar el producto usando el formulario validado
+                producto = form.save()
+                messages.success(request, f'Producto "{producto.nombre}" creado exitosamente.')
+                return redirect('productos')
+            except Exception as e:
+                print(f"Error al guardar: {e}")
+                messages.error(request, f'Error al crear el producto: {str(e)}')
+                return redirect('productos')
+        else:
+            # Mostrar errores de validación
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{error}')
             return redirect('productos')
     
     return redirect('productos')
@@ -71,20 +60,24 @@ def editar_producto(request, id):
     producto = get_object_or_404(Producto, idProducto=id)
     
     if request.method == 'POST':
-        try:
-            producto.nombre = request.POST.get('nombre')
-            producto.precio = request.POST.get('precio')
-            producto.stock = request.POST.get('stock')
-            producto.idMarca_id = request.POST.get('idMarca')
-            producto.idTipo_id = request.POST.get('idTipo')
-            producto.idUnidad_id = request.POST.get('idUnidad')
-            producto.save()
-            
-            messages.success(request, f'Producto "{producto.nombre}" actualizado exitosamente.')
+        # Usar el formulario con validaciones para editar
+        form = ProductoForm(request.POST, instance=producto)
+        
+        if form.is_valid():
+            try:
+                producto = form.save()
+                messages.success(request, f'Producto "{producto.nombre}" actualizado exitosamente.')
+                return redirect('productos')
+            except Exception as e:
+                print(f"Error al actualizar: {e}")
+                messages.error(request, f'Error al actualizar el producto: {str(e)}')
+                return redirect('productos')
+        else:
+            # Mostrar errores de validación
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f'{error}')
             return redirect('productos')
-            
-        except Exception as e:
-            messages.error(request, f'Error al actualizar el producto: {str(e)}')
     
     return redirect('productos')
 
@@ -130,3 +123,6 @@ def registrar_administrador(request):
         form = AdministradorRegistroForm()
     
     return render(request, 'administrador/registro.html', {'form': form})
+
+def reportes(request):
+    return render(request, 'administrador/reportes.html')

@@ -1,11 +1,9 @@
 {% load static %}
 
 <!DOCTYPE html>
-
 <html lang="es">
 
 <head>
-
     <meta charset="UTF-8">
     <title>Inventario - Grupo 3</title>
 
@@ -18,8 +16,11 @@
     <!-- SweetAlert2 -->
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- CSS base -->
-    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <!-- CSS propios -->
+    <!-- STATICFILES_DIRS apunta a .../templates/css/  -->
+    <!-- por eso NO se repite "css/" en la ruta        -->
+    <link rel="stylesheet" href="{% static 'base.css' %}">
+    <link rel="stylesheet" href="{% static 'reporte.css' %}">
 
 </head>
 
@@ -64,6 +65,10 @@
         <a href="{% url 'ventas' %}" class="d-block text-light text-decoration-none">
             <i class="fa-solid fa-cart-shopping me-2"></i> Ventas
         </a>
+
+        <a href="{% url 'reportes' %}" class="d-block text-light text-decoration-none mt-3">
+            <i class="fa-solid fa-chart-bar me-2"></i> Reportes
+        </a>
     </aside>
     <!-- ================= FIN MENÚ ================= -->
 
@@ -82,17 +87,14 @@
         <!-- ===== MENÚ SUPERIOR - BÚSQUEDA Y FILTROS ===== -->
         <div class="card mb-3">
             <div class="card-body">
-                <!-- Búsqueda -->
                 <div class="row mb-3">
                     <div class="col-md-6">
-                        <input type="text" 
-                               id="searchInput" 
-                               class="form-control" 
+                        <input type="text"
+                               id="searchInput"
+                               class="form-control"
                                placeholder="Buscar producto...">
                     </div>
                 </div>
-
-                <!-- Filtros -->
                 <div class="row">
                     <div class="col-12">
                         <label class="form-label">Filtrar por stock:</label>
@@ -113,7 +115,6 @@
             <div class="card-header bg-dark text-light">
                 Productos registrados
             </div>
-
             <div class="card-body">
                 <table class="table table-bordered">
                     <thead class="table-dark">
@@ -126,7 +127,6 @@
                         </tr>
                     </thead>
                     <tbody id="productosTabla">
-                        <!-- Los productos se cargarán dinámicamente aquí -->
                     </tbody>
                 </table>
             </div>
@@ -147,40 +147,37 @@
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 
-<!-- Script dinámico -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
     let productos = [
-        { id: 1, nombre: "Harina", precio: 5000, stock: 25 },
-        { id: 2, nombre: "Jabon Axion", precio: 8000, stock: 120 },
-        { id: 3, nombre: "Queso", precio: 25000, stock: 8 },
-        { id: 4, nombre: "Leche", precio: 3500, stock: 35 },
-        { id: 5, nombre: "Pan", precio: 2000, stock: 0 },
-        { id: 6, nombre: "Chocolate Corona", precio: 28000, stock: 15 },
-        { id: 7, nombre: "Café", precio: 18000, stock: 5 },
-        { id: 8, nombre: "Arroz", precio: 7000, stock: 60 }
+        { id: 1, nombre: "Harina",            precio: 5000,  stock: 25  },
+        { id: 2, nombre: "Jabon Axion",        precio: 8000,  stock: 120 },
+        { id: 3, nombre: "Queso",              precio: 25000, stock: 8   },
+        { id: 4, nombre: "Leche",              precio: 3500,  stock: 35  },
+        { id: 5, nombre: "Pan",                precio: 2000,  stock: 0   },
+        { id: 6, nombre: "Chocolate Corona",   precio: 28000, stock: 15  },
+        { id: 7, nombre: "Café",               precio: 18000, stock: 5   },
+        { id: 8, nombre: "Arroz",              precio: 7000,  stock: 60  }
     ];
 
     function renderizarProductos() {
-        const tbody = document.getElementById('productosTabla');
+        const tbody      = document.getElementById('productosTabla');
         const searchInput = document.getElementById('searchInput');
         const filtroStock = document.getElementById('filtroStock');
 
         if (!tbody || !searchInput || !filtroStock) return;
 
         const busqueda = searchInput.value.toLowerCase();
-        const filtro = filtroStock.value;
-        
+        const filtro   = filtroStock.value;
+
         let productosFiltrados = productos.filter(p => {
             const cumpleBusqueda = p.nombre.toLowerCase().includes(busqueda);
-            
             let cumpleFiltro = true;
-            if (filtro === 'stock-alto') cumpleFiltro = p.stock > 50;
+            if      (filtro === 'stock-alto')  cumpleFiltro = p.stock > 50;
             else if (filtro === 'stock-medio') cumpleFiltro = p.stock >= 11 && p.stock <= 50;
-            else if (filtro === 'stock-bajo') cumpleFiltro = p.stock >= 1 && p.stock <= 10;
-            else if (filtro === 'sin-stock') cumpleFiltro = p.stock === 0;
-            
+            else if (filtro === 'stock-bajo')  cumpleFiltro = p.stock >= 1  && p.stock <= 10;
+            else if (filtro === 'sin-stock')   cumpleFiltro = p.stock === 0;
             return cumpleBusqueda && cumpleFiltro;
         });
 
@@ -205,8 +202,8 @@ document.addEventListener("DOMContentLoaded", function () {
     const searchInput = document.getElementById('searchInput');
     const filtroStock = document.getElementById('filtroStock');
 
-    if (searchInput) searchInput.addEventListener('input', renderizarProductos);
-    if (filtroStock) filtroStock.addEventListener('change', renderizarProductos);
+    if (searchInput) searchInput.addEventListener('input',  renderizarProductos);
+    if (filtroStock)  filtroStock.addEventListener('change', renderizarProductos);
 
     renderizarProductos();
 });
@@ -214,3 +211,4 @@ document.addEventListener("DOMContentLoaded", function () {
 
 </body>
 </html>
+

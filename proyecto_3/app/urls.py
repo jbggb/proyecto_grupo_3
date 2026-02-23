@@ -18,4 +18,7 @@ urlpatterns = [
     
     # Administrador
     path('registro/', views.registrar_administrador, name='registro_administrador'),
+    
+    # Reportes
+    path('reportes/', views.reportes, name='reportes'),
 ]

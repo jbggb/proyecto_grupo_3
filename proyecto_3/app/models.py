@@ -77,7 +77,7 @@ class unidad_medida(models.Model):
 
 
 class Producto(models.Model):
-    idProducto = models.AutoField(primary_key=True, db_column='idProducto')  # ← AGREGAR ESTA LÍNEA
+    idProducto = models.AutoField(primary_key=True, db_column='idProducto')   
     idTipo = models.ForeignKey(TipoProductos, on_delete=models.CASCADE, db_column='idTipo')
     idMarca = models.ForeignKey(Marca, on_delete=models.CASCADE, db_column='idMarca')
     idUnidad = models.ForeignKey(unidad_medida, on_delete=models.CASCADE, db_column='idUnidad')
