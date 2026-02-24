@@ -119,14 +119,16 @@
                             <label class="form-label">Precio *</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
-                                <input type="number" step="0.01" class="form-control" name="precio" required>
-                            </div>
-                        </div>
+                                <input type="text" inputmode="numeric" class="form-control" name="precio" required oninput="validarPrecio(this,'add_precio_error')" placeholder="Ej: 1500">
+                            </div><!-- ✅ cierra input-group -->
+                            <div id="add_precio_error" class="text-danger small mt-1" style="display:none;"></div>
+                        </div><!-- ✅ cierra col-md-6 -->
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Stock *</label>
-                            <input type="number" class="form-control" name="stock" min="0" required>
+                            <input type="text" inputmode="numeric" class="form-control" name="stock" required oninput="validarStock(this,'add_stock_error')" placeholder="Ej: 50">
+                            <div id="add_stock_error" class="text-danger small mt-1" style="display:none;"></div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Marca *</label>
@@ -225,14 +227,16 @@
                             <label class="form-label">Precio *</label>
                             <div class="input-group">
                                 <span class="input-group-text">$</span>
-                                <input type="number" step="0.01" class="form-control" id="edit_precio" name="precio" required>
-                            </div>
-                        </div>
+                                <input type="text" inputmode="numeric" class="form-control" id="edit_precio" name="precio" required oninput="validarPrecio(this,'edit_precio_error')" placeholder="Ej: 1500">
+                            </div><!-- ✅ cierra input-group -->
+                            <div id="edit_precio_error" class="text-danger small mt-1" style="display:none;"></div>
+                        </div><!-- ✅ cierra col-md-6 -->
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Stock *</label>
-                            <input type="number" class="form-control" id="edit_stock" name="stock" min="0" required>
+                            <input type="text" inputmode="numeric" class="form-control" id="edit_stock" name="stock" required oninput="validarStock(this,'edit_stock_error')" placeholder="Ej: 50">
+                            <div id="edit_stock_error" class="text-danger small mt-1" style="display:none;"></div>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Marca *</label>
@@ -292,15 +296,11 @@
                 <button type="button" class="btn-close btn-close-white" onclick="cerrarModalInline()"></button>
             </div>
             <div class="modal-body">
-                <!-- Lista de items existentes -->
                 <div id="inlineListaContainer" class="mb-3">
                     <h6 class="fw-bold text-muted mb-2" id="inlineListaLabel">Lista actual:</h6>
-                    <div id="inlineLista" style="max-height:200px;overflow-y:auto;">
-                        <!-- items cargados por JS -->
-                    </div>
+                    <div id="inlineLista" style="max-height:200px;overflow-y:auto;"></div>
                 </div>
                 <hr class="my-2">
-                <!-- Formulario agregar nuevo -->
                 <h6 class="fw-bold text-muted mb-2">Agregar nuevo:</h6>
                 <div id="inlineModalBody"></div>
             </div>
@@ -392,12 +392,45 @@ document.addEventListener('DOMContentLoaded', function () {
 // =============================================
 // BLOQUEAR NUMEROS
 // =============================================
+function mostrarError(errorId, msg) {
+    const el = document.getElementById(errorId);
+    if (!el) return;
+    el.textContent = msg;
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 2500);
+}
+
 function bloquearNumeros(input, errorId) {
-    if (/\d/.test(input.value)) {
-        input.value = input.value.replace(/\d/g, '');
-        const el = document.getElementById(errorId);
-        el.style.display = 'block';
-        setTimeout(() => el.style.display = 'none', 2500);
+    let val = input.value;
+    let limpio = val.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ ]/g, '');
+    limpio = limpio.replace(/ {2,}/g, ' ');
+    if (input.value !== limpio) {
+        input.value = limpio;
+        mostrarError(errorId, 'Solo letras y un espacio entre palabras. Sin numeros ni caracteres especiales.');
+    }
+}
+
+function validarStock(input, errorId) {
+    let val = input.value;
+    let limpio = val.replace(/[^\d]/g, '');
+    // Quitar ceros al inicio solo si hay mas digitos (ej: "007" -> "7"), pero permitir "0" solo
+    if (limpio.length > 1) {
+        limpio = limpio.replace(/^0+/, '');
+    }
+    if (input.value !== limpio) {
+        input.value = limpio;
+        mostrarError(errorId, 'El stock solo acepta numeros enteros, sin decimales ni letras.');
+    }
+    input.value = limpio;
+}
+
+function validarPrecio(input, errorId) {
+    let val = input.value;
+    let limpio = val.replace(/[^\d]/g, '');
+    limpio = limpio.replace(/^0+(\d)/, '$1');
+    if (input.value !== limpio) {
+        input.value = limpio;
+        mostrarError(errorId, 'El precio solo acepta numeros enteros, sin decimales ni ceros al inicio.');
     }
 }
 
@@ -526,10 +559,8 @@ function eliminarInline(tipo, id, nombre) {
             .then(r => r.json())
             .then(data => {
                 if (data.success) {
-                    // Quitar de la lista visual
                     const el = document.getElementById(`inline-item-${id}`);
                     if (el) el.remove();
-                    // Quitar de todos los selects
                     cfg.selectIds.forEach(selectId => {
                         const sel = document.getElementById(selectId);
                         if (sel) {
@@ -557,7 +588,6 @@ function guardarInline(tipo) {
         .then(r => r.json())
         .then(data => {
             if (data.success) {
-                // Agregar a los selects
                 cfg.selectIds.forEach(selectId => {
                     const sel = document.getElementById(selectId);
                     if (sel) {
@@ -568,7 +598,6 @@ function guardarInline(tipo) {
                         sel.appendChild(opt);
                     }
                 });
-                // Agregar a la lista visual del modal
                 const listaDiv = document.getElementById('inlineLista');
                 const noItems = listaDiv.querySelector('.fst-italic');
                 if (noItems) noItems.remove();
@@ -581,7 +610,6 @@ function guardarInline(tipo) {
                         <i class="fas fa-trash"></i>
                     </button>`;
                 listaDiv.appendChild(div);
-                // Limpiar campos
                 document.getElementById('inlineModalBody').querySelectorAll('input, textarea').forEach(i => i.value = '');
                 Swal.fire({ title: 'Guardado!', text: data.message, icon: 'success', timer: 2000, timerProgressBar: true, confirmButtonColor: '#28a745' });
             } else {
@@ -632,8 +660,8 @@ function verProducto(id, nombre, precio, stock, marca, tipo, unidad) {
 function editarProducto(id, nombre, precio, stock, idMarca, idTipo, idUnidad) {
     document.getElementById('edit_id').value = id;
     document.getElementById('edit_nombre').value = nombre;
-    document.getElementById('edit_precio').value = precio;
-    document.getElementById('edit_stock').value = stock;
+    document.getElementById('edit_precio').value = Math.round(precio);
+    document.getElementById('edit_stock').value = Math.round(stock);
     document.getElementById('edit_idMarca').value = idMarca;
     document.getElementById('edit_idTipo').value = idTipo;
     document.getElementById('edit_idUnidad').value = idUnidad;
