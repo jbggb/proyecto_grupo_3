@@ -1,0 +1,140 @@
+/* Login Page Styles */
+.login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1e326a 0%, #55578d 100%);
+}
+
+.login-box {
+    width: 400px;
+    margin: 7% auto;
+}
+
+.login-logo {
+    font-size: 35px;
+    text-align: center;
+    margin-bottom: 25px;
+    font-weight: 300;
+}
+
+.login-logo a {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.login-logo b {
+    font-weight: 700;
+}
+
+.card {
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    border: none;
+}
+
+.login-card-body {
+    padding: 30px;
+    background: #ffffff;
+    border-radius: 10px;
+}
+
+.login-box-msg {
+    margin: 0;
+    text-align: center;
+    padding: 0 20px 20px;
+    color: #666;
+    font-size: 16px;
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.form-control {
+    border: 1px solid #ddd;
+    border-radius: 5px 0 0 5px;
+    padding: 12px 15px;
+    font-size: 14px;
+    transition: border-color 0.3s;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: none;
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    border: 1px solid #ddd;
+    border-left: none;
+    border-radius: 0 5px 5px 0;
+    color: #667eea;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: 600;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+.btn-danger {
+    background-color: #dc3545;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    font-weight: 600;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+}
+
+.form-check-input:checked {
+    background-color: #667eea;
+    border-color: #667eea;
+}
+
+.social-auth-links {
+    margin-top: 20px;
+}
+
+.social-auth-links p {
+    color: #999;
+    font-weight: 600;
+    margin: 15px 0;
+}
+
+.login-card-body a {
+    color: #667eea;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.login-card-body a:hover {
+    color: #764ba2;
+    text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 576px) {
+    .login-box {
+        width: 90%;
+        margin: 5% auto;
+    }
+    
+    .login-card-body {
+        padding: 20px;
+    }
+}
