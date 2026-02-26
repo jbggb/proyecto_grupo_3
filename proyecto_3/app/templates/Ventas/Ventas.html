@@ -1,9 +1,10 @@
 {% extends 'base.html' %}
+{% load ventas_filters %}
 {% load static %}
 
 {% block content %}
-
-<style>
+<!-- Estilos para el carrito de ventas -->
+<style>      
     .product-item-select {
         padding: 10px;
         margin-bottom: 8px;
@@ -17,7 +18,7 @@
         border-color: #0d6efd;
     }
     .carrito-producto {
-        background-color: #f8f9fa;
+        background-color: #faf8f8;
         padding: 12px;
         margin-bottom: 10px;
         border-radius: 6px;
@@ -45,12 +46,19 @@
         border-radius: 8px;
         border-left: 4px solid #0d6efd;
     }
+    .producto-edit-row {
+        background: #f8f9fa;
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+        margin-bottom: 8px;
+    }
 </style>
 
 <h1 class="mb-4">Panel de Gestión de Ventas</h1>
 <p class="text-muted">Sistema de ventas</p>
 
-<!-- TARJETAS DE ESTADÍSTICAS -->
+<!-- TARJETAS DE ESTADÍSTICAS-->
 <div class="row mb-4">
     <div class="col-md-4">
         <div class="card h-100">
@@ -78,23 +86,24 @@
     </div>
 </div>
 
-<!-- BARRA DE BÚSQUEDA Y BOTÓN -->
+<!--barra de busqueda y boton  -->
 <div class="card mb-3">
     <div class="card-body">
         <div class="row mb-3">
             <div class="col-md-6">
-                <input type="text" 
-                       id="searchInput" 
-                       class="form-control" 
-                       placeholder="Buscar venta..."
-                       onkeyup="buscarVenta()">
+                <input type="text" id="searchInput" class="form-control" placeholder="Buscar venta por nombre de cliente..." onkeyup="buscarVenta()">
             </div>
             <div class="col-md-3">
                 <select id="filtroFecha" class="form-select" onchange="filtrarPorFecha()">
                     <option value="todas">Todas las fechas</option>
                     <option value="hoy">Hoy</option>
+                    <option value="ayer">Ayer</option>
                     <option value="semana">Esta semana</option>
+                    <option value="semana pasada">Semana pasada</option>
                     <option value="mes">Este mes</option>
+                    <option value="mes pasado">Mes pasado</option>
+                    <option value="anio">Este año</option>
+                    <option value="anio pasado">Año pasado</option>
                 </select>
             </div>
             <div class="col-md-3">
@@ -106,11 +115,9 @@
     </div>
 </div>
 
-<!-- TABLA DE VENTAS -->
+<!--tabla de ventas-->
 <div class="card mt-4">
-    <div class="card-header bg-dark text-light">
-        VENTAS REGISTRADAS
-    </div>
+    <div class="card-header bg-dark text-light">VENTAS REGISTRADAS</div>
     <div class="card-body">
         <table class="table table-bordered">
             <thead class="table-dark">
@@ -120,18 +127,52 @@
                     <th>Cliente</th>
                     <th>Productos</th>
                     <th>Total</th>
-                    <th>Estado de pago</th>
+                    <th>Estado del pago</th>
                     <th>Acción</th>
                 </tr>
             </thead>
-            <tbody id="ventasTableBody"></tbody>
+            <tbody id="ventasTableBody">
+                {% for v in ventas %}
+                <tr>
+                    <td>{{ v.id }}</td>
+                    <td>{{ v.fecha|date:"d/m/Y H:i" }}</td>
+                    <td>{{ v.cliente }}</td>
+                    <td>
+                        {% for d in v.detalle_venta_set.all %}
+                            {{ d.producto_nombre }} (x{{ d.cantidad }}){% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>${{ v.total|precio_co }}</td>
+                    <td>
+                        <span class="badge {% if v.estado == 'completada' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                            {{ v.get_estado_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="verDetalle({{ v.id }})" title="Ver detalle">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        {% if v.estado == 'pendiente' %}
+                        <button type="button" class="btn btn-warning btn-sm" onclick="editarVenta({{ v.id }})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" class="btn btn-success btn-sm" onclick="completarVenta({{ v.id }})" title="Completar venta">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="eliminarVenta({{ v.id }})" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
         </table>
     </div>
 </div>
 
 <script>
-    // ==================== datos globales ====================
-    // lista de productos disponibles para la venta con stock y presios
+    //simulacion de productos disponibles 
     const productosDisponibles = [
         { id: 1, nombre: "Harina", precio: 10000, stock: 50 },
         { id: 2, nombre: "Queso", precio: 15000, stock: 30 },
@@ -142,724 +183,478 @@
         { id: 7, nombre: "Aceite", precio: 12000, stock: 25 }
     ];
 
-    // array de ventas registradas en el sistema
-    let ventas = [
-        {
-            id: 1,
-            fecha: '05/02/2026 10:30',
-            cliente: 'Juan Pérez',
-            productos: [
-                { nombre: 'Harina', cantidad: 2, precio: 10000 },
-                { nombre: 'Queso', cantidad: 1, precio: 15000 }
-            ],
-            total: 30000,
-            estado: 'Completada'
-        },
-        {
-            id: 2,
-            fecha: '05/02/2026 11:45',
-            cliente: 'María García',
-            productos: [
-                { nombre: 'Jabon Axion', cantidad: 2, precio: 8000 }
-            ],
-            total: 16000,
-            estado: 'Completada'
-        },
-        {
-            id: 3,
-            fecha: '05/02/2026 14:20',
-            cliente: 'Carlos Rodríguez',
-            productos: [
-                { nombre: 'Queso', cantidad: 1, precio: 15000 },
-                { nombre: 'Harina', cantidad: 1, precio: 10000 },
-                { nombre: 'Jabon', cantidad: 1, precio: 8000 }
-            ],
-            total: 38000,
-            estado: 'Pendiente'
-        },
-        {
-            id: 4,
-            fecha: '04/02/2026 16:10',
-            cliente: 'Ana Martínez',
-            productos: [
-                { nombre: 'Harina', cantidad: 1, precio: 10000 }
-            ],
-            total: 10000,
-            estado: 'Completada'
-        }
-    ];
-
-    // contador para asignar ids a nuevas ventas
-    let ventaIdCounter = 5;
-    
-    // carrito temporal para nueva venta
     let carrito = [];
+    let carritoEdicion = [];
 
-    // ==================== inicializasion ====================
-    // se ejecuta cuando la pagina termina de cargar
-    window.onload = function() {
-        actualizarTablaVentas();  // muestra las ventas en la tabla
-        actualizarEstadisticas(); // actualisa las tarjetas de estadisticas
-    };
+    window.onload = function() { actualizarEstadisticas(); };
 
-    // ==================== funsion para validar solo letras ====================
-    // bloquea que se escriban numeros en el input del cliente
-    function soloLetras(event) {
-        const char = String.fromCharCode(event.keyCode || event.which);
-        const regex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]$/; // solo letras y espasios
-        if (!regex.test(char)) {
-            event.preventDefault();
-            return false;
-        }
-        return true;
-    }
-
-    // ==================== nueva venta con carrito ====================
-    // abre un modal con dos columnas productos disponibles y carrito de compras
+    // =======nueva venta=====
     function nuevaVenta() {
-        carrito = []; // limpiar carrito antes de empesar
-
-        Swal.fire({
-            title: '<i class="fas fa-shopping-cart"></i> Nueva Venta',
-            html: `
-                <div class="container-fluid">
-                    <div class="row">
-                        <div class="col-md-6 border-end">
-                            <h6 class="text-start mb-3"><i class="fas fa-box-open"></i> Seleccionar Productos</h6>
-                            <input type="text" id="buscarProducto" class="form-control form-control-sm mb-3" 
-                                   placeholder="🔍 Buscar producto..." onkeyup="filtrarProductosModal()">
-                            <div id="listaProductos" style="max-height: 350px; overflow-y: auto; text-align: left;">
-                                ${generarListaProductos()}
-                            </div>
+    carrito = [];
+    Swal.fire({
+        title: '<i class="fas fa-shopping-cart"></i> Nueva Venta',
+        html: `
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-6 border-end">
+                        <h6 class="text-start mb-3"><i class="fas fa-box-open"></i> Seleccionar Productos</h6>
+                        <input type="text" id="buscarProducto" class="form-control form-control-sm mb-3" placeholder="🔍 Buscar producto..." onkeyup="filtrarProductosModal()">
+                        <div id="listaProductos" style="max-height: 350px; overflow-y: auto; text-align: left;">
+                            ${generarListaProductos()}
                         </div>
-                        <div class="col-md-6">
-                            <h6 class="text-start mb-3">
-                                <i class="fas fa-shopping-basket"></i> Carrito 
-                                <span class="badge bg-primary" id="cantidadItems">0 items</span>
-                            </h6>
-                            <div id="carritoContenido" style="max-height: 250px; overflow-y: auto; text-align: left;">
-                                <p class="text-muted text-center py-4">
-                                    <i class="fas fa-shopping-cart fa-2x mb-2"></i><br>Carrito vacío
-                                </p>
-                            </div>
-                            <hr>
-                            <div class="text-start mb-3">
-                                <label class="form-label fw-bold"><i class="fas fa-user"></i> Cliente:</label>
-                                <input type="text" id="clienteVenta" class="form-control form-control-sm" placeholder="Nombre del cliente" onkeypress="return soloLetras(event)">
-                            </div>
-                            <div class="text-start mb-3">
-                                <label class="form-label fw-bold"><i class="fas fa-check-circle"></i> Estado:</label>
-                                <select id="estadoVenta" class="form-select form-select-sm">
-                                    <option value="Completada">Completada</option>
-                                    <option value="Pendiente">Pendiente</option>
-                                </select>
-                            </div>
-                            <div class="resumen-total">
-                                <div class="d-flex justify-content-between mb-1">
-                                    <span>Subtotal:</span>
-                                    <strong id="subtotalCarrito">$0</strong>
-                                </div>
-                                <hr class="my-2">
-                                <div class="d-flex justify-content-between">
-                                    <h6 class="mb-0">Total:</h6>
-                                    <h5 class="mb-0 text-primary" id="totalCarrito">$0</h5>
-                                </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-start mb-3">
+                            <i class="fas fa-shopping-basket"></i> Carrito 
+                            <span class="badge bg-primary" id="cantidadItems">0 items</span>
+                        </h6>
+                        <div id="carritoContenido" style="max-height: 250px; overflow-y: auto; text-align: left;">
+                            <p class="text-muted text-center py-4"><i class="fas fa-shopping-cart fa-2x mb-2"></i><br>Carrito vacío</p>
+                        </div>
+                        <hr>
+                        <div class="text-start mb-3">
+                            <label class="form-label fw-bold"><i class="fas fa-user"></i> Cliente:</label>
+                            <input type="text" id="clienteVenta" class="form-control form-control-sm" placeholder="Nombre del cliente" maxlength="30">
+                            <div id="clienteFeedback" class="text-danger small mt-1" style="min-height: 15px;"></div>
+                            <small id="clienteContador" class="text-muted">0/30 caracteres</small>
+                        </div>
+                        <div class="text-start mb-3">
+                            <label class="form-label fw-bold"><i class="fas fa-check-circle"></i> Estado:</label>
+                            <select id="estadoVenta" class="form-select form-select-sm">
+                                <option value="completada">Completada</option>
+                                <option value="pendiente">Pendiente</option>
+                            </select>
+                        </div>
+                        <div class="resumen-total">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Total:</span><h5 class="mb-0 text-primary" id="totalCarrito">$0</h5>
                             </div>
                         </div>
                     </div>
                 </div>
-            `,
-            width: '90%',
-            showCancelButton: true,
-            confirmButtonText: '<i class="fas fa-plus"></i> Agregar Venta a la Lista',
-            cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
-            confirmButtonColor: '#198754',
-            cancelButtonColor: '#6c757d',
-            preConfirm: () => {
-                const cliente = document.getElementById('clienteVenta').value.trim();
-                const estado = document.getElementById('estadoVenta').value;
+            </div>`,
+        width: '90%',
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-plus"></i> Agregar Venta',
+        cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+        confirmButtonColor: '#0d6efd',
+       didOpen: () => {
+    const input = document.getElementById('clienteVenta');
+    const feedback = document.getElementById('clienteFeedback');
+    const contador = document.getElementById('clienteContador');
 
-                // validasion: el carrito no puede estar vacio
-                if (carrito.length === 0) {
-                    Swal.showValidationMessage('debes agregar al menos un producto');
-                    return false;
-                }
-                
-                // validasion: el cliente no puede estar vacio
-                if (!cliente) {
-                    Swal.showValidationMessage('debes escribir el nombre del cliente');
-                    return false;
-                }
-                
-                // validasion: el nombre del cliente no puede tener numeros
-                if (/\d/.test(cliente)) {
-                    Swal.showValidationMessage('el nombre del cliente no puede contener numeros');
-                    return false;
-                }
-                
-                // validasion: el nombre del cliente debe tener al menos 3 caracteres
-                if (cliente.length < 3) {
-                    Swal.showValidationMessage('el nombre debe tener al menos 3 caracteres');
-                    return false;
-                }
-                
-                return { cliente, estado };
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                procesarVenta(result.value.cliente, result.value.estado);
-            }
-        });
-    }
+    input.addEventListener('input', function() {
+        // Limpieza de caracteres 
+        let valor = this.value.replace(/[0-9]/g, ''); 
+        valor = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+        
+        if (this.value !== valor) {
+            this.value = valor;
+            feedback.textContent = '❌ Solo letras y espacios';
+        } else {
+            feedback.textContent = '';
+        }
 
-    // genera el html de la lista de productos disponibles
+        // Lógica del contador y mensaje de máximo
+        const longitud = this.value.length;
+        if (longitud >= 30) {
+            contador.innerHTML = '<span class="text-danger fw-bold">Máximo de caracteres alcanzado (30/30)</span>';
+        } else {
+            contador.textContent = `${longitud}/30 caracteres`;
+            contador.className = "text-muted"; 
+        }
+    });
+},
+        preConfirm: () => {
+            const cliente = document.getElementById('clienteVenta').value.trim();
+            const estado = document.getElementById('estadoVenta').value;
+
+            //validacion al dar click en el boton de agregar venta
+            if (carrito.length === 0) {
+                Swal.showValidationMessage('Debes agregar al menos un producto');
+                return false;
+            }
+            if (cliente.length < 3) {
+                Swal.showValidationMessage('El nombre debe tener al menos 3 caracteres');
+                return false;
+            }
+            return { cliente, estado };
+        }
+    }).then(result => {
+        if (result.isConfirmed) {
+            procesarVenta(result.value.cliente, result.value.estado);
+        }
+    });
+}
+
     function generarListaProductos() {
-        return productosDisponibles.map(producto => `
-            <div class="product-item-select" data-nombre="${producto.nombre}">
+        return productosDisponibles.map(p => `
+            <div class="product-item-select" data-nombre="${p.nombre}">
                 <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <strong>${producto.nombre}</strong><br>
-                        <small class="text-muted">Stock: ${producto.stock}</small>
-                    </div>
+                    <div><strong>${p.nombre}</strong><br><small class="text-muted">Stock: ${p.stock}</small></div>
                     <div class="text-end">
-                        <div class="text-primary fw-bold mb-1">$${producto.precio.toLocaleString('es-CO')}</div>
-                        <button class="btn btn-sm btn-primary" onclick="agregarAlCarrito(${producto.id})">
-                            <i class="fas fa-plus"></i> Agregar
-                        </button>
+                        <div class="text-primary fw-bold mb-1">$${p.precio.toLocaleString('es-CO')}</div>
+                        <button class="btn btn-sm btn-primary" onclick="agregarAlCarrito(${p.id})"><i class="fas fa-plus"></i> Agregar</button>
                     </div>
                 </div>
-            </div>
-        `).join('');
+            </div>`).join('');
     }
 
-    // filtra la lista de productos segun lo que el usuario escribe en el buscador
     function filtrarProductosModal() {
         const busqueda = document.getElementById('buscarProducto').value.toLowerCase();
-        const productos = document.querySelectorAll('.product-item-select');
-        productos.forEach(producto => {
-            const nombre = producto.getAttribute('data-nombre').toLowerCase();
-            producto.style.display = nombre.includes(busqueda) ? 'block' : 'none';
+        document.querySelectorAll('.product-item-select').forEach(p => {
+            p.style.display = p.getAttribute('data-nombre').toLowerCase().includes(busqueda) ? 'block' : 'none';
         });
     }
 
-    // agrega un producto al carrito o incrementa su cantidad si ya existe
     function agregarAlCarrito(productoId) {
         const producto = productosDisponibles.find(p => p.id === productoId);
-        const itemExistente = carrito.find(item => item.id === productoId);
-
-        if (itemExistente) {
-            // si el producto ya esta en el carrito aumentar cantidad
-            itemExistente.cantidad++;
-        } else {
-            // si es un producto nuevo agregarlo al carrito
-            carrito.push({
-                id: producto.id,
-                nombre: producto.nombre,
-                precio: producto.precio,
-                cantidad: 1,
-                stock: producto.stock
-            });
-        }
+        const existente = carrito.find(i => i.id === productoId);
+        if (existente) { existente.cantidad++; } 
+        else { carrito.push({ id: producto.id, nombre: producto.nombre, precio: producto.precio, cantidad: 1, stock: producto.stock }); }
         actualizarCarrito();
     }
 
-    // actualisa la visualisasion del carrito en el modal
     function actualizarCarrito() {
-        const carritoDiv = document.getElementById('carritoContenido');
-
+        const div = document.getElementById('carritoContenido');
         if (carrito.length === 0) {
-            carritoDiv.innerHTML = `
-                <p class="text-muted text-center py-4">
-                    <i class="fas fa-shopping-cart fa-2x mb-2"></i><br>Carrito vacío
-                </p>
-            `;
+            div.innerHTML = `<p class="text-muted text-center py-4"><i class="fas fa-shopping-cart fa-2x mb-2"></i><br>Carrito vacío</p>`;
         } else {
-            carritoDiv.innerHTML = carrito.map(item => `
+            div.innerHTML = carrito.map(item => `
                 <div class="carrito-producto">
                     <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div>
-                            <strong>${item.nombre}</strong><br>
-                            <small class="text-muted">$${item.precio.toLocaleString('es-CO')} c/u</small>
-                        </div>
-                        <button class="btn btn-sm btn-outline-danger" onclick="eliminarDelCarrito(${item.id})">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <div><strong>${item.nombre}</strong><br><small class="text-muted">$${item.precio.toLocaleString('es-CO')} c/u</small></div>
+                        <button class="btn btn-sm btn-outline-danger" onclick="eliminarDelCarrito(${item.id})"><i class="fas fa-trash"></i></button>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="cantidad-control">
                             <button class="btn btn-sm btn-outline-secondary" onclick="cambiarCantidad(${item.id}, -1)">-</button>
-                            <input type="number" class="form-control form-control-sm" value="${item.cantidad}" 
-                                   min="1" max="${item.stock}" onchange="setCantidad(${item.id}, this.value)">
+                            <input type="number" class="form-control form-control-sm" value="${item.cantidad}" min="1" max="${item.stock}" onchange="setCantidad(${item.id}, this.value)">
                             <button class="btn btn-sm btn-outline-secondary" onclick="cambiarCantidad(${item.id}, 1)">+</button>
                         </div>
                         <strong class="text-primary">$${(item.precio * item.cantidad).toLocaleString('es-CO')}</strong>
                     </div>
-                </div>
-            `).join('');
+                </div>`).join('');
         }
         actualizarTotalesCarrito();
     }
 
-    // cambia la cantidad de un producto en el carrito mas o menos
-    function cambiarCantidad(productoId, cambio) {
-        const item = carrito.find(i => i.id === productoId);
+    function cambiarCantidad(id, cambio) {
+        const item = carrito.find(i => i.id === id);
         if (!item) return;
-        const nuevaCantidad = item.cantidad + cambio;
-        
-        // validasion: si la cantidad es menor a 1 elimina el producto
-        if (nuevaCantidad < 1) {
-            eliminarDelCarrito(productoId);
-        } else {
-            item.cantidad = nuevaCantidad;
-            actualizarCarrito();
-        }
+        const nueva = item.cantidad + cambio;
+        if (nueva < 1) { eliminarDelCarrito(id); } else { item.cantidad = nueva; actualizarCarrito(); }
     }
 
-    // establese la cantidad de un producto escribiendo directamente en el input
-    function setCantidad(productoId, valor) {
-        const item = carrito.find(i => i.id === productoId);
+    function setCantidad(id, valor) {
+        const item = carrito.find(i => i.id === id);
         if (!item) return;
-        const cantidad = parseInt(valor);
-        
-        // validasion: si la cantidad es menor a 1 elimina el producto
-        if (cantidad < 1 || isNaN(cantidad)) {
-            eliminarDelCarrito(productoId);
-        } else {
-            item.cantidad = cantidad;
-            actualizarCarrito();
-        }
+        const cant = parseInt(valor);
+        if (cant < 1 || isNaN(cant)) { eliminarDelCarrito(id); } else { item.cantidad = cant; actualizarCarrito(); }
     }
 
-    // elimina un producto del carrito
-    function eliminarDelCarrito(productoId) {
-        carrito = carrito.filter(item => item.id !== productoId);
-        actualizarCarrito();
-    }
+    function eliminarDelCarrito(id) { carrito = carrito.filter(i => i.id !== id); actualizarCarrito(); }
 
-    // calcula y muestra el subtotal y total del carrito
     function actualizarTotalesCarrito() {
-        const subtotal = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
-        const total = subtotal;
-
+        const subtotal = carrito.reduce((s, i) => s + i.precio * i.cantidad, 0);
         document.getElementById('cantidadItems').textContent = `${carrito.length} items`;
         document.getElementById('subtotalCarrito').textContent = `$${subtotal.toLocaleString('es-CO')}`;
-        document.getElementById('totalCarrito').textContent = `$${Math.round(total).toLocaleString('es-CO')}`;
+        document.getElementById('totalCarrito').textContent = `$${Math.round(subtotal).toLocaleString('es-CO')}`;
     }
 
-    // prosesa la venta guarda en el array de ventas y actualisa la tabla
     function procesarVenta(cliente, estado) {
-        const ahora = new Date();
-        const fecha = ahora.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-        const hora = ahora.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' });
-
-        const subtotal = carrito.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
-        const total = Math.round(subtotal);
-
-        const nuevaVenta = {
-            id: ventaIdCounter++,
-            fecha: `${fecha} ${hora}`,
-            cliente: cliente,
-            productos: [...carrito],
-            total: total,
-            estado: estado
-        };
-
-        ventas.unshift(nuevaVenta);
-        actualizarTablaVentas();
-        actualizarEstadisticas();
-
-        Swal.fire({
-            icon: 'success',
-            title: '¡Venta Agregada!',
-            html: `
-                <p><strong>Cliente:</strong> ${cliente}</p>
-                <p><strong>Total:</strong> $${total.toLocaleString('es-CO')}</p>
-                <p><strong>Estado:</strong> ${estado}</p>
-            `,
-            confirmButtonText: 'Cerrar',
-            confirmButtonColor: '#198754'
-        });
+        const total = carrito.reduce((s, i) => s + i.precio * i.cantidad, 0);
+        fetch("{% url 'crear_venta' %}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({ cliente, estado, total: Math.round(total), productos: carrito })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.ok) {
+                Swal.fire({ icon: 'success', title: '¡Venta registrada!', confirmButtonColor: '#198754' }).then(() => location.reload());
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error de validación', text: Object.values(data.errores).flat().join('\n'), confirmButtonColor: '#dc3545' });
+            }
+        })
+        .catch(() => Swal.fire({ icon: 'error', title: 'Error de conexión' }));
     }
 
-    // ==================== tabla de ventas ====================
-    // jenera y muestra todas las ventas en la tabla html
-    function actualizarTablaVentas() {
-        const tbody = document.getElementById('ventasTableBody');
-
-        tbody.innerHTML = ventas.map(venta => {
-            const productosTexto = venta.productos.map(p => `${p.nombre} (x${p.cantidad})`).join(', ');
-            const badgeClass = venta.estado === 'Completada' ? 'bg-success' : 'bg-warning text-dark';
-
-            return `
-                <tr>
-                    <td>${venta.id}</td>
-                    <td>${venta.fecha}</td>
-                    <td>${venta.cliente}</td>
-                    <td>${productosTexto}</td>
-                    <td>$${venta.total.toLocaleString('es-CO')}</td>
-                    <td><span class="badge ${badgeClass}">${venta.estado}</span></td>
-                    <td>
-                        <button type="button" class="btn btn-primary btn-sm" onclick="verDetalle(${venta.id})" title="Ver detalle">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                        <button type="button" class="btn btn-warning btn-sm" onclick="editarVenta(${venta.id})" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        ${venta.estado === 'Pendiente' ? `
-                            <button type="button" class="btn btn-success btn-sm" onclick="completarVenta(${venta.id})" title="Completar venta">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button type="button" class="btn btn-danger btn-sm" onclick="eliminarVenta(${venta.id})" title="Eliminar">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        ` : ''}
-                    </td>
-                </tr>
-            `;
-        }).join('');
-    }
-
-    // ==================== editar venta ====================
-    // permite editar todos los campos de una venta
+    // ====funcion para editar venta completa=======
     function editarVenta(ventaId) {
-        const venta = ventas.find(v => v.id === ventaId);
-        if (!venta) return;
+        fetch(`/ventas/detalle/${ventaId}/`)
+        .then(r => r.json())
+        .then(data => {
+            carritoEdicion = data.productos.map(p => ({ nombre: p.nombre, precio: p.precio, cantidad: p.cantidad }));
 
-        // validasion: las ventas completadas no se pueden editar
-        if (venta.estado === 'Completada') {
             Swal.fire({
-                icon: 'error',
-                title: 'no se puede editar',
-                text: 'lo sentimos las ventas completadas no pueden ser editadas',
-                confirmButtonColor: '#dc3545'
-            });
-            return;
-        }
-
-        // jenerar html de productos existentes
-        const productosHtml = venta.productos.map((p, index) => `
-            <div class="d-flex align-items-center gap-2 mb-2" id="productoEdit${index}">
-                <input type="text" class="form-control form-control-sm" 
-                       id="editProdNombre${index}" value="${p.nombre}" placeholder="Producto">
-                <input type="number" class="form-control form-control-sm" style="width:70px"
-                       id="editProdCantidad${index}" value="${p.cantidad}" min="1" placeholder="Cant." onchange="recalcularTotal()">
-                <input type="number" class="form-control form-control-sm" style="width:100px"
-                       id="editProdPrecio${index}" value="${p.precio}" placeholder="Precio" onchange="recalcularTotal()">
-                <button class="btn btn-sm btn-outline-danger" onclick="this.closest('.d-flex').remove(); recalcularTotal();">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `).join('');
-
-        Swal.fire({
-            title: `Editar Venta #${ventaId}`,
-            html: `
-                <div style="text-align: left;">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">👤 Cliente:</label>
-                        <input type="text" id="editCliente" class="form-control" value="${venta.cliente}" onkeypress="return soloLetras(event)">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">📅 Fecha:</label>
-                        <input type="text" id="editFecha" class="form-control" value="${venta.fecha}" placeholder="DD/MM/AAAA HH:MM">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">📦 Productos:</label>
-                        <div id="listaProductosEdit">
-                            ${productosHtml}
+                title: `<i class="fas fa-edit"></i> Editar Venta #${ventaId}`,
+                html: `
+                    <div class="container-fluid" style="text-align: left;">
+                        <div class="row">
+                            <div class="col-md-6 border-end">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">👤 Cliente:</label>
+                                    <input type="text" id="editCliente" class="form-control" value="${data.cliente}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">📋 Estado:</label>
+                                    <select id="editEstado" class="form-select">
+                                        <option value="completada" ${data.estado === 'completada' ? 'selected' : ''}>Completada</option>
+                                        <option value="pendiente" ${data.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                                    </select>
+                                </div>
+                                <hr>
+                                <label class="form-label fw-bold">➕ Agregar producto:</label>
+                                <select id="selectProductoEdit" class="form-select form-select-sm mb-2">
+                                    ${productosDisponibles.map(p => `<option value="${p.id}">${p.nombre} - $${p.precio.toLocaleString('es-CO')}</option>`).join('')}
+                                </select>
+                                <button class="btn btn-sm btn-outline-primary w-100" onclick="agregarProductoEdicion()">
+                                    <i class="fas fa-plus"></i> Agregar al carrito
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">📦 Productos en la venta:</label>
+                                <div id="carritoEdicionContenido" style="max-height: 300px; overflow-y: auto;"></div>
+                                <hr>
+                                <div class="resumen-total mt-2">
+                                    <div class="d-flex justify-content-between">
+                                        <h6 class="mb-0">Total:</h6>
+                                        <h5 class="mb-0 text-primary" id="totalEdicion">$0</h5>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <button class="btn btn-sm btn-outline-primary mt-2" onclick="agregarFilaProducto()">
-                            <i class="fas fa-plus"></i> Agregar producto
+                    </div>`,
+                width: '85%',
+                showCancelButton: true,
+                confirmButtonText: 'Guardar cambios',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#ffc107',
+                cancelButtonColor: '#6c757d',
+                didOpen: () => { renderizarCarritoEdicion(); },
+                preConfirm: () => {
+                    const cliente = document.getElementById('editCliente').value.trim();
+                    const estado = document.getElementById('editEstado').value;
+                    if (!cliente) { Swal.showValidationMessage('El nombre del cliente es obligatorio'); return false; }
+                    if (carritoEdicion.length === 0) { Swal.showValidationMessage('Debe haber al menos un producto'); return false; }
+                    const total = carritoEdicion.reduce((s, i) => s + i.precio * i.cantidad, 0);
+                    return { cliente, estado, total: Math.round(total), productos: carritoEdicion };
+                }
+            }).then(result => {
+                if (result.isConfirmed) {
+                    fetch(`/ventas/editar/${ventaId}/`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                        body: JSON.stringify(result.value)
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.ok) {
+                            Swal.fire({ icon: 'success', title: '¡Venta actualizada!', confirmButtonColor: '#198754' }).then(() => location.reload());
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'Error de validación', text: Object.values(data.errores).flat().join('\n') });
+                        }
+                    });
+                }
+            });
+        });
+    }
+
+    function agregarProductoEdicion() {
+        const select = document.getElementById('selectProductoEdit');
+        const productoId = parseInt(select.value);
+        const producto = productosDisponibles.find(p => p.id === productoId);
+        const existente = carritoEdicion.find(i => i.nombre === producto.nombre);
+        if (existente) { existente.cantidad++; } 
+        else { carritoEdicion.push({ nombre: producto.nombre, precio: producto.precio, cantidad: 1 }); }
+        renderizarCarritoEdicion();
+    }
+
+    function renderizarCarritoEdicion() {
+        const div = document.getElementById('carritoEdicionContenido');
+        if (carritoEdicion.length === 0) {
+            div.innerHTML = `<p class="text-muted text-center py-3">Sin productos</p>`;
+        } else {
+            div.innerHTML = carritoEdicion.map((item, index) => `
+                <div class="producto-edit-row">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong>${item.nombre}</strong>
+                        <button class="btn btn-sm btn-outline-danger" onclick="eliminarProductoEdicion(${index})">
+                            <i class="fas fa-trash"></i>
                         </button>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">💰 Total calculado:</label>
-                        <input type="number" id="editTotal" class="form-control bg-light" value="${venta.total}" readonly>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">$${Number(item.precio).toLocaleString('es-CO')} c/u</small>
+                        <div class="cantidad-control">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="cambiarCantidadEdicion(${index}, -1)">-</button>
+                            <input type="number" class="form-control form-control-sm" value="${item.cantidad}" min="1"
+                                   onchange="setCantidadEdicion(${index}, this.value)" style="width:60px; text-align:center;">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="cambiarCantidadEdicion(${index}, 1)">+</button>
+                        </div>
+                        <strong class="text-primary">$${(item.precio * item.cantidad).toLocaleString('es-CO')}</strong>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">📋 Estado:</label>
-                        <select id="editEstado" class="form-select">
-                            <option value="Completada" ${venta.estado === 'Completada' ? 'selected' : ''}>Completada</option>
-                            <option value="Pendiente" ${venta.estado === 'Pendiente' ? 'selected' : ''}>Pendiente</option>
-                        </select>
-                    </div>
-                </div>
-            `,
-            width: '600px',
-            showCancelButton: true,
-            confirmButtonText: 'Guardar cambios',
-            cancelButtonText: 'Cancelar',
-            confirmButtonColor: '#ffc107',
-            cancelButtonColor: '#6c757d',
-            preConfirm: () => {
-                const cliente = document.getElementById('editCliente').value.trim();
-                const fecha = document.getElementById('editFecha').value;
-                const estado = document.getElementById('editEstado').value;
-
-                // validasion: el cliente no puede estar vacio
-                if (!cliente) {
-                    Swal.showValidationMessage('por favor escribe el nombre del cliente');
-                    return false;
-                }
-                
-                // validasion: el nombre del cliente no puede tener numeros
-                if (/\d/.test(cliente)) {
-                    Swal.showValidationMessage('el nombre del cliente no puede contener numeros');
-                    return false;
-                }
-                
-                // validasion: el nombre del cliente debe tener al menos 3 caracteres
-                if (cliente.length < 3) {
-                    Swal.showValidationMessage('el nombre debe tener al menos 3 caracteres');
-                    return false;
-                }
-                
-                // validasion: la fecha no puede estar vasia
-                if (!fecha) {
-                    Swal.showValidationMessage('por favor escribe la fecha');
-                    return false;
-                }
-
-                // recojer productos editados y calcular total
-                const productosEditados = [];
-                const filas = document.getElementById('listaProductosEdit').children;
-                let total = 0;
-                for (let i = 0; i < filas.length; i++) {
-                    const nombre = filas[i].querySelector('[id^="editProdNombre"]')?.value || '';
-                    const cantidad = parseInt(filas[i].querySelector('[id^="editProdCantidad"]')?.value) || 0;
-                    const precio = parseFloat(filas[i].querySelector('[id^="editProdPrecio"]')?.value) || 0;
-                    
-                    // validasion: todos los campos del producto deben estar llenos
-                    if (nombre && cantidad > 0 && precio >= 0) {
-                        productosEditados.push({ nombre, cantidad, precio });
-                        total += cantidad * precio;
-                    }
-                }
-
-                // validasion: debe aver al menos un producto
-                if (productosEditados.length === 0) {
-                    Swal.showValidationMessage('debe aver al menos un producto');
-                    return false;
-                }
-
-                return { cliente, fecha, total, estado, productos: productosEditados };
-            }
-        }).then((result) => {
-            if (result.isConfirmed) {
-                venta.cliente = result.value.cliente;
-                venta.fecha = result.value.fecha;
-                venta.total = result.value.total;
-                venta.estado = result.value.estado;
-                venta.productos = result.value.productos;
-                actualizarTablaVentas();
-                actualizarEstadisticas();
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Venta actualizada!',
-                    confirmButtonColor: '#198754'
-                });
-            }
-        });
-    }
-
-    // agrega una fila vasia para un nuevo producto en el modal de edision
-    function agregarFilaProducto() {
-        const lista = document.getElementById('listaProductosEdit');
-        const index = Date.now();
-        const nueva = document.createElement('div');
-        nueva.className = 'd-flex align-items-center gap-2 mb-2';
-        nueva.innerHTML = `
-            <input type="text" class="form-control form-control-sm" 
-                   id="editProdNombre${index}" placeholder="Producto">
-            <input type="number" class="form-control form-control-sm" style="width:70px"
-                   id="editProdCantidad${index}" value="1" min="1" placeholder="Cant." onchange="recalcularTotal()">
-            <input type="number" class="form-control form-control-sm" style="width:100px"
-                   id="editProdPrecio${index}" placeholder="Precio" onchange="recalcularTotal()">
-            <button class="btn btn-sm btn-outline-danger" onclick="this.closest('.d-flex').remove(); recalcularTotal();">
-                <i class="fas fa-trash"></i>
-            </button>
-        `;
-        lista.appendChild(nueva);
-    }
-
-    // recalcula el total automaticamente al cambiar cantidades o presios
-    function recalcularTotal() {
-        const lista = document.getElementById('listaProductosEdit');
-        if (!lista) return;
-        const filas = lista.children;
-        let total = 0;
-        for (let i = 0; i < filas.length; i++) {
-            const cantidad = parseInt(filas[i].querySelector('[id^="editProdCantidad"]')?.value) || 0;
-            const precio = parseFloat(filas[i].querySelector('[id^="editProdPrecio"]')?.value) || 0;
-            total += cantidad * precio;
+                </div>`).join('');
         }
-        const editTotal = document.getElementById('editTotal');
-        if (editTotal) editTotal.value = total;
+        const total = carritoEdicion.reduce((s, i) => s + i.precio * i.cantidad, 0);
+        document.getElementById('totalEdicion').textContent = `$${Math.round(total).toLocaleString('es-CO')}`;
     }
 
-    // ==================== buscar y filtrar ====================
-    // filtra las ventas mostradas segun el testo de busqueda
-    function buscarVenta() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const tbody = document.getElementById('ventasTableBody');
-        const filas = tbody.getElementsByTagName('tr');
-        for (let i = 0; i < filas.length; i++) {
-            const texto = filas[i].textContent.toLowerCase();
-            filas[i].style.display = texto.includes(searchTerm) ? '' : 'none';
-        }
+    function cambiarCantidadEdicion(index, cambio) {
+        carritoEdicion[index].cantidad += cambio;
+        if (carritoEdicion[index].cantidad < 1) { eliminarProductoEdicion(index); } 
+        else { renderizarCarritoEdicion(); }
     }
 
-    // filtra las ventas por rango de fecha oy semana mes todas
-    function filtrarPorFecha() {
-        const filtro = document.getElementById('filtroFecha').value;
-        const tbody = document.getElementById('ventasTableBody');
-        const filas = tbody.getElementsByTagName('tr');
-        const ahora = new Date();
-        const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
-
-        for (let i = 0; i < filas.length; i++) {
-            const fila = filas[i];
-            const fechaTexto = fila.children[1].textContent.split(' ')[0];
-            const partes = fechaTexto.split('/');
-            const fechaVenta = new Date(partes[2], partes[1] - 1, partes[0]);
-            let mostrar = false;
-
-            if (filtro === 'todas') {
-                mostrar = true;
-            } else if (filtro === 'hoy') {
-                mostrar = fechaVenta.getTime() === hoy.getTime();
-            } else if (filtro === 'semana') {
-                const inicioSemana = new Date(hoy);
-                inicioSemana.setDate(hoy.getDate() - hoy.getDay());
-                const finSemana = new Date(inicioSemana);
-                finSemana.setDate(inicioSemana.getDate() + 6);
-                mostrar = fechaVenta >= inicioSemana && fechaVenta <= finSemana;
-            } else if (filtro === 'mes') {
-                mostrar = fechaVenta.getMonth() === ahora.getMonth() &&
-                         fechaVenta.getFullYear() === ahora.getFullYear();
-            }
-            fila.style.display = mostrar ? '' : 'none';
-        }
+    function setCantidadEdicion(index, valor) {
+        const cant = parseInt(valor);
+        if (cant < 1 || isNaN(cant)) { eliminarProductoEdicion(index); } 
+        else { carritoEdicion[index].cantidad = cant; renderizarCarritoEdicion(); }
     }
 
-    // ==================== aksiones de ventas ====================
-    // muestra un modal con todos los detalles de una venta
+    function eliminarProductoEdicion(index) {
+        carritoEdicion.splice(index, 1);
+        renderizarCarritoEdicion();
+    }
+
+    // =====ver detalle=======
     function verDetalle(ventaId) {
-        const venta = ventas.find(v => v.id === ventaId);
-        if (!venta) return;
-
-        const productosHtml = venta.productos.map(p => `
-            <tr>
-                <td>${p.nombre}</td>
-                <td class="text-center">${p.cantidad}</td>
-                <td class="text-end">$${p.precio.toLocaleString('es-CO')}</td>
-                <td class="text-end">$${(p.precio * p.cantidad).toLocaleString('es-CO')}</td>
-            </tr>
-        `).join('');
-
-        Swal.fire({
-            title: `Detalle de Venta #${venta.id}`,
-            html: `
-                <div style="text-align: left;">
-                    <p><strong>📅 Fecha:</strong> ${venta.fecha}</p>
-                    <p><strong>👤 Cliente:</strong> ${venta.cliente}</p>
-                    <p><strong>Estado:</strong> <span class="badge ${venta.estado === 'Completada' ? 'bg-success' : 'bg-warning text-dark'}">${venta.estado}</span></p>
-                    <hr>
-                    <h6>Productos:</h6>
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Producto</th>
-                                <th class="text-center">Cant.</th>
-                                <th class="text-end">Precio</th>
-                                <th class="text-end">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody>${productosHtml}</tbody>
-                    </table>
-                    <div class="text-end">
-                        <h5 class="text-primary">Total: $${venta.total.toLocaleString('es-CO')}</h5>
-                    </div>
-                </div>
-            `,
-            width: 700,
-            confirmButtonText: 'Cerrar',
-            confirmButtonColor: '#198754'
+        fetch(`/ventas/detalle/${ventaId}/`)
+        .then(r => r.json())
+        .then(data => {
+            const productosHtml = data.productos.map(p => `
+                <tr>
+                    <td>${p.nombre}</td>
+                    <td class="text-center">${p.cantidad}</td>
+                    <td class="text-end">$${Number(p.precio).toLocaleString('es-CO')}</td>
+                    <td class="text-end">$${(p.precio * p.cantidad).toLocaleString('es-CO')}</td>
+                </tr>`).join('');
+            Swal.fire({
+                title: `Detalle de Venta #${data.id}`,
+                html: `
+                    <div style="text-align: left;">
+                        <p><strong>📅 Fecha:</strong> ${data.fecha}</p>
+                        <p><strong>👤 Cliente:</strong> ${data.cliente}</p>
+                        <p><strong>Estado:</strong> <span class="badge ${data.estado === 'completada' ? 'bg-success' : 'bg-warning text-dark'}">${data.estado}</span></p>
+                        <hr>
+                        <h6>Productos:</h6>
+                        <table class="table table-sm">
+                            <thead><tr><th>Producto</th><th class="text-center">Cant.</th><th class="text-end">Precio</th><th class="text-end">Subtotal</th></tr></thead>
+                            <tbody>${productosHtml}</tbody>
+                        </table>
+                        <div class="text-end"><h5 class="text-primary">Total: $${Number(data.total).toLocaleString('es-CO')}</h5></div>
+                    </div>`,
+                width: 700,
+                confirmButtonText: 'Cerrar',
+                confirmButtonColor: '#198754'
+            });
         });
     }
 
-    // cambia el estado de una venta de pendiente a completada
+    // ==funcion para completar venta==
     function completarVenta(ventaId) {
-        const venta = ventas.find(v => v.id === ventaId);
-        if (!venta) return;
-
         Swal.fire({
-            title: '¿Completar venta?',
-            text: `Venta #${ventaId} - ${venta.cliente}`,
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#198754',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Sí, completar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
+            title: '¿Completar venta?', icon: 'question', showCancelButton: true,
+            confirmButtonColor: '#198754', cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, completar', cancelButtonText: 'Cancelar'
+        }).then(result => {
             if (result.isConfirmed) {
-                venta.estado = 'Completada';
-                actualizarTablaVentas();
-                actualizarEstadisticas();
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Completada!',
-                    confirmButtonColor: '#198754'
-                });
+                fetch(`/ventas/completar/${ventaId}/`, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
+                .then(r => r.json())
+                .then(data => { if (data.ok) Swal.fire({ icon: 'success', title: '¡Completada!', confirmButtonColor: '#198754' }).then(() => location.reload()); });
             }
         });
     }
 
-    // elimina una venta del array solo si esta pendiente
+    // ==funcion para eliminar venta==
     function eliminarVenta(ventaId) {
-        const venta = ventas.find(v => v.id === ventaId);
-        if (!venta) return;
-
         Swal.fire({
-            title: '¿Eliminar venta?',
-            text: `Venta #${ventaId} - ${venta.cliente}`,
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#dc3545',
-            cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
+            title: '¿Eliminar venta?', icon: 'warning', showCancelButton: true,
+            confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar'
+        }).then(result => {
             if (result.isConfirmed) {
-                ventas = ventas.filter(v => v.id !== ventaId);
-                actualizarTablaVentas();
-                actualizarEstadisticas();
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Eliminada!',
-                    confirmButtonColor: '#198754'
-                });
+                fetch(`/ventas/eliminar/${ventaId}/`, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
+                .then(r => r.json())
+                .then(data => { if (data.ok) Swal.fire({ icon: 'success', title: '¡Eliminada!', confirmButtonColor: '#198754' }).then(() => location.reload()); });
             }
         });
     }
 
-    //estadisticas
-    // calcula y actualisa las tarjetas de ventas de oy total mes y ventas realisadas
-    function actualizarEstadisticas() {
-        const totalVentas = ventas.length;
-        let totalMes = 0;
-        ventas.forEach(venta => { totalMes += venta.total; });
-
-        const hoy = new Date().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
-        let ventasHoy = 0;
-        ventas.forEach(venta => {
-            if (venta.fecha.split(' ')[0] === hoy) ventasHoy += venta.total;
+    // =====buscar y filtrar===
+    function buscarVenta() {
+        const term = document.getElementById('searchInput').value.toLowerCase();
+        Array.from(document.getElementById('ventasTableBody').getElementsByTagName('tr')).forEach(f => {
+            f.style.display = f.textContent.toLowerCase().includes(term) ? '' : 'none';
         });
+    }
 
-        document.getElementById('ventasHoy').textContent = '$' + ventasHoy.toLocaleString('es-CO');
-        document.getElementById('totalMes').textContent = '$' + totalMes.toLocaleString('es-CO');
-        document.getElementById('ventasRealizadas').textContent = totalVentas;
+    function filtrarPorFecha() {
+    const filtro = document.getElementById('filtroFecha').value;
+    const ahora = new Date();
+    const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+    
+    Array.from(document.getElementById('ventasTableBody').getElementsByTagName('tr')).forEach(fila => {
+        const partes = fila.children[1].textContent.split(' ')[0].split('/');
+        const fecha = new Date(partes[2], partes[1] - 1, partes[0]);
+        let mostrar = false;
+        
+        if (filtro === 'todas') {
+            mostrar = true;
+        } 
+        else if (filtro === 'hoy') {
+            mostrar = fecha.getTime() === hoy.getTime();
+        }
+        else if (filtro === 'ayer') {
+            const ayer = new Date(hoy);
+            ayer.setDate(hoy.getDate() - 1);
+            mostrar = fecha.getTime() === ayer.getTime();
+        }
+        else if (filtro === 'semana') {
+            const ini = new Date(hoy);
+            ini.setDate(hoy.getDate() - hoy.getDay());
+            const fin = new Date(ini);
+            fin.setDate(ini.getDate() + 6);
+            mostrar = fecha >= ini && fecha <= fin;
+        }
+        else if (filtro === 'semana_pasada') {
+            const ini = new Date(hoy);
+            ini.setDate(hoy.getDate() - hoy.getDay() - 7);
+            const fin = new Date(ini);
+            fin.setDate(ini.getDate() + 6);
+            mostrar = fecha >= ini && fecha <= fin;
+        }
+        else if (filtro === 'mes') {
+            mostrar = fecha.getMonth() === ahora.getMonth() && 
+                     fecha.getFullYear() === ahora.getFullYear();
+        }
+        else if (filtro === 'mes_pasado') {
+            const mesPasado = new Date(ahora.getFullYear(), ahora.getMonth() - 1, 1);
+            mostrar = fecha.getMonth() === mesPasado.getMonth() && 
+                     fecha.getFullYear() === mesPasado.getFullYear();
+        }
+        else if (filtro === 'trimestre') {
+            const hace3meses = new Date(ahora);
+            hace3meses.setMonth(ahora.getMonth() - 3);
+            mostrar = fecha >= hace3meses && fecha <= ahora;
+        }
+        else if (filtro === 'anio') {
+            mostrar = fecha.getFullYear() === ahora.getFullYear();
+        }
+        
+        fila.style.display = mostrar ? '' : 'none';
+    });
+}
+
+    // =====estadisticas=========
+    function actualizarEstadisticas() {
+        fetch('/ventas/estadisticas/')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('ventasHoy').textContent = '$' + Number(data.ventas_hoy).toLocaleString('es-CO');
+            document.getElementById('totalMes').textContent = '$' + Number(data.total_mes).toLocaleString('es-CO');
+            document.getElementById('ventasRealizadas').textContent = data.total_ventas;
+        });
     }
 </script>
 

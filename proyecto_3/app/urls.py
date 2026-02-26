@@ -13,7 +13,7 @@ urlpatterns = [
     # Clientes
     path('clientes/', views.clientes, name='clientes'),
     
-    # Ventas
+    # Ventas(Ricardo)
     path('ventas/', include('ventas.urls')),  # ← CAMBIO AQUÍ
     
     # Registro
