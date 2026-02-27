@@ -173,15 +173,11 @@
 
 <script>
     //simulacion de productos disponibles 
-    const productosDisponibles = [
-        { id: 1, nombre: "Harina", precio: 10000, stock: 50 },
-        { id: 2, nombre: "Queso", precio: 15000, stock: 30 },
-        { id: 3, nombre: "Jabon Axion", precio: 8000, stock: 100 },
-        { id: 4, nombre: "Leche", precio: 5000, stock: 45 },
-        { id: 5, nombre: "Pan", precio: 3000, stock: 60 },
-        { id: 6, nombre: "Arroz", precio: 4000, stock: 80 },
-        { id: 7, nombre: "Aceite", precio: 12000, stock: 25 }
-    ];
+    let productosDisponibles = [];
+
+fetch('/productos/json/')
+    .then(r => r.json())
+    .then(data => { productosDisponibles = data.productos; });
 
     let carrito = [];
     let carritoEdicion = [];

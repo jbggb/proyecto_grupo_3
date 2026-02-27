@@ -4,10 +4,7 @@
 {% block content %}
 
 <h1 class="mb-4">Sistema de Clientes</h1>
-
-<p class="text-muted">
-    Sistema de inventario por el Grupo 3
-</p>
+<p class="text-muted">Sistema de inventario por el Grupo 3</p>
 
 <!-- ===== BOTÓN AGREGAR CLIENTE ===== -->
 <div class="mb-3">
@@ -16,20 +13,14 @@
     </button>
 </div>
 
-<!-- ===== MENÚ SUPERIOR - BÚSQUEDA Y FILTROS ===== -->
+<!-- ===== BÚSQUEDA Y FILTROS ===== -->
 <div class="card mb-3">
     <div class="card-body">
-        <!-- Búsqueda -->
         <div class="row mb-3">
             <div class="col-md-6">
-                <input type="text" 
-                       id="searchInputClientes" 
-                       class="form-control" 
-                       placeholder="Buscar cliente...">
+                <input type="text" id="searchInputClientes" class="form-control" placeholder="Buscar cliente...">
             </div>
         </div>
-
-        <!-- Filtros -->
         <div class="row">
             <div class="col-12">
                 <label class="form-label">Filtrar por estado:</label>
@@ -45,10 +36,7 @@
 
 <!-- ===== TABLA CLIENTES ===== -->
 <div class="card mt-4">
-    <div class="card-header bg-dark text-light">
-        Clientes registrados
-    </div>
-
+    <div class="card-header bg-dark text-light">Clientes registrados</div>
     <div class="card-body">
         <table class="table table-bordered">
             <thead class="table-dark">
@@ -63,142 +51,46 @@
                     <th>Acción</th>
                 </tr>
             </thead>
-            <tbody id="clientesTabla">
-                <!-- Los clientes se cargarán dinámicamente aquí -->
-            </tbody>
+            <tbody id="clientesTabla"></tbody>
         </table>
     </div>
 </div>
 
-<!-- ================= SCRIPTS ================= -->
 <script>
-    // Datos de ejemplo de clientes
-    let clientes = [
-        { 
-            id: 1, 
-            nombre: "Juan Pérez", 
-            documento: "1234567890",
-            telefono: "3001234567",
-            email: "juan.perez@email.com",
-            direccion: "Calle 123 #45-67",
-            estado: "activo"
-        },
-        { 
-            id: 2, 
-            nombre: "María González", 
-            documento: "9876543210",
-            telefono: "3109876543",
-            email: "maria.gonzalez@email.com",
-            direccion: "Carrera 45 #12-34",
-            estado: "activo"
-        },
-        { 
-            id: 3, 
-            nombre: "Carlos Rodríguez", 
-            documento: "5555555555",
-            telefono: "3205555555",
-            email: "carlos.rodriguez@email.com",
-            direccion: "Avenida 78 #90-12",
-            estado: "inactivo"
-        },
-        { 
-            id: 4, 
-            nombre: "Ana Martínez", 
-            documento: "1111111111",
-            telefono: "3151111111",
-            email: "ana.martinez@email.com",
-            direccion: "Diagonal 34 #56-78",
-            estado: "activo"
-        },
-        { 
-            id: 5, 
-            nombre: "Pedro López", 
-            documento: "2222222222",
-            telefono: "3002222222",
-            email: "pedro.lopez@email.com",
-            direccion: "Transversal 90 #12-34",
-            estado: "activo"
-        }
-    ];
+    const CSRF = '{{ csrf_token }}';
+    let clientes = [];
 
-    // ===== FUNCIÓN PARA BLOQUEAR LETRAS EN CAMPOS NUMÉRICOS =====
-    function soloNumeros(event) {
-        const charCode = event.which ? event.which : event.keyCode;
-        // Permitir: backspace, delete, tab, escape, enter, y las flechas
-        if (charCode === 8 || charCode === 9 || charCode === 27 || charCode === 13 || 
-            (charCode >= 35 && charCode <= 40) || charCode === 46) {
-            return true;
-        }
-        // Bloquear si no es un número (0-9)
-        if (charCode < 48 || charCode > 57) {
-            event.preventDefault();
-            return false;
-        }
-        return true;
+    // ===== CARGAR CLIENTES DESDE LA BD =====
+    function cargarClientes() {
+        fetch('/clientes/json/')
+            .then(r => r.json())
+            .then(data => {
+                clientes = data.clientes;
+                renderizarClientes();
+            })
+            .catch(() => Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudieron cargar los clientes.' }));
     }
 
-    // ===== FUNCIÓN PARA LIMPIAR LETRAS DE CAMPOS NUMÉRICOS =====
-    function limpiarLetras(input) {
-        input.value = input.value.replace(/[^\d]/g, '');
-    }
-
-    // ===== FUNCIÓN PARA APLICAR VALIDACIONES A LOS CAMPOS =====
-    function aplicarValidacionesNumericas() {
-        // Obtener los campos después de que SweetAlert los cree
-        setTimeout(() => {
-            const campoDocumento = document.getElementById('swal-documento');
-            const campoTelefono = document.getElementById('swal-telefono');
-            
-            if (campoDocumento) {
-                // Bloquear teclas que no sean números
-                campoDocumento.addEventListener('keypress', soloNumeros);
-                // Limpiar cualquier letra pegada
-                campoDocumento.addEventListener('input', function() {
-                    limpiarLetras(this);
-                });
-                // Prevenir pegado de texto con letras
-                campoDocumento.addEventListener('paste', function(e) {
-                    setTimeout(() => limpiarLetras(this), 10);
-                });
-            }
-            
-            if (campoTelefono) {
-                // Bloquear teclas que no sean números
-                campoTelefono.addEventListener('keypress', soloNumeros);
-                // Limpiar cualquier letra pegada
-                campoTelefono.addEventListener('input', function() {
-                    limpiarLetras(this);
-                });
-                // Prevenir pegado de texto con letras
-                campoTelefono.addEventListener('paste', function(e) {
-                    setTimeout(() => limpiarLetras(this), 10);
-                });
-            }
-        }, 100);
-    }
-
+    // ===== RENDERIZAR TABLA =====
     function renderizarClientes() {
         const tbody = document.getElementById('clientesTabla');
         const busqueda = document.getElementById('searchInputClientes').value.toLowerCase();
         const filtro = document.getElementById('filtroEstado').value;
-        
-        // Filtrar clientes
-        let clientesFiltrados = clientes.filter(c => {
-            // Búsqueda
+
+        let filtrados = clientes.filter(c => {
             const cumpleBusqueda = c.nombre.toLowerCase().includes(busqueda) ||
                                    c.documento.includes(busqueda) ||
                                    c.email.toLowerCase().includes(busqueda);
-            
-            // Filtro de estado
-            let cumpleFiltro = true;
-            if (filtro === 'activo') cumpleFiltro = c.estado === 'activo';
-            else if (filtro === 'inactivo') cumpleFiltro = c.estado === 'inactivo';
-            
+            const cumpleFiltro = filtro === 'all' || c.estado === filtro;
             return cumpleBusqueda && cumpleFiltro;
         });
 
-        // Renderizar filas
-        tbody.innerHTML = clientesFiltrados.map(c => `
+        if (filtrados.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4">No se encontraron clientes</td></tr>`;
+            return;
+        }
+
+        tbody.innerHTML = filtrados.map(c => `
             <tr>
                 <td>${c.id}</td>
                 <td>${c.nombre}</td>
@@ -212,10 +104,10 @@
                     </span>
                 </td>
                 <td>
-                    <button type="button" class="btn btn-primary btn-sm" onclick="editarCliente(${c.id})">
+                    <button class="btn btn-primary btn-sm" onclick="editarCliente(${c.id})">
                         <i class="fa-solid fa-pen"></i>
                     </button>
-                    <button type="button" class="btn btn-danger btn-sm" onclick="eliminarCliente(${c.id})">
+                    <button class="btn btn-danger btn-sm" onclick="eliminarCliente(${c.id})">
                         <i class="fa-solid fa-trash"></i>
                     </button>
                 </td>
@@ -223,43 +115,102 @@
         `).join('');
     }
 
-    // ===== FUNCIÓN AGREGAR CLIENTE =====
+    // ===== VALIDACIONES =====
+    function soloNumeros(event) {
+        const charCode = event.which ? event.which : event.keyCode;
+        if (charCode === 8 || charCode === 9 || charCode === 27 || charCode === 13 ||
+            (charCode >= 35 && charCode <= 40) || charCode === 46) return true;
+        if (charCode < 48 || charCode > 57) { event.preventDefault(); return false; }
+        return true;
+    }
+
+    function limpiarLetras(input) {
+        input.value = input.value.replace(/[^\d]/g, '');
+    }
+
+    function aplicarValidacionesNumericas() {
+        setTimeout(() => {
+            ['swal-documento', 'swal-telefono'].forEach(id => {
+                const campo = document.getElementById(id);
+                if (campo) {
+                    campo.addEventListener('keypress', soloNumeros);
+                    campo.addEventListener('input', function() { limpiarLetras(this); });
+                    campo.addEventListener('paste', function() { setTimeout(() => limpiarLetras(this), 10); });
+                }
+            });
+        }, 100);
+    }
+
+    function validarFormulario(idExcluir = null) {
+        const nombre = document.getElementById('swal-nombre').value.trim();
+        const documento = document.getElementById('swal-documento').value.trim();
+        const telefono = document.getElementById('swal-telefono').value.trim();
+        const email = document.getElementById('swal-email').value.trim();
+        const direccion = document.getElementById('swal-direccion').value.trim();
+        const estado = document.getElementById('swal-estado').value;
+
+        if (!nombre || !documento || !telefono || !email || !direccion) {
+            Swal.showValidationMessage('Todos los campos son obligatorios'); return false;
+        }
+        if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre)) {
+            Swal.showValidationMessage('El nombre solo debe contener letras'); return false;
+        }
+        if (!/^\d+$/.test(documento)) {
+            Swal.showValidationMessage('El documento solo debe contener números'); return false;
+        }
+        if (documento.length < 6 || documento.length > 12) {
+            Swal.showValidationMessage('El documento debe tener entre 6 y 12 dígitos'); return false;
+        }
+        if (!/^\d+$/.test(telefono)) {
+            Swal.showValidationMessage('El teléfono solo debe contener números'); return false;
+        }
+        if (telefono.length !== 10) {
+            Swal.showValidationMessage('El teléfono debe tener 10 dígitos'); return false;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            Swal.showValidationMessage('Ingrese un email válido'); return false;
+        }
+
+        return { nombre, documento, telefono, email, direccion, estado };
+    }
+
+    function formularioHtml(c = null) {
+        return `
+            <div class="mb-3 text-start">
+                <label class="form-label">Nombre completo</label>
+                <input id="swal-nombre" class="form-control" placeholder="Ej: Juan Pérez" value="${c ? c.nombre : ''}">
+            </div>
+            <div class="mb-3 text-start">
+                <label class="form-label">Documento</label>
+                <input id="swal-documento" class="form-control" placeholder="Ej: 1234567890" maxlength="12" value="${c ? c.documento : ''}">
+            </div>
+            <div class="mb-3 text-start">
+                <label class="form-label">Teléfono</label>
+                <input id="swal-telefono" class="form-control" placeholder="Ej: 3001234567" maxlength="10" value="${c ? c.telefono : ''}">
+            </div>
+            <div class="mb-3 text-start">
+                <label class="form-label">Email</label>
+                <input id="swal-email" type="email" class="form-control" placeholder="Ej: cliente@email.com" value="${c ? c.email : ''}">
+            </div>
+            <div class="mb-3 text-start">
+                <label class="form-label">Dirección</label>
+                <input id="swal-direccion" class="form-control" placeholder="Ej: Calle 123 #45-67" value="${c ? c.direccion : ''}">
+            </div>
+            <div class="mb-3 text-start">
+                <label class="form-label">Estado</label>
+                <select id="swal-estado" class="form-select">
+                    <option value="activo" ${!c || c.estado === 'activo' ? 'selected' : ''}>Activo</option>
+                    <option value="inactivo" ${c && c.estado === 'inactivo' ? 'selected' : ''}>Inactivo</option>
+                </select>
+            </div>`;
+    }
+
+    // ===== AGREGAR CLIENTE =====
     async function agregarCliente() {
         const { value: formValues } = await Swal.fire({
             title: 'Agregar Nuevo Cliente',
-            html: `
-                <div class="mb-3 text-start">
-                    <label class="form-label">Nombre completo</label>
-                    <input id="swal-nombre" class="form-control" placeholder="Ej: Juan Pérez">
-                </div>
-                <div class="mb-3 text-start">
-                    <label class="form-label">Documento</label>
-                    <input id="swal-documento" class="form-control" placeholder="Ej: 1234567890" maxlength="12">
-                </div>
-                <div class="mb-3 text-start">
-                    <label class="form-label">Teléfono</label>
-                    <input id="swal-telefono" class="form-control" placeholder="Ej: 3001234567" maxlength="10">
-                </div>
-                <div class="mb-3 text-start">
-                    <label class="form-label">Email</label>
-                    <input id="swal-email" type="email" class="form-control" placeholder="Ej: cliente@email.com">
-                </div>
-                <div class="mb-3 text-start">
-                    <label class="form-label">Dirección</label>
-                    <input id="swal-direccion" class="form-control" placeholder="Ej: Calle 123 #45-67">
-                </div>
-                <div class="mb-3 text-start">
-                    <label class="form-label">Estado</label>
-                    <select id="swal-estado" class="form-select">
-                        <option value="activo">Activo</option>
-                        <option value="inactivo">Inactivo</option>
-                    </select>
-                </div>
-            `,
-            didOpen: () => {
-                // Aplicar validaciones cuando se abre el modal
-                aplicarValidacionesNumericas();
-            },
+            html: formularioHtml(),
+            didOpen: () => aplicarValidacionesNumericas(),
             focusConfirm: false,
             showCancelButton: true,
             confirmButtonText: 'Guardar',
@@ -267,149 +218,36 @@
             confirmButtonColor: '#198754',
             cancelButtonColor: '#6c757d',
             width: '600px',
-            preConfirm: () => {
-                const nombre = document.getElementById('swal-nombre').value.trim();
-                const documento = document.getElementById('swal-documento').value.trim();
-                const telefono = document.getElementById('swal-telefono').value.trim();
-                const email = document.getElementById('swal-email').value.trim();
-                const direccion = document.getElementById('swal-direccion').value.trim();
-                const estado = document.getElementById('swal-estado').value;
-
-                // Validar campos vacíos
-                if (!nombre || !documento || !telefono || !email || !direccion) {
-                    Swal.showValidationMessage('Todos los campos son obligatorios');
-                    return false;
-                }
-
-                // Validar que el nombre solo contenga letras y espacios
-                const regexNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
-                if (!regexNombre.test(nombre)) {
-                    Swal.showValidationMessage('El nombre solo debe contener letras');
-                    return false;
-                }
-
-                // Validar que el documento solo contenga números
-                const regexDocumento = /^\d+$/;
-                if (!regexDocumento.test(documento)) {
-                    Swal.showValidationMessage('El documento solo debe contener números');
-                    return false;
-                }
-
-                // Validar longitud del documento (entre 6 y 12 dígitos)
-                if (documento.length < 6 || documento.length > 12) {
-                    Swal.showValidationMessage('El documento debe tener entre 6 y 12 dígitos');
-                    return false;
-                }
-
-                // Validar que el documento no esté duplicado
-                const documentoDuplicado = clientes.some(c => c.documento === documento);
-                if (documentoDuplicado) {
-                    Swal.showValidationMessage('Ya existe un cliente con este número de documento');
-                    return false;
-                }
-
-                // Validar que el teléfono solo contenga números
-                const regexTelefono = /^\d+$/;
-                if (!regexTelefono.test(telefono)) {
-                    Swal.showValidationMessage('El teléfono solo debe contener números');
-                    return false;
-                }
-
-                // Validar longitud del teléfono (10 dígitos para Colombia)
-                if (telefono.length !== 10) {
-                    Swal.showValidationMessage('El teléfono debe tener 10 dígitos');
-                    return false;
-                }
-
-                // Validar formato de email
-                const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!regexEmail.test(email)) {
-                    Swal.showValidationMessage('Ingrese un email válido');
-                    return false;
-                }
-
-                // Validar que el email no esté duplicado
-                const emailDuplicado = clientes.some(c => c.email.toLowerCase() === email.toLowerCase());
-                if (emailDuplicado) {
-                    Swal.showValidationMessage('Ya existe un cliente con este email');
-                    return false;
-                }
-
-                return {
-                    nombre,
-                    documento,
-                    telefono,
-                    email,
-                    direccion,
-                    estado
-                }
-            }
+            preConfirm: () => validarFormulario()
         });
 
         if (formValues) {
-            // Generar nuevo ID
-            const nuevoId = clientes.length > 0 ? Math.max(...clientes.map(c => c.id)) + 1 : 1;
-            
-            // Agregar el nuevo cliente
-            clientes.push({
-                id: nuevoId,
-                ...formValues
+            fetch('/clientes/crear/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+                body: JSON.stringify(formValues)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    Swal.fire({ title: '¡Registrado!', text: 'Cliente registrado correctamente', icon: 'success', confirmButtonColor: '#198754' });
+                    cargarClientes();
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.error, confirmButtonColor: '#dc3545' });
+                }
             });
-
-            // Mostrar mensaje de éxito
-            Swal.fire({
-                title: '¡Registrado!',
-                text: 'El cliente ha sido registrado correctamente',
-                icon: 'success',
-                confirmButtonColor: '#198754'
-            });
-
-            // Actualizar la tabla
-            renderizarClientes();
         }
     }
 
-    // ===== FUNCIÓN EDITAR CLIENTE =====
+    // ===== EDITAR CLIENTE =====
     async function editarCliente(id) {
         const cliente = clientes.find(c => c.id === id);
-        
         if (!cliente) return;
 
         const { value: formValues } = await Swal.fire({
             title: 'Editar Cliente',
-            html: `
-                <div class="mb-3 text-start">
-                    <label class="form-label">Nombre completo</label>
-                    <input id="swal-nombre" class="form-control" value="${cliente.nombre}">
-                </div>
-                <div class="mb-3 text-start">
-                    <label class="form-label">Documento</label>
-                    <input id="swal-documento" class="form-control" value="${cliente.documento}" maxlength="12">
-                </div>
-                <div class="mb-3 text-start">
-                    <label class="form-label">Teléfono</label>
-                    <input id="swal-telefono" class="form-control" value="${cliente.telefono}" maxlength="10">
-                </div>
-                <div class="mb-3 text-start">
-                    <label class="form-label">Email</label>
-                    <input id="swal-email" type="email" class="form-control" value="${cliente.email}">
-                </div>
-                <div class="mb-3 text-start">
-                    <label class="form-label">Dirección</label>
-                    <input id="swal-direccion" class="form-control" value="${cliente.direccion}">
-                </div>
-                <div class="mb-3 text-start">
-                    <label class="form-label">Estado</label>
-                    <select id="swal-estado" class="form-select">
-                        <option value="activo" ${cliente.estado === 'activo' ? 'selected' : ''}>Activo</option>
-                        <option value="inactivo" ${cliente.estado === 'inactivo' ? 'selected' : ''}>Inactivo</option>
-                    </select>
-                </div>
-            `,
-            didOpen: () => {
-                // Aplicar validaciones cuando se abre el modal
-                aplicarValidacionesNumericas();
-            },
+            html: formularioHtml(cliente),
+            didOpen: () => aplicarValidacionesNumericas(),
             focusConfirm: false,
             showCancelButton: true,
             confirmButtonText: 'Guardar',
@@ -417,110 +255,30 @@
             confirmButtonColor: '#198754',
             cancelButtonColor: '#6c757d',
             width: '600px',
-            preConfirm: () => {
-                const nombre = document.getElementById('swal-nombre').value.trim();
-                const documento = document.getElementById('swal-documento').value.trim();
-                const telefono = document.getElementById('swal-telefono').value.trim();
-                const email = document.getElementById('swal-email').value.trim();
-                const direccion = document.getElementById('swal-direccion').value.trim();
-                const estado = document.getElementById('swal-estado').value;
-
-                // Validar campos vacíos
-                if (!nombre || !documento || !telefono || !email || !direccion) {
-                    Swal.showValidationMessage('Todos los campos son obligatorios');
-                    return false;
-                }
-
-                // Validar que el nombre solo contenga letras y espacios
-                const regexNombre = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
-                if (!regexNombre.test(nombre)) {
-                    Swal.showValidationMessage('El nombre solo debe contener letras');
-                    return false;
-                }
-
-                // Validar que el documento solo contenga números
-                const regexDocumento = /^\d+$/;
-                if (!regexDocumento.test(documento)) {
-                    Swal.showValidationMessage('El documento solo debe contener números');
-                    return false;
-                }
-
-                // Validar longitud del documento (entre 6 y 12 dígitos)
-                if (documento.length < 6 || documento.length > 12) {
-                    Swal.showValidationMessage('El documento debe tener entre 6 y 12 dígitos');
-                    return false;
-                }
-
-                // Validar que el documento no esté duplicado (excepto el actual)
-                const documentoDuplicado = clientes.some(c => c.id !== id && c.documento === documento);
-                if (documentoDuplicado) {
-                    Swal.showValidationMessage('Ya existe otro cliente con este número de documento');
-                    return false;
-                }
-
-                // Validar que el teléfono solo contenga números
-                const regexTelefono = /^\d+$/;
-                if (!regexTelefono.test(telefono)) {
-                    Swal.showValidationMessage('El teléfono solo debe contener números');
-                    return false;
-                }
-
-                // Validar longitud del teléfono (10 dígitos para Colombia)
-                if (telefono.length !== 10) {
-                    Swal.showValidationMessage('El teléfono debe tener 10 dígitos');
-                    return false;
-                }
-
-                // Validar formato de email
-                const regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!regexEmail.test(email)) {
-                    Swal.showValidationMessage('Ingrese un email válido');
-                    return false;
-                }
-
-                // Validar que el email no esté duplicado (excepto el actual)
-                const emailDuplicado = clientes.some(c => c.id !== id && c.email.toLowerCase() === email.toLowerCase());
-                if (emailDuplicado) {
-                    Swal.showValidationMessage('Ya existe otro cliente con este email');
-                    return false;
-                }
-
-                return {
-                    nombre,
-                    documento,
-                    telefono,
-                    email,
-                    direccion,
-                    estado
-                }
-            }
+            preConfirm: () => validarFormulario(id)
         });
 
         if (formValues) {
-            // Actualizar el cliente
-            const index = clientes.findIndex(c => c.id === id);
-            clientes[index] = {
-                ...clientes[index],
-                ...formValues
-            };
-
-            // Mostrar mensaje de éxito
-            Swal.fire({
-                title: '¡Actualizado!',
-                text: 'El cliente ha sido actualizado correctamente',
-                icon: 'success',
-                confirmButtonColor: '#198754'
+            fetch(`/clientes/editar/${id}/`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+                body: JSON.stringify(formValues)
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    Swal.fire({ title: '¡Actualizado!', text: 'Cliente actualizado correctamente', icon: 'success', confirmButtonColor: '#198754' });
+                    cargarClientes();
+                } else {
+                    Swal.fire({ icon: 'error', title: 'Error', text: data.error, confirmButtonColor: '#dc3545' });
+                }
             });
-
-            // Actualizar la tabla
-            renderizarClientes();
         }
     }
 
-    // ===== FUNCIÓN ELIMINAR CLIENTE =====
+    // ===== ELIMINAR CLIENTE =====
     function eliminarCliente(id) {
         const cliente = clientes.find(c => c.id === id);
-        
         if (!cliente) return;
 
         Swal.fire({
@@ -532,31 +290,29 @@
             cancelButtonColor: '#6c757d',
             confirmButtonText: 'Sí, eliminar',
             cancelButtonText: 'Cancelar'
-        }).then((result) => {
+        }).then(result => {
             if (result.isConfirmed) {
-                // Eliminar el cliente del array
-                clientes = clientes.filter(c => c.id !== id);
-
-                // Mostrar mensaje de éxito
-                Swal.fire({
-                    title: '¡Eliminado!',
-                    text: 'El cliente ha sido eliminado correctamente',
-                    icon: 'success',
-                    confirmButtonColor: '#198754'
+                fetch(`/clientes/eliminar/${id}/`, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': CSRF }
+                })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.ok) {
+                        Swal.fire({ title: '¡Eliminado!', text: 'Cliente eliminado correctamente', icon: 'success', confirmButtonColor: '#198754' });
+                        cargarClientes();
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'Error', text: data.error });
+                    }
                 });
-
-                // Actualizar la tabla
-                renderizarClientes();
             }
         });
     }
 
-    // Eventos
     document.getElementById('searchInputClientes').addEventListener('input', renderizarClientes);
     document.getElementById('filtroEstado').addEventListener('change', renderizarClientes);
 
-    // Cargar clientes al iniciar
-    renderizarClientes();
+    cargarClientes();
 </script>
 
 {% endblock %}

@@ -2,159 +2,247 @@
 {% load static %}
 
 {% block content %}
-<h1>Gestión de Compras</h1>
-<p class="text-muted">Sistema de inventario por el Grupo 3</p>
-
-<!-- Botón agregar -->
-<button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalCompra">
-  🛒 Agregar Compra
-</button>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1>Gestión de Compras</h1>
+        <p class="text-muted mb-0">Sistema de inventario por el Grupo 3</p>
+    </div>
+    <button class="btn btn-success" onclick="agregarCompra()">
+        🛒 Agregar Compra
+    </button>
+</div>
 
 <!-- Filtros -->
-<div class="mb-3">
-  <input type="text" class="form-control mb-2" placeholder="Buscar compra..." id="inputBuscar">
-  <label>Filtrar por estado:</label>
-  <select class="form-select" id="selEstado">
-    <option value="">Todos</option>
-    <option>Completada</option>
-    <option>Pendiente</option>
-    <option>En proceso</option>
-    <option>Anulada</option>
-  </select>
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <input type="text" class="form-control" placeholder="Buscar por proveedor o producto..." id="inputBuscar">
+            </div>
+            <div class="col-md-3">
+                <select class="form-select" id="selEstado">
+                    <option value="">Todos los estados</option>
+                    <option value="true">Completada</option>
+                    <option value="false">Pendiente</option>
+                </select>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Tabla -->
 <div class="card">
-  <div class="card-header bg-dark text-white">Compras registradas</div>
-  <div class="card-body p-0">
-    <table class="table table-bordered table-hover mb-0" id="tablaCompras">
-      <thead class="table-dark">
-        <tr>
-          <th>ID</th>
-          <th>N° Orden</th>
-          <th>Proveedor</th>
-          <th>Fecha</th>
-          <th>Tipo de Producto</th>
-          <th>Marca de Producto</th>
-          <th>Total</th>
-          <th>Estado</th>
-          <th>Acción</th>
-        </tr>
-      </thead>
-      <tbody id="tbodyCompras">
-        <tr data-estado="Completada" data-id="1">
-          <td>1</td>
-          <td>ORD-2025-001</td>
-          <td>Distribuidora ABC</td>
-          <td>2025-01-10</td>
-          <td>paquetes</td>
-          <td>Papas Margarita</td>
-          <td>$250,000</td>
-          <td><span class="badge bg-success">Completada</span></td>
-          <td>
-            <button class="btn btn-sm btn-primary">✏️</button>
-            <button class="btn btn-sm btn-danger">🗑</button>
-          </td>
-        </tr>
-        <tr data-estado="Pendiente" data-id="2">
-          <td>2</td>
-          <td>ORD-2025-002</td>
-          <td>Proveedores XYZ</td>
-          <td>2025-01-15</td>
-          <td>Cerveza</td>
-          <td>Poker</td>
-          <td>$120,000</td>
-          <td><span class="badge bg-warning text-dark">Pendiente</span></td>
-          <td>
-            <button class="btn btn-sm btn-primary">✏️</button>
-            <button class="btn btn-sm btn-danger">🗑</button>
-          </td>
-        </tr>
-        <tr data-estado="En proceso" data-id="3">
-          <td>3</td>
-          <td>ORD-2025-003</td>
-          <td>Suministros 123</td>
-          <td>2025-01-20</td>
-          <td>gaseosas</td>
-          <td>Pepsi</td>
-          <td>$500,000</td>
-          <td><span class="badge bg-primary">En proceso</span></td>
-          <td>
-            <button class="btn btn-sm btn-primary">✏️</button>
-            <button class="btn btn-sm btn-danger">🗑</button>
-          </td>
-        </tr>
-        <tr data-estado="Anulada" data-id="4">
-          <td>4</td>
-          <td>ORD-2025-004</td>
-          <td>Importadora DEF</td>
-          <td>2025-01-22</td>
-          <td>Alimentos</td>
-          <td>Nestlé</td>
-          <td>$540,000</td>
-          <td><span class="badge bg-danger">Anulada</span></td>
-          <td>
-            <button class="btn btn-sm btn-primary">✏️</button>
-            <button class="btn btn-sm btn-danger">🗑</button>
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-</div>
-
-<!-- Modal agregar / editar compra -->
-<div class="modal fade" id="modalCompra" tabindex="-1">
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <div class="modal-header bg-dark text-white">
-        <h5 class="modal-title" id="modalTitulo">Nueva Compra</h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-      </div>
-      <div class="modal-body">
-        <input type="hidden" id="filaEditando">
-
-        <div class="mb-3">
-          <label class="form-label">Proveedor</label>
-          <select class="form-select" id="inpProveedor">
-            <option value="">— Seleccionar —</option>
-            <option>Distribuidora ABC</option>
-            <option>Proveedores XYZ</option>
-            <option>Suministros 123</option>
-            <option>Importadora DEF</option>
-          </select>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Tipo de Producto</label>
-          <input type="text" class="form-control" id="inpTipo" placeholder="Ej: Paquetes">
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Marca de Producto</label>
-          <input type="text" class="form-control" id="inpMarca" placeholder="Ej: Papas Margarita">
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Fecha</label>
-          <input type="date" class="form-control" id="inpFecha">
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Total</label>
-          <input type="number" class="form-control" id="inpTotal" placeholder="0">
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Estado</label>
-          <select class="form-select" id="inpEstado">
-            <option>Pendiente</option>
-            <option>En proceso</option>
-            <option>Completada</option>
-            <option>Anulada</option>
-          </select>
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-        <button class="btn btn-success" id="btnGuardar">Guardar compra</button>
-      </div>
+    <div class="card-header bg-dark text-white">Compras registradas</div>
+    <div class="card-body p-0">
+        <table class="table table-bordered table-hover mb-0" id="tablaCompras">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Proveedor</th>
+                    <th>Producto</th>
+                    <th>Administrador</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tbodyCompras"></tbody>
+        </table>
     </div>
-  </div>
 </div>
+
+<script>
+const CSRF = '{{ csrf_token }}';
+let compras = [];
+let proveedores = [];
+let productos = [];
+let administradores = [];
+
+async function cargarDatos() {
+    const [rCompras, rProveedores, rProductos] = await Promise.all([
+        fetch('/compras/json/').then(r => r.json()),
+        fetch('/proveedores/json/').then(r => r.json()),
+        fetch('/productos/json/').then(r => r.json()),
+    ]);
+    compras = rCompras.compras;
+    proveedores = rProveedores.proveedores;
+    productos = rProductos.productos;
+    renderizarCompras();
+}
+
+function opcionesProveedores(selId = '') {
+    return proveedores.map(p => `<option value="${p.id}" ${p.id == selId ? 'selected' : ''}>${p.nombre}</option>`).join('');
+}
+
+function opcionesProductos(selId = '') {
+    return productos.map(p => `<option value="${p.id}" ${p.id == selId ? 'selected' : ''}>${p.nombre}</option>`).join('');
+}
+
+function renderizarCompras() {
+    const tbody = document.getElementById('tbodyCompras');
+    const busqueda = document.getElementById('inputBuscar').value.toLowerCase();
+    const filtroEstado = document.getElementById('selEstado').value;
+
+    let filtradas = compras.filter(c => {
+        const cumpleBusqueda = c.proveedor.toLowerCase().includes(busqueda) ||
+                               c.producto.toLowerCase().includes(busqueda);
+        const cumpleEstado = filtroEstado === '' || String(c.estado) === filtroEstado;
+        return cumpleBusqueda && cumpleEstado;
+    });
+
+    if (filtradas.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-4">No hay compras registradas</td></tr>`;
+        return;
+    }
+
+    tbody.innerHTML = filtradas.map(c => `
+        <tr>
+            <td>${c.id}</td>
+            <td>${c.proveedor}</td>
+            <td>${c.producto}</td>
+            <td>${c.administrador}</td>
+            <td>${c.fecha}</td>
+            <td>
+                <span class="badge ${c.estado ? 'bg-success' : 'bg-warning text-dark'}">
+                    ${c.estado ? 'Completada' : 'Pendiente'}
+                </span>
+            </td>
+            <td>
+                <button class="btn btn-sm btn-primary" onclick="editarCompra(${c.id})">
+                    <i class="fa-solid fa-pen"></i>
+                </button>
+                <button class="btn btn-sm btn-danger" onclick="eliminarCompra(${c.id})">
+                    <i class="fa-solid fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+function formularioHtml(c = null) {
+    return `
+        <div class="mb-3 text-start">
+            <label class="form-label">Proveedor <span class="text-danger">*</span></label>
+            <select id="swal-proveedor" class="form-select">
+                <option value="">— Seleccionar —</option>
+                ${opcionesProveedores(c ? c.proveedor_id : '')}
+            </select>
+        </div>
+        <div class="mb-3 text-start">
+            <label class="form-label">Producto <span class="text-danger">*</span></label>
+            <select id="swal-producto" class="form-select">
+                <option value="">— Seleccionar —</option>
+                ${opcionesProductos(c ? c.producto_id : '')}
+            </select>
+        </div>
+        <div class="mb-3 text-start">
+            <label class="form-label">Fecha <span class="text-danger">*</span></label>
+            <input id="swal-fecha" type="date" class="form-control" value="${c ? c.fecha : ''}">
+        </div>
+        <div class="mb-3 text-start">
+            <label class="form-label">Estado</label>
+            <select id="swal-estado" class="form-select">
+                <option value="false" ${!c || !c.estado ? 'selected' : ''}>Pendiente</option>
+                <option value="true" ${c && c.estado ? 'selected' : ''}>Completada</option>
+            </select>
+        </div>`;
+}
+
+function validarFormulario() {
+    const proveedor_id = document.getElementById('swal-proveedor').value;
+    const producto_id = document.getElementById('swal-producto').value;
+    const fecha = document.getElementById('swal-fecha').value;
+    const estado = document.getElementById('swal-estado').value === 'true';
+    if (!proveedor_id || !producto_id || !fecha) {
+        Swal.showValidationMessage('Proveedor, producto y fecha son obligatorios'); return false;
+    }
+    return { proveedor_id: parseInt(proveedor_id), producto_id: parseInt(producto_id), fecha, estado };
+}
+
+async function agregarCompra() {
+    const { value: data } = await Swal.fire({
+        title: 'Nueva Compra',
+        html: formularioHtml(),
+        showCancelButton: true,
+        confirmButtonText: 'Guardar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#198754',
+        width: '550px',
+        focusConfirm: false,
+        preConfirm: validarFormulario
+    });
+    if (!data) return;
+    const resp = await fetch('/compras/crear/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+        body: JSON.stringify(data)
+    }).then(r => r.json());
+    if (resp.ok) {
+        Swal.fire({ title: '¡Registrada!', text: 'Compra registrada correctamente', icon: 'success', confirmButtonColor: '#198754' });
+        cargarDatos();
+    } else {
+        Swal.fire({ icon: 'error', title: 'Error', text: resp.error });
+    }
+}
+
+async function editarCompra(id) {
+    const c = compras.find(x => x.id === id);
+    if (!c) return;
+    const { value: data } = await Swal.fire({
+        title: 'Editar Compra',
+        html: formularioHtml(c),
+        showCancelButton: true,
+        confirmButtonText: 'Guardar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#0d6efd',
+        width: '550px',
+        focusConfirm: false,
+        preConfirm: validarFormulario
+    });
+    if (!data) return;
+    const resp = await fetch(`/compras/editar/${id}/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF },
+        body: JSON.stringify(data)
+    }).then(r => r.json());
+    if (resp.ok) {
+        Swal.fire({ title: '¡Actualizada!', text: 'Compra actualizada correctamente', icon: 'success', confirmButtonColor: '#198754' });
+        cargarDatos();
+    } else {
+        Swal.fire({ icon: 'error', title: 'Error', text: resp.error });
+    }
+}
+
+function eliminarCompra(id) {
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: '¿Deseas eliminar esta compra?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then(async result => {
+        if (result.isConfirmed) {
+            const resp = await fetch(`/compras/eliminar/${id}/`, {
+                method: 'POST',
+                headers: { 'X-CSRFToken': CSRF }
+            }).then(r => r.json());
+            if (resp.ok) {
+                Swal.fire({ title: '¡Eliminada!', icon: 'success', timer: 2000, showConfirmButton: false });
+                cargarDatos();
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error', text: resp.error });
+            }
+        }
+    });
+}
+
+document.getElementById('inputBuscar').addEventListener('input', renderizarCompras);
+document.getElementById('selEstado').addEventListener('change', renderizarCompras);
+
+cargarDatos();
+</script>
+
 {% endblock %}
