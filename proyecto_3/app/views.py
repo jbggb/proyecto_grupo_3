@@ -1,12 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.generic import ListView, CreateView
-from django.urls import reverse_lazy
 from django.contrib import messages
-from .models import (
-    Administrador, Producto, Cliente, Venta, 
-    Marca, TipoProductos, unidad_medida
-)
-from .forms import AdministradorRegistroForm
+from django.http import JsonResponse
+from django.views.decorators.http import require_POST
+from .models import Administrador, Producto, Cliente, Venta, Marca, TipoProductos, unidad_medida
+from .forms import AdministradorRegistroForm, ProductoForm, MarcaForm, TipoProductoForm, UnidadMedidaForm
 
 
 def index(request):
@@ -15,96 +12,162 @@ def index(request):
 
 def productos(request):
     lista_productos = Producto.objects.all().select_related('idMarca', 'idTipo', 'idUnidad')
-    
-    # Obtener datos para los selects del modal
     marcas = Marca.objects.all()
     tipos = TipoProductos.objects.all()
     unidades = unidad_medida.objects.all()
-    
-    context = {
-        'productos': lista_productos,
-        'marcas': marcas,
-        'tipos': tipos,
-        'unidades': unidades
-    }
-    
+    context = {'productos': lista_productos, 'marcas': marcas, 'tipos': tipos, 'unidades': unidades}
     return render(request, "administrador/productos.html", context)
 
 
 def crear_producto(request):
     if request.method == 'POST':
-        try:
-            # Obtener datos del formulario
-            nombre = request.POST.get('nombre')
-            precio = request.POST.get('precio')
-            stock = request.POST.get('stock')
-            id_marca = request.POST.get('idMarca')
-            id_tipo = request.POST.get('idTipo')
-            id_unidad = request.POST.get('idUnidad')
-            
-            # Debug: imprimir los valores recibidos
-            print(f"Datos recibidos - Nombre: {nombre}, Precio: {precio}, Stock: {stock}")
-            print(f"IDs - Marca: {id_marca}, Tipo: {id_tipo}, Unidad: {id_unidad}")
-            
-            # Crear el producto
-            producto = Producto.objects.create(
-                nombre=nombre,
-                precio=precio,
-                stock=stock,
-                idMarca_id=id_marca,
-                idTipo_id=id_tipo,
-                idUnidad_id=id_unidad
-            )
-            
-            messages.success(request, f'Producto "{nombre}" creado exitosamente.')
+        form = ProductoForm(request.POST)
+        if form.is_valid():
+            try:
+                producto = form.save()
+                messages.success(request, f'Producto "{producto.nombre}" creado exitosamente.')
+                return redirect('productos')
+            except Exception as e:
+                messages.error(request, f'Error al crear el producto: {str(e)}')
+                return redirect('productos')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
             return redirect('productos')
-            
-        except Exception as e:
-            print(f"Error completo: {e}")  # Debug: mostrar error en consola
-            messages.error(request, f'Error al crear el producto: {str(e)}')
-            return redirect('productos')
-    
     return redirect('productos')
 
 
 def editar_producto(request, id):
     producto = get_object_or_404(Producto, idProducto=id)
-    
     if request.method == 'POST':
-        try:
-            producto.nombre = request.POST.get('nombre')
-            producto.precio = request.POST.get('precio')
-            producto.stock = request.POST.get('stock')
-            producto.idMarca_id = request.POST.get('idMarca')
-            producto.idTipo_id = request.POST.get('idTipo')
-            producto.idUnidad_id = request.POST.get('idUnidad')
-            producto.save()
-            
-            messages.success(request, f'Producto "{producto.nombre}" actualizado exitosamente.')
+        form = ProductoForm(request.POST, instance=producto)
+        if form.is_valid():
+            try:
+                producto = form.save()
+                messages.success(request, f'Producto "{producto.nombre}" actualizado exitosamente.')
+                return redirect('productos')
+            except Exception as e:
+                messages.error(request, f'Error al actualizar: {str(e)}')
+                return redirect('productos')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, error)
             return redirect('productos')
-            
-        except Exception as e:
-            messages.error(request, f'Error al actualizar el producto: {str(e)}')
-    
     return redirect('productos')
 
 
 def eliminar_producto(request, id):
     producto = get_object_or_404(Producto, idProducto=id)
     nombre = producto.nombre
-    
     try:
         producto.delete()
         messages.success(request, f'Producto "{nombre}" eliminado exitosamente.')
     except Exception as e:
         messages.error(request, f'Error al eliminar el producto: {str(e)}')
-    
     return redirect('productos')
 
 
+# =============================================
+# AJAX: Marca
+# =============================================
+@require_POST
+def crear_marca_ajax(request):
+    form = MarcaForm(request.POST)
+    if form.is_valid():
+        marca = form.save()
+        return JsonResponse({'success': True, 'id': marca.idMarca, 'nombre': marca.nombreMarca,
+                             'message': f'Marca "{marca.nombreMarca}" creada exitosamente.'})
+    errores = [e for field_errors in form.errors.values() for e in field_errors]
+    return JsonResponse({'success': False, 'errors': errores}, status=400)
+
+
+@require_POST
+def eliminar_marca_ajax(request, id):
+    marca = get_object_or_404(Marca, idMarca=id)
+    nombre = marca.nombreMarca
+    try:
+        if marca.producto_set.exists():
+            return JsonResponse({'success': False, 'errors': [f'No se puede eliminar "{nombre}" porque tiene productos asociados.']}, status=400)
+        marca.delete()
+        return JsonResponse({'success': True, 'message': f'Marca "{nombre}" eliminada exitosamente.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'errors': [str(e)]}, status=400)
+
+
+def listar_marcas_ajax(request):
+    items = [{'id': m.idMarca, 'nombre': m.nombreMarca} for m in Marca.objects.all()]
+    return JsonResponse({'items': items})
+
+
+# =============================================
+# AJAX: Tipo
+# =============================================
+@require_POST
+def crear_tipo_ajax(request):
+    form = TipoProductoForm(request.POST)
+    if form.is_valid():
+        tipo = form.save()
+        return JsonResponse({'success': True, 'id': tipo.idTipo, 'nombre': tipo.nombre_tipo,
+                             'message': f'Tipo "{tipo.nombre_tipo}" creado exitosamente.'})
+    errores = [e for field_errors in form.errors.values() for e in field_errors]
+    return JsonResponse({'success': False, 'errors': errores}, status=400)
+
+
+@require_POST
+def eliminar_tipo_ajax(request, id):
+    tipo = get_object_or_404(TipoProductos, idTipo=id)
+    nombre = tipo.nombre_tipo
+    try:
+        if tipo.producto_set.exists():
+            return JsonResponse({'success': False, 'errors': [f'No se puede eliminar "{nombre}" porque tiene productos asociados.']}, status=400)
+        tipo.delete()
+        return JsonResponse({'success': True, 'message': f'Tipo "{nombre}" eliminado exitosamente.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'errors': [str(e)]}, status=400)
+
+
+def listar_tipos_ajax(request):
+    items = [{'id': t.idTipo, 'nombre': t.nombre_tipo} for t in TipoProductos.objects.all()]
+    return JsonResponse({'items': items})
+
+
+# =============================================
+# AJAX: Unidad
+# =============================================
+@require_POST
+def crear_unidad_ajax(request):
+    form = UnidadMedidaForm(request.POST)
+    if form.is_valid():
+        unidad = form.save()
+        return JsonResponse({'success': True, 'id': unidad.idUnidad,
+                             'nombre': f'{unidad.nombre_unidad} ({unidad.abreviatura})',
+                             'message': f'Unidad "{unidad.nombre_unidad}" creada exitosamente.'})
+    errores = [e for field_errors in form.errors.values() for e in field_errors]
+    return JsonResponse({'success': False, 'errors': errores}, status=400)
+
+
+@require_POST
+def eliminar_unidad_ajax(request, id):
+    unidad = get_object_or_404(unidad_medida, idUnidad=id)
+    nombre = unidad.nombre_unidad
+    try:
+        if unidad.producto_set.exists():
+            return JsonResponse({'success': False, 'errors': [f'No se puede eliminar "{nombre}" porque tiene productos asociados.']}, status=400)
+        unidad.delete()
+        return JsonResponse({'success': True, 'message': f'Unidad "{nombre}" eliminada exitosamente.'})
+    except Exception as e:
+        return JsonResponse({'success': False, 'errors': [str(e)]}, status=400)
+
+
+def listar_unidades_ajax(request):
+    items = [{'id': u.idUnidad, 'nombre': f'{u.nombre_unidad} ({u.abreviatura})'} for u in unidad_medida.objects.all()]
+    return JsonResponse({'items': items})
+
+
 def clientes(request):
-    lista_clientes = Cliente.objects.all()
-    return render(request, "cliente/clientes.html", {'clientes': lista_clientes})
+    return render(request, "clientes.html", {'clientes': Cliente.objects.all()})
 
 
 def ventas(request):
@@ -112,64 +175,19 @@ def ventas(request):
     return render(request, "ventas.html", {'ventas': lista_ventas})
 
 
-# ===== REGISTRO DE ADMINISTRADOR =====
-
 def registrar_administrador(request):
     if request.method == 'POST':
         form = AdministradorRegistroForm(request.POST)
-        
         if form.is_valid():
-            administrador = form.save(commit=False)
-            administrador.save()
-            
-            messages.success(request, '¡Administrador registrado exitosamente!')
+            form.save()
+            messages.success(request, 'Administrador registrado exitosamente!')
             return redirect('inicio')
         else:
             messages.error(request, 'Por favor corrige los errores del formulario.')
     else:
         form = AdministradorRegistroForm()
-    
     return render(request, 'administrador/registro.html', {'form': form})
 
 
-# ===== VISTAS BASADAS EN CLASES =====
-
-class ProductoListView(ListView):
-    template_name = "productos.html"
-    context_object_name = 'productos'
-    
-    def dispatch(self, request, *args, **kwargs):
-        if request.method == 'GET':
-            return super().dispatch(request, *args, **kwargs)
-        return super().dispatch(request, *args, **kwargs)
-
-
-class ProductoCreateView(CreateView):
-    template_name = "producto/create.html"
-    success_url = reverse_lazy('productos')
-    
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
-
-
-class ClienteCreateView(CreateView):
-    template_name = "cliente/create.html"
-    success_url = reverse_lazy('clientes')
-
-
-class VentaCreateView(CreateView):
-    template_name = "venta/create.html"
-    success_url = reverse_lazy('ventas')
-
-
-class CategoriaCreateView(CreateView):
-    template_name = "categoria/create.html"
-    success_url = reverse_lazy('productos')
-    
-    def dispatch(self, request, *args, **kwargs):
-        if request.method == 'GET':
-            return super().dispatch(request, *args, **kwargs)
-        return super().dispatch(request, *args, **kwargs)
-    
-    def post(self, request, *args, **kwargs):
-        return super().post(request, *args, **kwargs)
+def reportes(request):
+    return render(request, 'administrador/reportes.html')
