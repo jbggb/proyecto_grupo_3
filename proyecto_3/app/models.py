@@ -101,8 +101,11 @@ class Producto(models.Model):
 class Proveedor(models.Model):
     nombre = models.CharField(max_length=150)
     telefono = models.CharField(max_length=20)
-    email = models.EmailField(max_length=100)
-    envio = models.IntegerField(default=1)
+    email = models.EmailField(max_length=100, unique=True)
+    idTipo = models.ForeignKey(TipoProductos, on_delete=models.SET_NULL, null=True, db_column='idTipo')
+    idProducto = models.ForeignKey(Producto, on_delete=models.SET_NULL, null=True, db_column='idProducto')
+    stock = models.IntegerField(default=0)
+    envio = models.BooleanField(default=True)
     fechaRegistro = models.DateField(default=datetime.now)
     
     def __str__(self):

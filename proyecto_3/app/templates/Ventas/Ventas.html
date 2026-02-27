@@ -1,0 +1,661 @@
+{% extends 'base.html' %}
+{% load ventas_filters %}
+{% load static %}
+
+{% block content %}
+<!-- Estilos para el carrito de ventas -->
+<style>      
+    .product-item-select {
+        padding: 10px;
+        margin-bottom: 8px;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .product-item-select:hover {
+        background-color: #f8f9fa;
+        border-color: #0d6efd;
+    }
+    .carrito-producto {
+        background-color: #faf8f8;
+        padding: 12px;
+        margin-bottom: 10px;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+    }
+    .cantidad-control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .cantidad-control button {
+        width: 32px;
+        height: 32px;
+        padding: 0;
+        border-radius: 4px;
+    }
+    .cantidad-control input {
+        width: 60px;
+        text-align: center;
+        border-radius: 4px;
+    }
+    .resumen-total {
+        background-color: #e7f5ff;
+        padding: 15px;
+        border-radius: 8px;
+        border-left: 4px solid #0d6efd;
+    }
+    .producto-edit-row {
+        background: #f8f9fa;
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+        margin-bottom: 8px;
+    }
+</style>
+
+<h1 class="mb-4">Panel de Gestión de Ventas</h1>
+<p class="text-muted">Sistema de ventas</p>
+
+<!-- TARJETAS DE ESTADÍSTICAS-->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h6 class="text-muted">Ventas de Hoy</h6>
+                <h3 class="mb-0" id="ventasHoy">$0</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h6 class="text-muted">Total Mes</h6>
+                <h3 class="mb-0" id="totalMes">$0</h3>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card h-100">
+            <div class="card-body">
+                <h6 class="text-muted">Ventas Realizadas</h6>
+                <h3 class="mb-0" id="ventasRealizadas">0</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--barra de busqueda y boton  -->
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <input type="text" id="searchInput" class="form-control" placeholder="Buscar venta por nombre de cliente..." onkeyup="buscarVenta()">
+            </div>
+            <div class="col-md-3">
+                <select id="filtroFecha" class="form-select" onchange="filtrarPorFecha()">
+                    <option value="todas">Todas las fechas</option>
+                    <option value="hoy">Hoy</option>
+                    <option value="ayer">Ayer</option>
+                    <option value="semana">Esta semana</option>
+                    <option value="semana pasada">Semana pasada</option>
+                    <option value="mes">Este mes</option>
+                    <option value="mes pasado">Mes pasado</option>
+                    <option value="anio">Este año</option>
+                    <option value="anio pasado">Año pasado</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-primary w-100" onclick="nuevaVenta()">
+                    <i class="fas fa-plus"></i> Nueva Venta
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!--tabla de ventas-->
+<div class="card mt-4">
+    <div class="card-header bg-dark text-light">VENTAS REGISTRADAS</div>
+    <div class="card-body">
+        <table class="table table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Fecha</th>
+                    <th>Cliente</th>
+                    <th>Productos</th>
+                    <th>Total</th>
+                    <th>Estado del pago</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody id="ventasTableBody">
+                {% for v in ventas %}
+                <tr>
+                    <td>{{ v.id }}</td>
+                    <td>{{ v.fecha|date:"d/m/Y H:i" }}</td>
+                    <td>{{ v.cliente }}</td>
+                    <td>
+                        {% for d in v.detalle_venta_set.all %}
+                            {{ d.producto_nombre }} (x{{ d.cantidad }}){% if not forloop.last %}, {% endif %}
+                        {% endfor %}
+                    </td>
+                    <td>${{ v.total|precio_co }}</td>
+                    <td>
+                        <span class="badge {% if v.estado == 'completada' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                            {{ v.get_estado_display }}
+                        </span>
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="verDetalle({{ v.id }})" title="Ver detalle">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                        {% if v.estado == 'pendiente' %}
+                        <button type="button" class="btn btn-warning btn-sm" onclick="editarVenta({{ v.id }})" title="Editar">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button type="button" class="btn btn-success btn-sm" onclick="completarVenta({{ v.id }})" title="Completar venta">
+                            <i class="fas fa-check"></i>
+                        </button>
+                        <button type="button" class="btn btn-danger btn-sm" onclick="eliminarVenta({{ v.id }})" title="Eliminar">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    //simulacion de productos disponibles 
+    const productosDisponibles = [
+        { id: 1, nombre: "Harina", precio: 10000, stock: 50 },
+        { id: 2, nombre: "Queso", precio: 15000, stock: 30 },
+        { id: 3, nombre: "Jabon Axion", precio: 8000, stock: 100 },
+        { id: 4, nombre: "Leche", precio: 5000, stock: 45 },
+        { id: 5, nombre: "Pan", precio: 3000, stock: 60 },
+        { id: 6, nombre: "Arroz", precio: 4000, stock: 80 },
+        { id: 7, nombre: "Aceite", precio: 12000, stock: 25 }
+    ];
+
+    let carrito = [];
+    let carritoEdicion = [];
+
+    window.onload = function() { actualizarEstadisticas(); };
+
+    // =======nueva venta=====
+    function nuevaVenta() {
+    carrito = [];
+    Swal.fire({
+        title: '<i class="fas fa-shopping-cart"></i> Nueva Venta',
+        html: `
+            <div class="container-fluid">
+                <div class="row">
+                    <div class="col-md-6 border-end">
+                        <h6 class="text-start mb-3"><i class="fas fa-box-open"></i> Seleccionar Productos</h6>
+                        <input type="text" id="buscarProducto" class="form-control form-control-sm mb-3" placeholder="🔍 Buscar producto..." onkeyup="filtrarProductosModal()">
+                        <div id="listaProductos" style="max-height: 350px; overflow-y: auto; text-align: left;">
+                            ${generarListaProductos()}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h6 class="text-start mb-3">
+                            <i class="fas fa-shopping-basket"></i> Carrito 
+                            <span class="badge bg-primary" id="cantidadItems">0 items</span>
+                        </h6>
+                        <div id="carritoContenido" style="max-height: 250px; overflow-y: auto; text-align: left;">
+                            <p class="text-muted text-center py-4"><i class="fas fa-shopping-cart fa-2x mb-2"></i><br>Carrito vacío</p>
+                        </div>
+                        <hr>
+                        <div class="text-start mb-3">
+                            <label class="form-label fw-bold"><i class="fas fa-user"></i> Cliente:</label>
+                            <input type="text" id="clienteVenta" class="form-control form-control-sm" placeholder="Nombre del cliente" maxlength="30">
+                            <div id="clienteFeedback" class="text-danger small mt-1" style="min-height: 15px;"></div>
+                            <small id="clienteContador" class="text-muted">0/30 caracteres</small>
+                        </div>
+                        <div class="text-start mb-3">
+                            <label class="form-label fw-bold"><i class="fas fa-check-circle"></i> Estado:</label>
+                            <select id="estadoVenta" class="form-select form-select-sm">
+                                <option value="completada">Completada</option>
+                                <option value="pendiente">Pendiente</option>
+                            </select>
+                        </div>
+                        <div class="resumen-total">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span>Total:</span><h5 class="mb-0 text-primary" id="totalCarrito">$0</h5>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>`,
+        width: '90%',
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-plus"></i> Agregar Venta',
+        cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
+        confirmButtonColor: '#0d6efd',
+       didOpen: () => {
+    const input = document.getElementById('clienteVenta');
+    const feedback = document.getElementById('clienteFeedback');
+    const contador = document.getElementById('clienteContador');
+
+    input.addEventListener('input', function() {
+        // Limpieza de caracteres 
+        let valor = this.value.replace(/[0-9]/g, ''); 
+        valor = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
+        
+        if (this.value !== valor) {
+            this.value = valor;
+            feedback.textContent = '❌ Solo letras y espacios';
+        } else {
+            feedback.textContent = '';
+        }
+
+        // Lógica del contador y mensaje de máximo
+        const longitud = this.value.length;
+        if (longitud >= 30) {
+            contador.innerHTML = '<span class="text-danger fw-bold">Máximo de caracteres alcanzado (30/30)</span>';
+        } else {
+            contador.textContent = `${longitud}/30 caracteres`;
+            contador.className = "text-muted"; 
+        }
+    });
+},
+        preConfirm: () => {
+            const cliente = document.getElementById('clienteVenta').value.trim();
+            const estado = document.getElementById('estadoVenta').value;
+
+            //validacion al dar click en el boton de agregar venta
+            if (carrito.length === 0) {
+                Swal.showValidationMessage('Debes agregar al menos un producto');
+                return false;
+            }
+            if (cliente.length < 3) {
+                Swal.showValidationMessage('El nombre debe tener al menos 3 caracteres');
+                return false;
+            }
+            return { cliente, estado };
+        }
+    }).then(result => {
+        if (result.isConfirmed) {
+            procesarVenta(result.value.cliente, result.value.estado);
+        }
+    });
+}
+
+    function generarListaProductos() {
+        return productosDisponibles.map(p => `
+            <div class="product-item-select" data-nombre="${p.nombre}">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div><strong>${p.nombre}</strong><br><small class="text-muted">Stock: ${p.stock}</small></div>
+                    <div class="text-end">
+                        <div class="text-primary fw-bold mb-1">$${p.precio.toLocaleString('es-CO')}</div>
+                        <button class="btn btn-sm btn-primary" onclick="agregarAlCarrito(${p.id})"><i class="fas fa-plus"></i> Agregar</button>
+                    </div>
+                </div>
+            </div>`).join('');
+    }
+
+    function filtrarProductosModal() {
+        const busqueda = document.getElementById('buscarProducto').value.toLowerCase();
+        document.querySelectorAll('.product-item-select').forEach(p => {
+            p.style.display = p.getAttribute('data-nombre').toLowerCase().includes(busqueda) ? 'block' : 'none';
+        });
+    }
+
+    function agregarAlCarrito(productoId) {
+        const producto = productosDisponibles.find(p => p.id === productoId);
+        const existente = carrito.find(i => i.id === productoId);
+        if (existente) { existente.cantidad++; } 
+        else { carrito.push({ id: producto.id, nombre: producto.nombre, precio: producto.precio, cantidad: 1, stock: producto.stock }); }
+        actualizarCarrito();
+    }
+
+    function actualizarCarrito() {
+        const div = document.getElementById('carritoContenido');
+        if (carrito.length === 0) {
+            div.innerHTML = `<p class="text-muted text-center py-4"><i class="fas fa-shopping-cart fa-2x mb-2"></i><br>Carrito vacío</p>`;
+        } else {
+            div.innerHTML = carrito.map(item => `
+                <div class="carrito-producto">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div><strong>${item.nombre}</strong><br><small class="text-muted">$${item.precio.toLocaleString('es-CO')} c/u</small></div>
+                        <button class="btn btn-sm btn-outline-danger" onclick="eliminarDelCarrito(${item.id})"><i class="fas fa-trash"></i></button>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="cantidad-control">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="cambiarCantidad(${item.id}, -1)">-</button>
+                            <input type="number" class="form-control form-control-sm" value="${item.cantidad}" min="1" max="${item.stock}" onchange="setCantidad(${item.id}, this.value)">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="cambiarCantidad(${item.id}, 1)">+</button>
+                        </div>
+                        <strong class="text-primary">$${(item.precio * item.cantidad).toLocaleString('es-CO')}</strong>
+                    </div>
+                </div>`).join('');
+        }
+        actualizarTotalesCarrito();
+    }
+
+    function cambiarCantidad(id, cambio) {
+        const item = carrito.find(i => i.id === id);
+        if (!item) return;
+        const nueva = item.cantidad + cambio;
+        if (nueva < 1) { eliminarDelCarrito(id); } else { item.cantidad = nueva; actualizarCarrito(); }
+    }
+
+    function setCantidad(id, valor) {
+        const item = carrito.find(i => i.id === id);
+        if (!item) return;
+        const cant = parseInt(valor);
+        if (cant < 1 || isNaN(cant)) { eliminarDelCarrito(id); } else { item.cantidad = cant; actualizarCarrito(); }
+    }
+
+    function eliminarDelCarrito(id) { carrito = carrito.filter(i => i.id !== id); actualizarCarrito(); }
+
+    function actualizarTotalesCarrito() {
+        const subtotal = carrito.reduce((s, i) => s + i.precio * i.cantidad, 0);
+        document.getElementById('cantidadItems').textContent = `${carrito.length} items`;
+        document.getElementById('subtotalCarrito').textContent = `$${subtotal.toLocaleString('es-CO')}`;
+        document.getElementById('totalCarrito').textContent = `$${Math.round(subtotal).toLocaleString('es-CO')}`;
+    }
+
+    function procesarVenta(cliente, estado) {
+        const total = carrito.reduce((s, i) => s + i.precio * i.cantidad, 0);
+        fetch("{% url 'crear_venta' %}", {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({ cliente, estado, total: Math.round(total), productos: carrito })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.ok) {
+                Swal.fire({ icon: 'success', title: '¡Venta registrada!', confirmButtonColor: '#198754' }).then(() => location.reload());
+            } else {
+                Swal.fire({ icon: 'error', title: 'Error de validación', text: Object.values(data.errores).flat().join('\n'), confirmButtonColor: '#dc3545' });
+            }
+        })
+        .catch(() => Swal.fire({ icon: 'error', title: 'Error de conexión' }));
+    }
+
+    // ====funcion para editar venta completa=======
+    function editarVenta(ventaId) {
+        fetch(`/ventas/detalle/${ventaId}/`)
+        .then(r => r.json())
+        .then(data => {
+            carritoEdicion = data.productos.map(p => ({ nombre: p.nombre, precio: p.precio, cantidad: p.cantidad }));
+
+            Swal.fire({
+                title: `<i class="fas fa-edit"></i> Editar Venta #${ventaId}`,
+                html: `
+                    <div class="container-fluid" style="text-align: left;">
+                        <div class="row">
+                            <div class="col-md-6 border-end">
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">👤 Cliente:</label>
+                                    <input type="text" id="editCliente" class="form-control" value="${data.cliente}">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">📋 Estado:</label>
+                                    <select id="editEstado" class="form-select">
+                                        <option value="completada" ${data.estado === 'completada' ? 'selected' : ''}>Completada</option>
+                                        <option value="pendiente" ${data.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
+                                    </select>
+                                </div>
+                                <hr>
+                                <label class="form-label fw-bold">➕ Agregar producto:</label>
+                                <select id="selectProductoEdit" class="form-select form-select-sm mb-2">
+                                    ${productosDisponibles.map(p => `<option value="${p.id}">${p.nombre} - $${p.precio.toLocaleString('es-CO')}</option>`).join('')}
+                                </select>
+                                <button class="btn btn-sm btn-outline-primary w-100" onclick="agregarProductoEdicion()">
+                                    <i class="fas fa-plus"></i> Agregar al carrito
+                                </button>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold">📦 Productos en la venta:</label>
+                                <div id="carritoEdicionContenido" style="max-height: 300px; overflow-y: auto;"></div>
+                                <hr>
+                                <div class="resumen-total mt-2">
+                                    <div class="d-flex justify-content-between">
+                                        <h6 class="mb-0">Total:</h6>
+                                        <h5 class="mb-0 text-primary" id="totalEdicion">$0</h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`,
+                width: '85%',
+                showCancelButton: true,
+                confirmButtonText: 'Guardar cambios',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#ffc107',
+                cancelButtonColor: '#6c757d',
+                didOpen: () => { renderizarCarritoEdicion(); },
+                preConfirm: () => {
+                    const cliente = document.getElementById('editCliente').value.trim();
+                    const estado = document.getElementById('editEstado').value;
+                    if (!cliente) { Swal.showValidationMessage('El nombre del cliente es obligatorio'); return false; }
+                    if (carritoEdicion.length === 0) { Swal.showValidationMessage('Debe haber al menos un producto'); return false; }
+                    const total = carritoEdicion.reduce((s, i) => s + i.precio * i.cantidad, 0);
+                    return { cliente, estado, total: Math.round(total), productos: carritoEdicion };
+                }
+            }).then(result => {
+                if (result.isConfirmed) {
+                    fetch(`/ventas/editar/${ventaId}/`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+                        body: JSON.stringify(result.value)
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.ok) {
+                            Swal.fire({ icon: 'success', title: '¡Venta actualizada!', confirmButtonColor: '#198754' }).then(() => location.reload());
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'Error de validación', text: Object.values(data.errores).flat().join('\n') });
+                        }
+                    });
+                }
+            });
+        });
+    }
+
+    function agregarProductoEdicion() {
+        const select = document.getElementById('selectProductoEdit');
+        const productoId = parseInt(select.value);
+        const producto = productosDisponibles.find(p => p.id === productoId);
+        const existente = carritoEdicion.find(i => i.nombre === producto.nombre);
+        if (existente) { existente.cantidad++; } 
+        else { carritoEdicion.push({ nombre: producto.nombre, precio: producto.precio, cantidad: 1 }); }
+        renderizarCarritoEdicion();
+    }
+
+    function renderizarCarritoEdicion() {
+        const div = document.getElementById('carritoEdicionContenido');
+        if (carritoEdicion.length === 0) {
+            div.innerHTML = `<p class="text-muted text-center py-3">Sin productos</p>`;
+        } else {
+            div.innerHTML = carritoEdicion.map((item, index) => `
+                <div class="producto-edit-row">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong>${item.nombre}</strong>
+                        <button class="btn btn-sm btn-outline-danger" onclick="eliminarProductoEdicion(${index})">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <small class="text-muted">$${Number(item.precio).toLocaleString('es-CO')} c/u</small>
+                        <div class="cantidad-control">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="cambiarCantidadEdicion(${index}, -1)">-</button>
+                            <input type="number" class="form-control form-control-sm" value="${item.cantidad}" min="1"
+                                   onchange="setCantidadEdicion(${index}, this.value)" style="width:60px; text-align:center;">
+                            <button class="btn btn-sm btn-outline-secondary" onclick="cambiarCantidadEdicion(${index}, 1)">+</button>
+                        </div>
+                        <strong class="text-primary">$${(item.precio * item.cantidad).toLocaleString('es-CO')}</strong>
+                    </div>
+                </div>`).join('');
+        }
+        const total = carritoEdicion.reduce((s, i) => s + i.precio * i.cantidad, 0);
+        document.getElementById('totalEdicion').textContent = `$${Math.round(total).toLocaleString('es-CO')}`;
+    }
+
+    function cambiarCantidadEdicion(index, cambio) {
+        carritoEdicion[index].cantidad += cambio;
+        if (carritoEdicion[index].cantidad < 1) { eliminarProductoEdicion(index); } 
+        else { renderizarCarritoEdicion(); }
+    }
+
+    function setCantidadEdicion(index, valor) {
+        const cant = parseInt(valor);
+        if (cant < 1 || isNaN(cant)) { eliminarProductoEdicion(index); } 
+        else { carritoEdicion[index].cantidad = cant; renderizarCarritoEdicion(); }
+    }
+
+    function eliminarProductoEdicion(index) {
+        carritoEdicion.splice(index, 1);
+        renderizarCarritoEdicion();
+    }
+
+    // =====ver detalle=======
+    function verDetalle(ventaId) {
+        fetch(`/ventas/detalle/${ventaId}/`)
+        .then(r => r.json())
+        .then(data => {
+            const productosHtml = data.productos.map(p => `
+                <tr>
+                    <td>${p.nombre}</td>
+                    <td class="text-center">${p.cantidad}</td>
+                    <td class="text-end">$${Number(p.precio).toLocaleString('es-CO')}</td>
+                    <td class="text-end">$${(p.precio * p.cantidad).toLocaleString('es-CO')}</td>
+                </tr>`).join('');
+            Swal.fire({
+                title: `Detalle de Venta #${data.id}`,
+                html: `
+                    <div style="text-align: left;">
+                        <p><strong>📅 Fecha:</strong> ${data.fecha}</p>
+                        <p><strong>👤 Cliente:</strong> ${data.cliente}</p>
+                        <p><strong>Estado:</strong> <span class="badge ${data.estado === 'completada' ? 'bg-success' : 'bg-warning text-dark'}">${data.estado}</span></p>
+                        <hr>
+                        <h6>Productos:</h6>
+                        <table class="table table-sm">
+                            <thead><tr><th>Producto</th><th class="text-center">Cant.</th><th class="text-end">Precio</th><th class="text-end">Subtotal</th></tr></thead>
+                            <tbody>${productosHtml}</tbody>
+                        </table>
+                        <div class="text-end"><h5 class="text-primary">Total: $${Number(data.total).toLocaleString('es-CO')}</h5></div>
+                    </div>`,
+                width: 700,
+                confirmButtonText: 'Cerrar',
+                confirmButtonColor: '#198754'
+            });
+        });
+    }
+
+    // ==funcion para completar venta==
+    function completarVenta(ventaId) {
+        Swal.fire({
+            title: '¿Completar venta?', icon: 'question', showCancelButton: true,
+            confirmButtonColor: '#198754', cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, completar', cancelButtonText: 'Cancelar'
+        }).then(result => {
+            if (result.isConfirmed) {
+                fetch(`/ventas/completar/${ventaId}/`, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
+                .then(r => r.json())
+                .then(data => { if (data.ok) Swal.fire({ icon: 'success', title: '¡Completada!', confirmButtonColor: '#198754' }).then(() => location.reload()); });
+            }
+        });
+    }
+
+    // ==funcion para eliminar venta==
+    function eliminarVenta(ventaId) {
+        Swal.fire({
+            title: '¿Eliminar venta?', icon: 'warning', showCancelButton: true,
+            confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar'
+        }).then(result => {
+            if (result.isConfirmed) {
+                fetch(`/ventas/eliminar/${ventaId}/`, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
+                .then(r => r.json())
+                .then(data => { if (data.ok) Swal.fire({ icon: 'success', title: '¡Eliminada!', confirmButtonColor: '#198754' }).then(() => location.reload()); });
+            }
+        });
+    }
+
+    // =====buscar y filtrar===
+    function buscarVenta() {
+        const term = document.getElementById('searchInput').value.toLowerCase();
+        Array.from(document.getElementById('ventasTableBody').getElementsByTagName('tr')).forEach(f => {
+            f.style.display = f.textContent.toLowerCase().includes(term) ? '' : 'none';
+        });
+    }
+
+    function filtrarPorFecha() {
+    const filtro = document.getElementById('filtroFecha').value;
+    const ahora = new Date();
+    const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
+    
+    Array.from(document.getElementById('ventasTableBody').getElementsByTagName('tr')).forEach(fila => {
+        const partes = fila.children[1].textContent.split(' ')[0].split('/');
+        const fecha = new Date(partes[2], partes[1] - 1, partes[0]);
+        let mostrar = false;
+        
+        if (filtro === 'todas') {
+            mostrar = true;
+        } 
+        else if (filtro === 'hoy') {
+            mostrar = fecha.getTime() === hoy.getTime();
+        }
+        else if (filtro === 'ayer') {
+            const ayer = new Date(hoy);
+            ayer.setDate(hoy.getDate() - 1);
+            mostrar = fecha.getTime() === ayer.getTime();
+        }
+        else if (filtro === 'semana') {
+            const ini = new Date(hoy);
+            ini.setDate(hoy.getDate() - hoy.getDay());
+            const fin = new Date(ini);
+            fin.setDate(ini.getDate() + 6);
+            mostrar = fecha >= ini && fecha <= fin;
+        }
+        else if (filtro === 'semana_pasada') {
+            const ini = new Date(hoy);
+            ini.setDate(hoy.getDate() - hoy.getDay() - 7);
+            const fin = new Date(ini);
+            fin.setDate(ini.getDate() + 6);
+            mostrar = fecha >= ini && fecha <= fin;
+        }
+        else if (filtro === 'mes') {
+            mostrar = fecha.getMonth() === ahora.getMonth() && 
+                     fecha.getFullYear() === ahora.getFullYear();
+        }
+        else if (filtro === 'mes_pasado') {
+            const mesPasado = new Date(ahora.getFullYear(), ahora.getMonth() - 1, 1);
+            mostrar = fecha.getMonth() === mesPasado.getMonth() && 
+                     fecha.getFullYear() === mesPasado.getFullYear();
+        }
+        else if (filtro === 'trimestre') {
+            const hace3meses = new Date(ahora);
+            hace3meses.setMonth(ahora.getMonth() - 3);
+            mostrar = fecha >= hace3meses && fecha <= ahora;
+        }
+        else if (filtro === 'anio') {
+            mostrar = fecha.getFullYear() === ahora.getFullYear();
+        }
+        
+        fila.style.display = mostrar ? '' : 'none';
+    });
+}
+
+    // =====estadisticas=========
+    function actualizarEstadisticas() {
+        fetch('/ventas/estadisticas/')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('ventasHoy').textContent = '$' + Number(data.ventas_hoy).toLocaleString('es-CO');
+            document.getElementById('totalMes').textContent = '$' + Number(data.total_mes).toLocaleString('es-CO');
+            document.getElementById('ventasRealizadas').textContent = data.total_ventas;
+        });
+    }
+</script>
+
+{% endblock %}

@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1 class="mb-4">
+    <i class="fa-solid fa-shop me-2"></i>Panel de Gestión del Inventario
+</h1>
+<p class="text-muted">Sistema de inventario - Grupo 3</p>
+
+<!-- Cards de acceso rápido -->
+<div class="row mt-4">
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100 border-0">
+            <div class="card-body text-center py-4">
+                <i class="fa-solid fa-box fa-3x text-primary mb-3"></i>
+                <h5 class="card-title">Productos</h5>
+                <p class="card-text text-muted">Administra el catálogo de productos</p>
+                <a href="{% url 'productos' %}" class="btn btn-primary">
+                    <i class="fa-solid fa-arrow-right me-2"></i>Ver Productos
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100 border-0">
+            <div class="card-body text-center py-4">
+                <i class="fa-solid fa-users fa-3x text-success mb-3"></i>
+                <h5 class="card-title">Clientes</h5>
+                <p class="card-text text-muted">Gestiona la base de clientes</p>
+                <a href="{% url 'clientes' %}" class="btn btn-success">
+                    <i class="fa-solid fa-arrow-right me-2"></i>Ver Clientes
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100 border-0">
+            <div class="card-body text-center py-4">
+                <i class="fa-solid fa-cart-shopping fa-3x text-warning mb-3"></i>
+                <h5 class="card-title">Ventas</h5>
+                <p class="card-text text-muted">Registra y consulta ventas</p>
+                <a href="{% url 'ventas' %}" class="btn btn-warning">
+                    <i class="fa-solid fa-arrow-right me-2"></i>Ver Ventas
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Resumen estadísticas -->
+<div class="card shadow-sm border-0 mt-2">
+    <div class="card-header bg-dark text-white">
+        <i class="fa-solid fa-chart-line me-2"></i>Resumen del Sistema
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-4 border-end">
+                <i class="fa-solid fa-box fa-2x text-primary mb-2"></i>
+                <p class="mb-0 text-muted">Productos Registrados</p>
+                <h3 class="fw-bold">{{ total_productos }}</h3>
+            </div>
+            <div class="col-md-4 border-end">
+                <i class="fa-solid fa-users fa-2x text-success mb-2"></i>
+                <p class="mb-0 text-muted">Clientes Activos</p>
+                <h3 class="fw-bold">{{ total_clientes }}</h3>
+            </div>
+            <div class="col-md-4">
+                <i class="fa-solid fa-cart-shopping fa-2x text-warning mb-2"></i>
+                <p class="mb-0 text-muted">Ventas Realizadas</p>
+                <h3 class="fw-bold">{{ total_ventas }}</h3>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fa-solid fa-truck me-2"></i>Gestión de Proveedores</h2>
+    <button class="btn btn-success" onclick="agregarProveedo()">
+        <i class="fa-solid fa-plus me-1"></i> Nuevo Proveedor
+    </button>
+</div>
+
+<!-- Búsqueda y Filtros -->
+<div class="card border-0 shadow-sm mb-4">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-4">
+                <input type="text" id="buscarProveedor" class="form-control"
+                       placeholder="Buscar por nombre, email o teléfono...">
+            </div>
+            <div class="col-md-4">
+                <select id="filtroTipo" class="form-select">
+                    <option value="">Todos los tipos</option>
+                    <option value="1">Alimentos</option>
+                    <option value="2">Limpieza</option>
+                    <option value="3">Lácteos</option>
+                    <option value="4">Panadería</option>
+                    <option value="5">Bebidas</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select id="filtroStock" class="form-select">
+                    <option value="">Todo el stock</option>
+                    <option value="bajo">Stock bajo (≤20)</option>
+                    <option value="medio">Stock medio (21-100)</option>
+                    <option value="alto">Stock alto (>100)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-dark text-white">
+        <i class="fa-solid fa-list me-2"></i>Proveedores Registrados
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Teléfono</th>
+                    <th>Email</th>
+                    <th>Tipo Producto</th>
+                    <th>Producto</th>
+                    <th>Stock</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tablaProveedores"></tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+const tipos = [
+    { pk: 1, fields: { nombre_tipo: 'Alimentos' } },
+    { pk: 2, fields: { nombre_tipo: 'Limpieza' } },
+    { pk: 3, fields: { nombre_tipo: 'Lácteos' } },
+    { pk: 4, fields: { nombre_tipo: 'Panadería' } },
+    { pk: 5, fields: { nombre_tipo: 'Bebidas' } }
+];
+
+const productos = [
+    { pk: 1, fields: { nombre: 'Harina' } },
+    { pk: 2, fields: { nombre: 'Arroz' } },
+    { pk: 3, fields: { nombre: 'Azúcar' } },
+    { pk: 4, fields: { nombre: 'Sal' } },
+    { pk: 5, fields: { nombre: 'Aceite' } },
+    { pk: 6, fields: { nombre: 'Jabón' } },
+    { pk: 7, fields: { nombre: 'Detergente' } },
+    { pk: 8, fields: { nombre: 'Leche' } },
+    { pk: 9, fields: { nombre: 'Queso' } },
+    { pk: 10, fields: { nombre: 'Pan' } }
+];
+
+let proveedores = [
+    { id: 1, nombre: 'Distribuidora Central', telefono: '3101234567', email: 'contacto@distcentral.com', tipoId: 1, productoId: 1, stock: 100 },
+    { id: 2, nombre: 'Alimentos del Valle', telefono: '3209876543', email: 'ventas@alivalles.com', tipoId: 1, productoId: 2, stock: 150 },
+    { id: 3, nombre: 'Limpieza Total', telefono: '3155555555', email: 'info@limpiezatotal.com', tipoId: 2, productoId: 6, stock: 15 }
+];
+
+function getNombreTipo(tipoId) {
+    const tipo = tipos.find(t => t.pk == tipoId);
+    return tipo ? tipo.fields.nombre_tipo : '-';
+}
+
+function getNombreProducto(productoId) {
+    const prod = productos.find(p => p.pk == productoId);
+    return prod ? prod.fields.nombre : '-';
+}
+
+function generarOpcionesTipos(seleccionado = '') {
+    return tipos.map(t => `<option value="${t.pk}" ${t.pk == seleccionado ? 'selected' : ''}>${t.fields.nombre_tipo}</option>`).join('');
+}
+
+function generarOpcionesProductos(seleccionado = '') {
+    return productos.map(p => `<option value="${p.pk}" ${p.pk == seleccionado ? 'selected' : ''}>${p.fields.nombre}</option>`).join('');
+}
+
+function renderizarProveedores() {
+    const tbody = document.getElementById('tablaProveedores');
+    const busqueda = document.getElementById('buscarProveedor').value.toLowerCase();
+    const filtroTipo = document.getElementById('filtroTipo').value;
+    const filtroStock = document.getElementById('filtroStock').value;
+    
+    let proveedoresFiltrados = proveedores.filter(p => {
+        const cumpleBusqueda = p.nombre.toLowerCase().includes(busqueda) || p.email.toLowerCase().includes(busqueda) || p.telefono.includes(busqueda);
+        const cumpleTipo = !filtroTipo || p.tipoId == filtroTipo;
+        let cumpleStock = true;
+        if (filtroStock === 'bajo') cumpleStock = p.stock <= 20;
+        else if (filtroStock === 'medio') cumpleStock = p.stock > 20 && p.stock <= 100;
+        else if (filtroStock === 'alto') cumpleStock = p.stock > 100;
+        return cumpleBusqueda && cumpleTipo && cumpleStock;
+    });
+    
+    if (proveedoresFiltrados.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center text-muted py-4"><i class="fa-solid fa-truck-slash fa-2x mb-2 d-block"></i>No hay proveedores</td></tr>`;
+        return;
+    }
+    
+    tbody.innerHTML = proveedoresFiltrados.map(p => `
+        <tr>
+            <td>${p.id}</td>
+            <td><strong>${p.nombre}</strong></td>
+            <td>${p.telefono}</td>
+            <td>${p.email}</td>
+            <td>${getNombreTipo(p.tipoId)}</td>
+            <td>${getNombreProducto(p.productoId)}</td>
+            <td>${p.stock <= 5 ? `<span class="badge bg-danger">${p.stock}</span>` : p.stock <= 20 ? `<span class="badge bg-warning text-dark">${p.stock}</span>` : `<span class="badge bg-success">${p.stock}</span>`}</td>
+            <td>
+                <button class="btn btn-primary btn-sm me-1" onclick="editarProveedor(${p.id})"><i class="fa-solid fa-pen"></i></button>
+                <button class="btn btn-danger btn-sm" onclick="eliminarProveedor(${p.id})"><i class="fa-solid fa-trash"></i></button>
+            </td>
+        </tr>
+    `).join('');
+}
+
+document.getElementById('buscarProveedor').addEventListener('input', renderizarProveedores);
+document.getElementById('filtroTipo').addEventListener('change', renderizarProveedores);
+document.getElementById('filtroStock').addEventListener('change', renderizarProveedores);
+
+function agregarProveedor() {
+    Swal.fire({
+        title: 'Nuevo Proveedor',
+        html: `<div class="text-start">
+            <label class="form-label">Nombre <span class="text-danger">*</span></label>
+            <input id="swal-nombre" class="form-control mb-2" placeholder="Nombre del proveedor">
+            <label class="form-label">Teléfono <span class="text-danger">*</span></label>
+            <input id="swal-telefono" class="form-control mb-2" placeholder="3001234567" maxlength="10">
+            <label class="form-label">Email <span class="text-danger">*</span></label>
+            <input id="swal-email" type="email" class="form-control mb-2" placeholder="proveedor@email.com">
+            <label class="form-label">Tipo <span class="text-danger">*</span></label>
+            <select id="swal-tipo" class="form-select mb-2"><option value="">Seleccionar...</option>${generarOpcionesTipos()}</select>
+            <label class="form-label">Producto <span class="text-danger">*</span></label>
+            <select id="swal-producto" class="form-select mb-2"><option value="">Seleccionar...</option>${generarOpcionesProductos()}</select>
+            <label class="form-label">Stock <span class="text-danger">*</span></label>
+            <input id="swal-stock" type="number" class="form-control mb-2" placeholder="0" min="0">
+        </div>`,
+        showCancelButton: true,
+        confirmButtonText: 'Guardar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#198754',
+        width: '550px',
+        preConfirm: () => {
+            const nombre = document.getElementById('swal-nombre').value.trim();
+            const telefono = document.getElementById('swal-telefono').value.trim();
+            const email = document.getElementById('swal-email').value.trim();
+            const tipo = document.getElementById('swal-tipo').value;
+            const producto = document.getElementById('swal-producto').value;
+            const stock = document.getElementById('swal-stock').value;
+            if (!nombre || !telefono || !email || !tipo || !producto || stock === '') {
+                Swal.showValidationMessage('Todos los campos son obligatorios');
+                return false;
+            }
+            if (!/^\d{10}$/.test(telefono)) {
+                Swal.showValidationMessage('El teléfono debe tener 10 dígitos');
+                return false;
+            }
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                Swal.showValidationMessage('Email inválido');
+                return false;
+            }
+            return { nombre, telefono, email, tipoId: parseInt(tipo), productoId: parseInt(producto), stock: parseInt(stock) };
+        }
+    }).then(r => {
+        if (r.isConfirmed) {
+            const id = proveedores.length > 0 ? Math.max(...proveedores.map(p => p.id)) + 1 : 1;
+            proveedores.push({ id, ...r.value });
+            renderizarProveedores();
+            Swal.fire({ title: '¡Registrado!', text: 'Proveedor agregado', icon: 'success', timer: 2000, showConfirmButton: false });
+        }
+    });
+}
+
+function editarProveedor(id) {
+    const p = proveedores.find(x => x.id === id);
+    if (!p) return;
+    Swal.fire({
+        title: 'Editar Proveedor',
+        html: `<div class="text-start">
+            <label class="form-label">Nombre</label><input id="swal-nombre" class="form-control mb-2" value="${p.nombre}">
+            <label class="form-label">Teléfono</label><input id="swal-telefono" class="form-control mb-2" value="${p.telefono}" maxlength="10">
+            <label class="form-label">Email</label><input id="swal-email" type="email" class="form-control mb-2" value="${p.email}">
+            <label class="form-label">Tipo</label><select id="swal-tipo" class="form-select mb-2"><option value="">Seleccionar...</option>${generarOpcionesTipos(p.tipoId)}</select>
+            <label class="form-label">Producto</label><select id="swal-producto" class="form-select mb-2"><option value="">Seleccionar...</option>${generarOpcionesProductos(p.productoId)}</select>
+            <label class="form-label">Stock</label><input id="swal-stock" type="number" class="form-control mb-2" value="${p.stock}" min="0">
+        </div>`,
+        showCancelButton: true,
+        confirmButtonText: 'Guardar',
+        confirmButtonColor: '#0d6efd',
+        width: '550px',
+        preConfirm: () => {
+            const nombre = document.getElementById('swal-nombre').value.trim();
+            const telefono = document.getElementById('swal-telefono').value.trim();
+            const email = document.getElementById('swal-email').value.trim();
+            if (!nombre || !telefono || !email) { Swal.showValidationMessage('Campos obligatorios'); return false; }
+            if (!/^\d{10}$/.test(telefono)) { Swal.showValidationMessage('Teléfono: 10 dígitos'); return false; }
+            return { nombre, telefono, email, tipoId: parseInt(document.getElementById('swal-tipo').value) || p.tipoId, productoId: parseInt(document.getElementById('swal-producto').value) || p.productoId, stock: parseInt(document.getElementById('swal-stock').value) };
+        }
+    }).then(r => {
+        if (r.isConfirmed) {
+            const i = proveedores.findIndex(x => x.id === id);
+            proveedores[i] = { ...proveedores[i], ...r.value };
+            renderizarProveedores();
+            Swal.fire({ title: '¡Actualizado!', icon: 'success', timer: 2000, showConfirmButton: false });
+        }
+    });
+}
+
+function eliminarProveedor(id) {
+    const p = proveedores.find(x => x.id === id);
+    if (!p) return;
+    Swal.fire({
+        title: '¿Estás seguro?',
+        text: `¿Eliminar a "${p.nombre}"?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then(r => {
+        if (r.isConfirmed) {
+            proveedores = proveedores.filter(x => x.id !== id);
+            renderizarProveedores();
+            Swal.fire({ title: '¡Eliminado!', icon: 'success', timer: 2000, showConfirmButton: false });
+        }
+    });
+}
+
+renderizarProveedores();
+</script>
+
+{% endblock %}
