@@ -121,6 +121,62 @@
         }
     ];
 
+    // ===== FUNCIÓN PARA BLOQUEAR LETRAS EN CAMPOS NUMÉRICOS =====
+    function soloNumeros(event) {
+        const charCode = event.which ? event.which : event.keyCode;
+        // Permitir: backspace, delete, tab, escape, enter, y las flechas
+        if (charCode === 8 || charCode === 9 || charCode === 27 || charCode === 13 || 
+            (charCode >= 35 && charCode <= 40) || charCode === 46) {
+            return true;
+        }
+        // Bloquear si no es un número (0-9)
+        if (charCode < 48 || charCode > 57) {
+            event.preventDefault();
+            return false;
+        }
+        return true;
+    }
+
+    // ===== FUNCIÓN PARA LIMPIAR LETRAS DE CAMPOS NUMÉRICOS =====
+    function limpiarLetras(input) {
+        input.value = input.value.replace(/[^\d]/g, '');
+    }
+
+    // ===== FUNCIÓN PARA APLICAR VALIDACIONES A LOS CAMPOS =====
+    function aplicarValidacionesNumericas() {
+        // Obtener los campos después de que SweetAlert los cree
+        setTimeout(() => {
+            const campoDocumento = document.getElementById('swal-documento');
+            const campoTelefono = document.getElementById('swal-telefono');
+            
+            if (campoDocumento) {
+                // Bloquear teclas que no sean números
+                campoDocumento.addEventListener('keypress', soloNumeros);
+                // Limpiar cualquier letra pegada
+                campoDocumento.addEventListener('input', function() {
+                    limpiarLetras(this);
+                });
+                // Prevenir pegado de texto con letras
+                campoDocumento.addEventListener('paste', function(e) {
+                    setTimeout(() => limpiarLetras(this), 10);
+                });
+            }
+            
+            if (campoTelefono) {
+                // Bloquear teclas que no sean números
+                campoTelefono.addEventListener('keypress', soloNumeros);
+                // Limpiar cualquier letra pegada
+                campoTelefono.addEventListener('input', function() {
+                    limpiarLetras(this);
+                });
+                // Prevenir pegado de texto con letras
+                campoTelefono.addEventListener('paste', function(e) {
+                    setTimeout(() => limpiarLetras(this), 10);
+                });
+            }
+        }, 100);
+    }
+
     function renderizarClientes() {
         const tbody = document.getElementById('clientesTabla');
         const busqueda = document.getElementById('searchInputClientes').value.toLowerCase();
@@ -200,6 +256,10 @@
                     </select>
                 </div>
             `,
+            didOpen: () => {
+                // Aplicar validaciones cuando se abre el modal
+                aplicarValidacionesNumericas();
+            },
             focusConfirm: false,
             showCancelButton: true,
             confirmButtonText: 'Guardar',
@@ -346,6 +406,10 @@
                     </select>
                 </div>
             `,
+            didOpen: () => {
+                // Aplicar validaciones cuando se abre el modal
+                aplicarValidacionesNumericas();
+            },
             focusConfirm: false,
             showCancelButton: true,
             confirmButtonText: 'Guardar',

@@ -1,0 +1,372 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<h1>Gestión de Compras</h1>
+<p class="text-muted">Sistema de inventario por el Grupo 3</p>
+
+<button class="btn btn-success mb-3" id="btnNuevaCompra" data-bs-toggle="modal" data-bs-target="#modalCompra">
+  🛒 Agregar Compra
+</button>
+
+<div class="mb-3">
+  <input type="text" class="form-control mb-2" placeholder="Buscar compra..." id="inputBuscar">
+  <label>Filtrar por estado:</label>
+  <select class="form-select" id="selEstado">
+    <option value="">Todos</option>
+    <option>Completada</option>
+    <option>Pendiente</option>
+    <option>En proceso</option>
+    <option>Anulada</option>
+  </select>
+</div>
+
+<div class="card">
+  <div class="card-header bg-dark text-white d-flex justify-content-between align-items-center">
+    <span>Compras registradas</span>
+    <span class="badge bg-secondary" id="contadorRegistros">4 registros</span>
+  </div>
+  <div class="card-body p-0">
+    <table class="table table-bordered table-hover mb-0" id="tablaCompras">
+      <thead class="table-dark">
+        <tr>
+          <th>ID</th>
+          <th>N° Orden</th>
+          <th>Proveedor</th>
+          <th>Fecha</th>
+          <th>Tipo de Producto</th>
+          <th>Marca de Producto</th>
+          <th>Total</th>
+          <th>Estado</th>
+          <th>Acción</th>
+        </tr>
+      </thead>
+      <tbody id="tbodyCompras">
+        <tr data-estado="Completada" data-id="1">
+          <td>1</td><td>ORD-2025-001</td><td>Distribuidora ABC</td><td>2025-01-10</td>
+          <td>paquetes</td><td>Papas Margarita</td><td>$250,000</td>
+          <td><span class="badge bg-success">Completada</span></td>
+          <td>
+            <button class="btn btn-sm btn-primary btn-editar">✏️</button>
+            <button class="btn btn-sm btn-danger btn-eliminar">🗑</button>
+          </td>
+        </tr>
+        <tr data-estado="Pendiente" data-id="2">
+          <td>2</td><td>ORD-2025-002</td><td>Proveedores XYZ</td><td>2025-01-15</td>
+          <td>Cerveza</td><td>Poker</td><td>$120,000</td>
+          <td><span class="badge bg-warning text-dark">Pendiente</span></td>
+          <td>
+            <button class="btn btn-sm btn-primary btn-editar">✏️</button>
+            <button class="btn btn-sm btn-danger btn-eliminar">🗑</button>
+          </td>
+        </tr>
+        <tr data-estado="En proceso" data-id="3">
+          <td>3</td><td>ORD-2025-003</td><td>Suministros 123</td><td>2025-01-20</td>
+          <td>gaseosas</td><td>Pepsi</td><td>$500,000</td>
+          <td><span class="badge bg-primary">En proceso</span></td>
+          <td>
+            <button class="btn btn-sm btn-primary btn-editar">✏️</button>
+            <button class="btn btn-sm btn-danger btn-eliminar">🗑</button>
+          </td>
+        </tr>
+        <tr data-estado="Anulada" data-id="4">
+          <td>4</td><td>ORD-2025-004</td><td>Importadora DEF</td><td>2025-01-22</td>
+          <td>Alimentos</td><td>Nestlé</td><td>$540,000</td>
+          <td><span class="badge bg-danger">Anulada</span></td>
+          <td>
+            <button class="btn btn-sm btn-primary btn-editar">✏️</button>
+            <button class="btn btn-sm btn-danger btn-eliminar">🗑</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="sinResultados" class="alert alert-info mt-3 d-none">
+  No se encontraron compras con los criterios de búsqueda.
+</div>
+
+<!-- Modal agregar / editar -->
+<div class="modal fade" id="modalCompra" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-dark text-white">
+        <h5 class="modal-title" id="modalTitulo">Nueva Compra</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="filaEditando">
+
+        <div class="mb-3">
+          <label class="form-label">Proveedor <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="inpProveedor" placeholder="Ej: Distribuidora ABC"
+            oninput="bloquearCaracteres(this)">
+          <span class="text-danger small d-none" id="errProveedor"></span>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Tipo de Producto <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="inpTipo" placeholder="Ej: Paquetes"
+            oninput="bloquearCaracteres(this)">
+          <span class="text-danger small d-none" id="errTipo"></span>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Marca de Producto <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="inpMarca" placeholder="Ej: Papas Margarita"
+            oninput="bloquearCaracteres(this)">
+          <span class="text-danger small d-none" id="errMarca"></span>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Fecha <span class="text-danger">*</span></label>
+          <input type="date" class="form-control" id="inpFecha">
+          <span class="text-danger small d-none" id="errFecha"></span>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Total <span class="text-danger">*</span></label>
+          <input type="number" class="form-control" id="inpTotal" placeholder="Ej: 150000" min="1"
+            oninput="bloquearCero(this)">
+          <span class="text-danger small d-none" id="errTotal"></span>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Estado <span class="text-danger">*</span></label>
+          <select class="form-select" id="inpEstado">
+            <option>Pendiente</option>
+            <option>En proceso</option>
+            <option>Completada</option>
+            <option>Anulada</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-success" id="btnGuardar">💾 Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal eliminar -->
+<div class="modal fade" id="modalEliminar" tabindex="-1">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">Confirmar eliminación</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        ¿Estás seguro de que deseas eliminar la compra <strong id="ordenEliminar"></strong>?
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-danger" id="btnConfirmarEliminar">Eliminar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let siguienteId = 5;
+  let filaAEliminar = null;
+
+  function bloquearCaracteres(input) {
+    input.value = input.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s]/g, '');
+  }
+
+  function bloquearCero(input) {
+    if (Number(input.value) <= 0) {
+      input.value = '';
+    }
+  }
+
+  function badgeEstado(estado) {
+    const clases = {
+      'Completada': 'bg-success',
+      'Pendiente': 'bg-warning text-dark',
+      'En proceso': 'bg-primary',
+      'Anulada': 'bg-danger'
+    };
+    return `<span class="badge ${clases[estado] || 'bg-secondary'}">${estado}</span>`;
+  }
+
+  function formatearTotal(valor) {
+    return '$' + Number(valor).toLocaleString('es-CO');
+  }
+
+  function generarOrden(id) {
+    const num = String(id).padStart(3, '0');
+    const anio = new Date().getFullYear();
+    return `ORD-${anio}-${num}`;
+  }
+
+  function mostrarError(inputId, errorId, mensaje) {
+    document.getElementById(inputId).classList.add('is-invalid');
+    const err = document.getElementById(errorId);
+    err.textContent = mensaje;
+    err.classList.remove('d-none');
+  }
+
+  function limpiarErrores() {
+    ['inpProveedor','inpTipo','inpMarca','inpFecha','inpTotal'].forEach(id => {
+      document.getElementById(id).classList.remove('is-invalid');
+    });
+    ['errProveedor','errTipo','errMarca','errFecha','errTotal'].forEach(id => {
+      const el = document.getElementById(id);
+      el.textContent = '';
+      el.classList.add('d-none');
+    });
+  }
+
+  function limpiarModal() {
+    document.getElementById('filaEditando').value = '';
+    document.getElementById('inpProveedor').value = '';
+    document.getElementById('inpTipo').value = '';
+    document.getElementById('inpMarca').value = '';
+    document.getElementById('inpFecha').value = '';
+    document.getElementById('inpTotal').value = '';
+    document.getElementById('inpEstado').value = 'Pendiente';
+    document.getElementById('modalTitulo').textContent = 'Nueva Compra';
+    limpiarErrores();
+  }
+
+  function validarFormulario() {
+    limpiarErrores();
+    let valido = true;
+
+    const camposTexto = [
+      { input: 'inpProveedor', error: 'errProveedor', nombre: 'Proveedor' },
+      { input: 'inpTipo',      error: 'errTipo',      nombre: 'Tipo de Producto' },
+      { input: 'inpMarca',     error: 'errMarca',     nombre: 'Marca de Producto' },
+    ];
+
+    camposTexto.forEach(({ input, error, nombre }) => {
+      const val = document.getElementById(input).value.trim();
+      if (!val) {
+        mostrarError(input, error, `El campo ${nombre} es obligatorio.`);
+        valido = false;
+      }
+    });
+
+    if (!document.getElementById('inpFecha').value) {
+      mostrarError('inpFecha', 'errFecha', 'La fecha es obligatoria.');
+      valido = false;
+    }
+
+    const total = document.getElementById('inpTotal');
+    if (!total.value) {
+      mostrarError('inpTotal', 'errTotal', 'El total es obligatorio.');
+      valido = false;
+    }
+
+    return valido;
+  }
+
+  function filtrar() {
+    const texto = document.getElementById('inputBuscar').value.toLowerCase();
+    const estado = document.getElementById('selEstado').value;
+    const filas = document.querySelectorAll('#tbodyCompras tr');
+    let visibles = 0;
+
+    filas.forEach(fila => {
+      const coincideTexto = fila.textContent.toLowerCase().includes(texto);
+      const coincideEstado = !estado || fila.dataset.estado === estado;
+      if (coincideTexto && coincideEstado) {
+        fila.classList.remove('d-none');
+        visibles++;
+      } else {
+        fila.classList.add('d-none');
+      }
+    });
+
+    document.getElementById('sinResultados').classList.toggle('d-none', visibles > 0);
+    document.getElementById('contadorRegistros').textContent = visibles + ' registros';
+  }
+
+  document.getElementById('inputBuscar').addEventListener('input', filtrar);
+  document.getElementById('selEstado').addEventListener('change', filtrar);
+  document.getElementById('btnNuevaCompra').addEventListener('click', limpiarModal);
+
+  document.getElementById('btnGuardar').addEventListener('click', function () {
+    if (!validarFormulario()) return;
+
+    const proveedor  = document.getElementById('inpProveedor').value.trim();
+    const tipo       = document.getElementById('inpTipo').value.trim();
+    const marca      = document.getElementById('inpMarca').value.trim();
+    const fecha      = document.getElementById('inpFecha').value;
+    const total      = document.getElementById('inpTotal').value;
+    const estado     = document.getElementById('inpEstado').value;
+    const idEditando = document.getElementById('filaEditando').value;
+
+    if (idEditando) {
+      const fila = document.querySelector(`#tbodyCompras tr[data-id="${idEditando}"]`);
+      if (fila) {
+        const celdas = fila.querySelectorAll('td');
+        celdas[2].textContent = proveedor;
+        celdas[3].textContent = fecha;
+        celdas[4].textContent = tipo;
+        celdas[5].textContent = marca;
+        celdas[6].textContent = formatearTotal(total);
+        celdas[7].innerHTML   = badgeEstado(estado);
+        fila.dataset.estado   = estado;
+      }
+    } else {
+      const id   = siguienteId++;
+      const fila = document.createElement('tr');
+      fila.dataset.estado = estado;
+      fila.dataset.id     = id;
+      fila.innerHTML = `
+        <td>${id}</td>
+        <td>${generarOrden(id)}</td>
+        <td>${proveedor}</td>
+        <td>${fecha}</td>
+        <td>${tipo}</td>
+        <td>${marca}</td>
+        <td>${formatearTotal(total)}</td>
+        <td>${badgeEstado(estado)}</td>
+        <td>
+          <button class="btn btn-sm btn-primary btn-editar">✏️</button>
+          <button class="btn btn-sm btn-danger btn-eliminar">🗑</button>
+        </td>
+      `;
+      document.getElementById('tbodyCompras').appendChild(fila);
+    }
+
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalCompra')).hide();
+    filtrar();
+  });
+
+  document.getElementById('tbodyCompras').addEventListener('click', function (e) {
+    const fila = e.target.closest('tr');
+    if (!fila) return;
+
+    if (e.target.closest('.btn-editar')) {
+      const celdas = fila.querySelectorAll('td');
+      document.getElementById('filaEditando').value  = fila.dataset.id;
+      document.getElementById('inpProveedor').value  = celdas[2].textContent;
+      document.getElementById('inpFecha').value      = celdas[3].textContent;
+      document.getElementById('inpTipo').value       = celdas[4].textContent;
+      document.getElementById('inpMarca').value      = celdas[5].textContent;
+      document.getElementById('inpTotal').value      = celdas[6].textContent.replace(/[^0-9]/g, '');
+      document.getElementById('inpEstado').value     = fila.dataset.estado;
+      document.getElementById('modalTitulo').textContent = 'Editar Compra';
+      limpiarErrores();
+      new bootstrap.Modal(document.getElementById('modalCompra')).show();
+    }
+
+    if (e.target.closest('.btn-eliminar')) {
+      filaAEliminar = fila;
+      const celdas = fila.querySelectorAll('td');
+      document.getElementById('ordenEliminar').textContent = celdas[1].textContent;
+      new bootstrap.Modal(document.getElementById('modalEliminar')).show();
+    }
+  });
+
+  document.getElementById('btnConfirmarEliminar').addEventListener('click', function () {
+    if (filaAEliminar) {
+      filaAEliminar.remove();
+      filaAEliminar = null;
+    }
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEliminar')).hide();
+    filtrar();
+  });
+</script>
+{% endblock %}
