@@ -1,125 +1,79 @@
 {% extends 'base.html' %}
-{% load ventas_filters %}
 {% load static %}
 
 {% block content %}
-<!-- Estilos para el carrito de ventas -->
-<style>      
-    .product-item-select {
-        padding: 10px;
-        margin-bottom: 8px;
-        border: 1px solid #dee2e6;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s ease;
-    }
-    .product-item-select:hover {
-        background-color: #f8f9fa;
-        border-color: #0d6efd;
-    }
-    .carrito-producto {
-        background-color: #faf8f8;
-        padding: 12px;
-        margin-bottom: 10px;
-        border-radius: 6px;
-        border: 1px solid #dee2e6;
-    }
-    .cantidad-control {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-    .cantidad-control button {
-        width: 32px;
-        height: 32px;
-        padding: 0;
-        border-radius: 4px;
-    }
-    .cantidad-control input {
-        width: 60px;
-        text-align: center;
-        border-radius: 4px;
-    }
-    .resumen-total {
-        background-color: #e7f5ff;
-        padding: 15px;
-        border-radius: 8px;
-        border-left: 4px solid #0d6efd;
-    }
-    .producto-edit-row {
-        background: #f8f9fa;
-        padding: 8px;
-        border-radius: 6px;
-        border: 1px solid #dee2e6;
-        margin-bottom: 8px;
-    }
-</style>
 
-<h1 class="mb-4">Panel de Gestión de Ventas</h1>
-<p class="text-muted">Sistema de ventas</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fa-solid fa-cart-shopping me-2"></i>Panel de Gestión de Ventas</h2>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCrearVenta">
+        <i class="fa-solid fa-plus me-1"></i> Nueva Venta
+    </button>
+</div>
 
-<!-- TARJETAS DE ESTADÍSTICAS-->
+{% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Estadísticas -->
 <div class="row mb-4">
     <div class="col-md-4">
-        <div class="card h-100">
+        <div class="card text-white bg-success">
             <div class="card-body">
-                <h6 class="text-muted">Ventas de Hoy</h6>
-                <h3 class="mb-0" id="ventasHoy">$0</h3>
+                <h6 class="card-title">Ventas de Hoy</h6>
+                <h4>${{ ventas_hoy|floatformat:0 }}</h4>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card h-100">
+        <div class="card text-white bg-primary">
             <div class="card-body">
-                <h6 class="text-muted">Total Mes</h6>
-                <h3 class="mb-0" id="totalMes">$0</h3>
+                <h6 class="card-title">Total del Mes</h6>
+                <h4>${{ total_mes|floatformat:0 }}</h4>
             </div>
         </div>
     </div>
     <div class="col-md-4">
-        <div class="card h-100">
+        <div class="card text-white bg-dark">
             <div class="card-body">
-                <h6 class="text-muted">Ventas Realizadas</h6>
-                <h3 class="mb-0" id="ventasRealizadas">0</h3>
+                <h6 class="card-title">Total Ventas Realizadas</h6>
+                <h4>{{ total_ventas }}</h4>
             </div>
         </div>
     </div>
 </div>
 
-<!--barra de busqueda y boton  -->
-<div class="card mb-3">
+<!-- Buscador -->
+<div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
-        <div class="row mb-3">
+        <form method="get" class="row">
             <div class="col-md-6">
-                <input type="text" id="searchInput" class="form-control" placeholder="Buscar venta por nombre de cliente..." onkeyup="buscarVenta()">
+                <input type="text" name="buscar" class="form-control"
+                       placeholder="Buscar por nombre de cliente..." value="{{ request.GET.buscar }}">
             </div>
             <div class="col-md-3">
-                <select id="filtroFecha" class="form-select" onchange="filtrarPorFecha()">
-                    <option value="todas">Todas las fechas</option>
-                    <option value="hoy">Hoy</option>
-                    <option value="ayer">Ayer</option>
-                    <option value="semana">Esta semana</option>
-                    <option value="semana pasada">Semana pasada</option>
-                    <option value="mes">Este mes</option>
-                    <option value="mes pasado">Mes pasado</option>
-                    <option value="anio">Este año</option>
-                    <option value="anio pasado">Año pasado</option>
-                </select>
-            </div>
-            <div class="col-md-3">
-                <button class="btn btn-primary w-100" onclick="nuevaVenta()">
-                    <i class="fas fa-plus"></i> Nueva Venta
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-search me-1"></i> Buscar
                 </button>
+                {% if request.GET.buscar %}
+                    <a href="{% url 'ventas' %}" class="btn btn-secondary ms-2">Limpiar</a>
+                {% endif %}
             </div>
-        </div>
+        </form>
     </div>
 </div>
 
-<!--tabla de ventas-->
-<div class="card mt-4">
-    <div class="card-header bg-dark text-light">VENTAS REGISTRADAS</div>
-    <div class="card-body">
-        <table class="table table-bordered">
+<!-- Tabla de ventas -->
+<div class="card border-0 shadow-sm">
+    <div class="card-header bg-dark text-white">
+        <i class="fa-solid fa-list me-2"></i>Ventas Registradas
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
             <thead class="table-dark">
                 <tr>
                     <th>ID</th>
@@ -127,43 +81,56 @@
                     <th>Cliente</th>
                     <th>Productos</th>
                     <th>Total</th>
-                    <th>Estado del pago</th>
-                    <th>Acción</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody id="ventasTableBody">
+            <tbody>
                 {% for v in ventas %}
                 <tr>
                     <td>{{ v.id }}</td>
                     <td>{{ v.fecha|date:"d/m/Y H:i" }}</td>
                     <td>{{ v.cliente }}</td>
                     <td>
-                        {% for d in v.detalle_venta_set.all %}
+                        {% for d in v.detalles.all %}
                             {{ d.producto_nombre }} (x{{ d.cantidad }}){% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            <span class="text-muted">—</span>
                         {% endfor %}
                     </td>
-                    <td>${{ v.total|precio_co }}</td>
+                    <td><strong>${{ v.total|floatformat:0 }}</strong></td>
                     <td>
-                        <span class="badge {% if v.estado == 'completada' %}bg-success{% else %}bg-warning text-dark{% endif %}">
-                            {{ v.get_estado_display }}
+                        <span class="badge {% if v.estado == 'Completada' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                            {{ v.estado }}
                         </span>
                     </td>
                     <td>
-                        <button type="button" class="btn btn-primary btn-sm" onclick="verDetalle({{ v.id }})" title="Ver detalle">
-                            <i class="fas fa-eye"></i>
+                        <a href="{% url 'detalle_venta' v.id %}" class="btn btn-sm btn-info">
+                            <i class="fa-solid fa-eye"></i>
+                        </a>
+                        {% if v.estado != 'Completada' %}
+                        <button class="btn btn-sm btn-warning"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalEditarVenta{{ v.id }}">
+                            <i class="fa-solid fa-pen"></i>
                         </button>
-                        {% if v.estado == 'pendiente' %}
-                        <button type="button" class="btn btn-warning btn-sm" onclick="editarVenta({{ v.id }})" title="Editar">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button type="button" class="btn btn-success btn-sm" onclick="completarVenta({{ v.id }})" title="Completar venta">
-                            <i class="fas fa-check"></i>
-                        </button>
-                        <button type="button" class="btn btn-danger btn-sm" onclick="eliminarVenta({{ v.id }})" title="Eliminar">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <form method="post" action="{% url 'completar_venta' v.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-success" title="Completar">
+                                <i class="fa-solid fa-check"></i>
+                            </button>
+                        </form>
                         {% endif %}
+                        <button class="btn btn-sm btn-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalEliminarVenta{{ v.id }}">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
                     </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">No hay ventas registradas</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -171,487 +138,190 @@
     </div>
 </div>
 
-<script>
-    //simulacion de productos disponibles 
-    let productosDisponibles = [];
-
-fetch('/productos/json/')
-    .then(r => r.json())
-    .then(data => { productosDisponibles = data.productos; });
-
-    let carrito = [];
-    let carritoEdicion = [];
-
-    window.onload = function() { actualizarEstadisticas(); };
-
-    // =======nueva venta=====
-    function nuevaVenta() {
-    carrito = [];
-    Swal.fire({
-        title: '<i class="fas fa-shopping-cart"></i> Nueva Venta',
-        html: `
-            <div class="container-fluid">
-                <div class="row">
-                    <div class="col-md-6 border-end">
-                        <h6 class="text-start mb-3"><i class="fas fa-box-open"></i> Seleccionar Productos</h6>
-                        <input type="text" id="buscarProducto" class="form-control form-control-sm mb-3" placeholder="🔍 Buscar producto..." onkeyup="filtrarProductosModal()">
-                        <div id="listaProductos" style="max-height: 350px; overflow-y: auto; text-align: left;">
-                            ${generarListaProductos()}
-                        </div>
+<!-- Modal: Crear Venta -->
+<div class="modal fade" id="modalCrearVenta" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-plus me-1"></i> Nueva Venta</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'crear_venta' %}" id="formCrearVenta">
+                {% csrf_token %}
+                <input type="hidden" name="productos" id="productosJsonCrear" value="[]">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Cliente <span class="text-danger">*</span></label>
+                        <input type="text" name="cliente" class="form-control" required minlength="3" placeholder="Nombre del cliente">
                     </div>
-                    <div class="col-md-6">
-                        <h6 class="text-start mb-3">
-                            <i class="fas fa-shopping-basket"></i> Carrito 
-                            <span class="badge bg-primary" id="cantidadItems">0 items</span>
-                        </h6>
-                        <div id="carritoContenido" style="max-height: 250px; overflow-y: auto; text-align: left;">
-                            <p class="text-muted text-center py-4"><i class="fas fa-shopping-cart fa-2x mb-2"></i><br>Carrito vacío</p>
-                        </div>
-                        <hr>
-                        <div class="text-start mb-3">
-                            <label class="form-label fw-bold"><i class="fas fa-user"></i> Cliente:</label>
-                            <input type="text" id="clienteVenta" class="form-control form-control-sm" placeholder="Nombre del cliente" maxlength="30">
-                            <div id="clienteFeedback" class="text-danger small mt-1" style="min-height: 15px;"></div>
-                            <small id="clienteContador" class="text-muted">0/30 caracteres</small>
-                        </div>
-                        <div class="text-start mb-3">
-                            <label class="form-label fw-bold"><i class="fas fa-check-circle"></i> Estado:</label>
-                            <select id="estadoVenta" class="form-select form-select-sm">
-                                <option value="completada">Completada</option>
-                                <option value="pendiente">Pendiente</option>
+                    <div class="mb-3">
+                        <label class="form-label">Estado</label>
+                        <select name="estado" class="form-select">
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Completada">Completada</option>
+                        </select>
+                    </div>
+                    <hr>
+                    <h6>Productos</h6>
+                    <div class="row mb-2">
+                        <div class="col-md-6">
+                            <select id="selectProductoCrear" class="form-select">
+                                <option value="">Seleccione un producto</option>
+                                {% for p in productos %}
+                                <option value="{{ p.idProducto }}" data-nombre="{{ p.nombre }}" data-precio="{{ p.precio }}" data-stock="{{ p.stock }}">
+                                    {{ p.nombre }} - ${{ p.precio|floatformat:0 }} (stock: {{ p.stock }})
+                                </option>
+                                {% endfor %}
                             </select>
                         </div>
-                        <div class="resumen-total">
-                            <div class="d-flex justify-content-between mb-1">
-                                <span>Total:</span><h5 class="mb-0 text-primary" id="totalCarrito">$0</h5>
-                            </div>
+                        <div class="col-md-2">
+                            <input type="number" id="cantidadCrear" class="form-control" value="1" min="1" placeholder="Cant.">
                         </div>
+                        <div class="col-md-2">
+                            <button type="button" class="btn btn-primary w-100" onclick="agregarProductoCrear()">
+                                <i class="fa-solid fa-plus"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div id="carritoCrear" class="mt-2"></div>
+                    <div class="text-end mt-2">
+                        <strong>Total: $<span id="totalCrear">0</span></strong>
                     </div>
                 </div>
-            </div>`,
-        width: '90%',
-        showCancelButton: true,
-        confirmButtonText: '<i class="fas fa-plus"></i> Agregar Venta',
-        cancelButtonText: '<i class="fas fa-times"></i> Cancelar',
-        confirmButtonColor: '#0d6efd',
-       didOpen: () => {
-    const input = document.getElementById('clienteVenta');
-    const feedback = document.getElementById('clienteFeedback');
-    const contador = document.getElementById('clienteContador');
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success" onclick="return validarCarritoCrear()">
+                        <i class="fa-solid fa-save me-1"></i> Guardar Venta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-    input.addEventListener('input', function() {
-        // Limpieza de caracteres 
-        let valor = this.value.replace(/[0-9]/g, ''); 
-        valor = valor.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
-        
-        if (this.value !== valor) {
-            this.value = valor;
-            feedback.textContent = '❌ Solo letras y espacios';
-        } else {
-            feedback.textContent = '';
-        }
-
-        // Lógica del contador y mensaje de máximo
-        const longitud = this.value.length;
-        if (longitud >= 30) {
-            contador.innerHTML = '<span class="text-danger fw-bold">Máximo de caracteres alcanzado (30/30)</span>';
-        } else {
-            contador.textContent = `${longitud}/30 caracteres`;
-            contador.className = "text-muted"; 
-        }
-    });
-},
-        preConfirm: () => {
-            const cliente = document.getElementById('clienteVenta').value.trim();
-            const estado = document.getElementById('estadoVenta').value;
-
-            //validacion al dar click en el boton de agregar venta
-            if (carrito.length === 0) {
-                Swal.showValidationMessage('Debes agregar al menos un producto');
-                return false;
-            }
-            if (cliente.length < 3) {
-                Swal.showValidationMessage('El nombre debe tener al menos 3 caracteres');
-                return false;
-            }
-            return { cliente, estado };
-        }
-    }).then(result => {
-        if (result.isConfirmed) {
-            procesarVenta(result.value.cliente, result.value.estado);
-        }
-    });
-}
-
-    function generarListaProductos() {
-        return productosDisponibles.map(p => `
-            <div class="product-item-select" data-nombre="${p.nombre}">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div><strong>${p.nombre}</strong><br><small class="text-muted">Stock: ${p.stock}</small></div>
-                    <div class="text-end">
-                        <div class="text-primary fw-bold mb-1">$${p.precio.toLocaleString('es-CO')}</div>
-                        <button class="btn btn-sm btn-primary" onclick="agregarAlCarrito(${p.id})"><i class="fas fa-plus"></i> Agregar</button>
+<!-- Modales: Editar y Eliminar por venta -->
+{% for v in ventas %}
+<div class="modal fade" id="modalEditarVenta{{ v.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title"><i class="fa-solid fa-pen me-1"></i> Editar Venta #{{ v.id }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'editar_venta' v.id %}">
+                {% csrf_token %}
+                <input type="hidden" name="productos" value="{{ v.detalles_json|default:'[]' }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Cliente *</label>
+                        <input type="text" name="cliente" class="form-control" value="{{ v.cliente }}" required minlength="3">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Estado</label>
+                        <select name="estado" class="form-select">
+                            <option value="Pendiente" {% if v.estado == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+                            <option value="Completada" {% if v.estado == 'Completada' %}selected{% endif %}>Completada</option>
+                        </select>
+                    </div>
+                    <div class="alert alert-info small">
+                        <i class="fa-solid fa-info-circle me-1"></i>
+                        Los productos de esta venta se conservan. Para cambiar productos, elimine esta venta y cree una nueva.
+                    </div>
+                    <div class="mt-2">
+                        <strong>Productos actuales:</strong>
+                        <ul class="mt-1">
+                            {% for d in v.detalles.all %}
+                            <li>{{ d.producto_nombre }} x{{ d.cantidad }} — ${{ d.precio|floatformat:0 }}</li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 </div>
-            </div>`).join('');
-    }
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-warning"><i class="fa-solid fa-save me-1"></i> Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
 
-    function filtrarProductosModal() {
-        const busqueda = document.getElementById('buscarProducto').value.toLowerCase();
-        document.querySelectorAll('.product-item-select').forEach(p => {
-            p.style.display = p.getAttribute('data-nombre').toLowerCase().includes(busqueda) ? 'block' : 'none';
+<div class="modal fade" id="modalEliminarVenta{{ v.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title">Eliminar Venta #{{ v.id }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="post" action="{% url 'eliminar_venta' v.id %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>¿Está seguro de eliminar la venta #{{ v.id }} del cliente <strong>{{ v.cliente }}</strong>?</p>
+                    <p class="text-danger small">Esta acción no se puede deshacer.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash me-1"></i> Sí, eliminar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+<script>
+let carritoCrear = [];
+
+function agregarProductoCrear() {
+    const sel = document.getElementById('selectProductoCrear');
+    const opt = sel.options[sel.selectedIndex];
+    if (!opt.value) return alert('Seleccione un producto.');
+    const cant = parseInt(document.getElementById('cantidadCrear').value) || 1;
+    const id = parseInt(opt.value);
+    const existente = carritoCrear.find(i => i.id === id);
+    if (existente) {
+        existente.cantidad += cant;
+    } else {
+        carritoCrear.push({
+            id: id,
+            nombre: opt.dataset.nombre,
+            precio: parseFloat(opt.dataset.precio),
+            cantidad: cant
         });
     }
-
-    function agregarAlCarrito(productoId) {
-        const producto = productosDisponibles.find(p => p.id === productoId);
-        const existente = carrito.find(i => i.id === productoId);
-        if (existente) { existente.cantidad++; } 
-        else { carrito.push({ id: producto.id, nombre: producto.nombre, precio: producto.precio, cantidad: 1, stock: producto.stock }); }
-        actualizarCarrito();
-    }
-
-    function actualizarCarrito() {
-        const div = document.getElementById('carritoContenido');
-        if (carrito.length === 0) {
-            div.innerHTML = `<p class="text-muted text-center py-4"><i class="fas fa-shopping-cart fa-2x mb-2"></i><br>Carrito vacío</p>`;
-        } else {
-            div.innerHTML = carrito.map(item => `
-                <div class="carrito-producto">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <div><strong>${item.nombre}</strong><br><small class="text-muted">$${item.precio.toLocaleString('es-CO')} c/u</small></div>
-                        <button class="btn btn-sm btn-outline-danger" onclick="eliminarDelCarrito(${item.id})"><i class="fas fa-trash"></i></button>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div class="cantidad-control">
-                            <button class="btn btn-sm btn-outline-secondary" onclick="cambiarCantidad(${item.id}, -1)">-</button>
-                            <input type="number" class="form-control form-control-sm" value="${item.cantidad}" min="1" max="${item.stock}" onchange="setCantidad(${item.id}, this.value)">
-                            <button class="btn btn-sm btn-outline-secondary" onclick="cambiarCantidad(${item.id}, 1)">+</button>
-                        </div>
-                        <strong class="text-primary">$${(item.precio * item.cantidad).toLocaleString('es-CO')}</strong>
-                    </div>
-                </div>`).join('');
-        }
-        actualizarTotalesCarrito();
-    }
-
-    function cambiarCantidad(id, cambio) {
-        const item = carrito.find(i => i.id === id);
-        if (!item) return;
-        const nueva = item.cantidad + cambio;
-        if (nueva < 1) { eliminarDelCarrito(id); } else { item.cantidad = nueva; actualizarCarrito(); }
-    }
-
-    function setCantidad(id, valor) {
-        const item = carrito.find(i => i.id === id);
-        if (!item) return;
-        const cant = parseInt(valor);
-        if (cant < 1 || isNaN(cant)) { eliminarDelCarrito(id); } else { item.cantidad = cant; actualizarCarrito(); }
-    }
-
-    function eliminarDelCarrito(id) { carrito = carrito.filter(i => i.id !== id); actualizarCarrito(); }
-
-    function actualizarTotalesCarrito() {
-        const subtotal = carrito.reduce((s, i) => s + i.precio * i.cantidad, 0);
-        document.getElementById('cantidadItems').textContent = `${carrito.length} items`;
-        document.getElementById('subtotalCarrito').textContent = `$${subtotal.toLocaleString('es-CO')}`;
-        document.getElementById('totalCarrito').textContent = `$${Math.round(subtotal).toLocaleString('es-CO')}`;
-    }
-
-    function procesarVenta(cliente, estado) {
-        const total = carrito.reduce((s, i) => s + i.precio * i.cantidad, 0);
-        fetch("{% url 'crear_venta' %}", {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
-            body: JSON.stringify({ cliente, estado, total: Math.round(total), productos: carrito })
-        })
-        .then(r => r.json())
-        .then(data => {
-            if (data.ok) {
-                Swal.fire({ icon: 'success', title: '¡Venta registrada!', confirmButtonColor: '#198754' }).then(() => location.reload());
-            } else {
-                Swal.fire({ icon: 'error', title: 'Error de validación', text: Object.values(data.errores).flat().join('\n'), confirmButtonColor: '#dc3545' });
-            }
-        })
-        .catch(() => Swal.fire({ icon: 'error', title: 'Error de conexión' }));
-    }
-
-    // ====funcion para editar venta completa=======
-    function editarVenta(ventaId) {
-        fetch(`/ventas/detalle/${ventaId}/`)
-        .then(r => r.json())
-        .then(data => {
-            carritoEdicion = data.productos.map(p => ({ nombre: p.nombre, precio: p.precio, cantidad: p.cantidad }));
-
-            Swal.fire({
-                title: `<i class="fas fa-edit"></i> Editar Venta #${ventaId}`,
-                html: `
-                    <div class="container-fluid" style="text-align: left;">
-                        <div class="row">
-                            <div class="col-md-6 border-end">
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">👤 Cliente:</label>
-                                    <input type="text" id="editCliente" class="form-control" value="${data.cliente}">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label fw-bold">📋 Estado:</label>
-                                    <select id="editEstado" class="form-select">
-                                        <option value="completada" ${data.estado === 'completada' ? 'selected' : ''}>Completada</option>
-                                        <option value="pendiente" ${data.estado === 'pendiente' ? 'selected' : ''}>Pendiente</option>
-                                    </select>
-                                </div>
-                                <hr>
-                                <label class="form-label fw-bold">➕ Agregar producto:</label>
-                                <select id="selectProductoEdit" class="form-select form-select-sm mb-2">
-                                    ${productosDisponibles.map(p => `<option value="${p.id}">${p.nombre} - $${p.precio.toLocaleString('es-CO')}</option>`).join('')}
-                                </select>
-                                <button class="btn btn-sm btn-outline-primary w-100" onclick="agregarProductoEdicion()">
-                                    <i class="fas fa-plus"></i> Agregar al carrito
-                                </button>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-bold">📦 Productos en la venta:</label>
-                                <div id="carritoEdicionContenido" style="max-height: 300px; overflow-y: auto;"></div>
-                                <hr>
-                                <div class="resumen-total mt-2">
-                                    <div class="d-flex justify-content-between">
-                                        <h6 class="mb-0">Total:</h6>
-                                        <h5 class="mb-0 text-primary" id="totalEdicion">$0</h5>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>`,
-                width: '85%',
-                showCancelButton: true,
-                confirmButtonText: 'Guardar cambios',
-                cancelButtonText: 'Cancelar',
-                confirmButtonColor: '#ffc107',
-                cancelButtonColor: '#6c757d',
-                didOpen: () => { renderizarCarritoEdicion(); },
-                preConfirm: () => {
-                    const cliente = document.getElementById('editCliente').value.trim();
-                    const estado = document.getElementById('editEstado').value;
-                    if (!cliente) { Swal.showValidationMessage('El nombre del cliente es obligatorio'); return false; }
-                    if (carritoEdicion.length === 0) { Swal.showValidationMessage('Debe haber al menos un producto'); return false; }
-                    const total = carritoEdicion.reduce((s, i) => s + i.precio * i.cantidad, 0);
-                    return { cliente, estado, total: Math.round(total), productos: carritoEdicion };
-                }
-            }).then(result => {
-                if (result.isConfirmed) {
-                    fetch(`/ventas/editar/${ventaId}/`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
-                        body: JSON.stringify(result.value)
-                    })
-                    .then(r => r.json())
-                    .then(data => {
-                        if (data.ok) {
-                            Swal.fire({ icon: 'success', title: '¡Venta actualizada!', confirmButtonColor: '#198754' }).then(() => location.reload());
-                        } else {
-                            Swal.fire({ icon: 'error', title: 'Error de validación', text: Object.values(data.errores).flat().join('\n') });
-                        }
-                    });
-                }
-            });
-        });
-    }
-
-    function agregarProductoEdicion() {
-        const select = document.getElementById('selectProductoEdit');
-        const productoId = parseInt(select.value);
-        const producto = productosDisponibles.find(p => p.id === productoId);
-        const existente = carritoEdicion.find(i => i.nombre === producto.nombre);
-        if (existente) { existente.cantidad++; } 
-        else { carritoEdicion.push({ nombre: producto.nombre, precio: producto.precio, cantidad: 1 }); }
-        renderizarCarritoEdicion();
-    }
-
-    function renderizarCarritoEdicion() {
-        const div = document.getElementById('carritoEdicionContenido');
-        if (carritoEdicion.length === 0) {
-            div.innerHTML = `<p class="text-muted text-center py-3">Sin productos</p>`;
-        } else {
-            div.innerHTML = carritoEdicion.map((item, index) => `
-                <div class="producto-edit-row">
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <strong>${item.nombre}</strong>
-                        <button class="btn btn-sm btn-outline-danger" onclick="eliminarProductoEdicion(${index})">
-                            <i class="fas fa-trash"></i>
-                        </button>
-                    </div>
-                    <div class="d-flex justify-content-between align-items-center">
-                        <small class="text-muted">$${Number(item.precio).toLocaleString('es-CO')} c/u</small>
-                        <div class="cantidad-control">
-                            <button class="btn btn-sm btn-outline-secondary" onclick="cambiarCantidadEdicion(${index}, -1)">-</button>
-                            <input type="number" class="form-control form-control-sm" value="${item.cantidad}" min="1"
-                                   onchange="setCantidadEdicion(${index}, this.value)" style="width:60px; text-align:center;">
-                            <button class="btn btn-sm btn-outline-secondary" onclick="cambiarCantidadEdicion(${index}, 1)">+</button>
-                        </div>
-                        <strong class="text-primary">$${(item.precio * item.cantidad).toLocaleString('es-CO')}</strong>
-                    </div>
-                </div>`).join('');
-        }
-        const total = carritoEdicion.reduce((s, i) => s + i.precio * i.cantidad, 0);
-        document.getElementById('totalEdicion').textContent = `$${Math.round(total).toLocaleString('es-CO')}`;
-    }
-
-    function cambiarCantidadEdicion(index, cambio) {
-        carritoEdicion[index].cantidad += cambio;
-        if (carritoEdicion[index].cantidad < 1) { eliminarProductoEdicion(index); } 
-        else { renderizarCarritoEdicion(); }
-    }
-
-    function setCantidadEdicion(index, valor) {
-        const cant = parseInt(valor);
-        if (cant < 1 || isNaN(cant)) { eliminarProductoEdicion(index); } 
-        else { carritoEdicion[index].cantidad = cant; renderizarCarritoEdicion(); }
-    }
-
-    function eliminarProductoEdicion(index) {
-        carritoEdicion.splice(index, 1);
-        renderizarCarritoEdicion();
-    }
-
-    // =====ver detalle=======
-    function verDetalle(ventaId) {
-        fetch(`/ventas/detalle/${ventaId}/`)
-        .then(r => r.json())
-        .then(data => {
-            const productosHtml = data.productos.map(p => `
-                <tr>
-                    <td>${p.nombre}</td>
-                    <td class="text-center">${p.cantidad}</td>
-                    <td class="text-end">$${Number(p.precio).toLocaleString('es-CO')}</td>
-                    <td class="text-end">$${(p.precio * p.cantidad).toLocaleString('es-CO')}</td>
-                </tr>`).join('');
-            Swal.fire({
-                title: `Detalle de Venta #${data.id}`,
-                html: `
-                    <div style="text-align: left;">
-                        <p><strong>📅 Fecha:</strong> ${data.fecha}</p>
-                        <p><strong>👤 Cliente:</strong> ${data.cliente}</p>
-                        <p><strong>Estado:</strong> <span class="badge ${data.estado === 'completada' ? 'bg-success' : 'bg-warning text-dark'}">${data.estado}</span></p>
-                        <hr>
-                        <h6>Productos:</h6>
-                        <table class="table table-sm">
-                            <thead><tr><th>Producto</th><th class="text-center">Cant.</th><th class="text-end">Precio</th><th class="text-end">Subtotal</th></tr></thead>
-                            <tbody>${productosHtml}</tbody>
-                        </table>
-                        <div class="text-end"><h5 class="text-primary">Total: $${Number(data.total).toLocaleString('es-CO')}</h5></div>
-                    </div>`,
-                width: 700,
-                confirmButtonText: 'Cerrar',
-                confirmButtonColor: '#198754'
-            });
-        });
-    }
-
-    // ==funcion para completar venta==
-    function completarVenta(ventaId) {
-        Swal.fire({
-            title: '¿Completar venta?', icon: 'question', showCancelButton: true,
-            confirmButtonColor: '#198754', cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Sí, completar', cancelButtonText: 'Cancelar'
-        }).then(result => {
-            if (result.isConfirmed) {
-                fetch(`/ventas/completar/${ventaId}/`, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
-                .then(r => r.json())
-                .then(data => { if (data.ok) Swal.fire({ icon: 'success', title: '¡Completada!', confirmButtonColor: '#198754' }).then(() => location.reload()); });
-            }
-        });
-    }
-
-    // ==funcion para eliminar venta==
-    function eliminarVenta(ventaId) {
-        Swal.fire({
-            title: '¿Eliminar venta?', icon: 'warning', showCancelButton: true,
-            confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d',
-            confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar'
-        }).then(result => {
-            if (result.isConfirmed) {
-                fetch(`/ventas/eliminar/${ventaId}/`, { method: 'POST', headers: { 'X-CSRFToken': '{{ csrf_token }}' } })
-                .then(r => r.json())
-                .then(data => { if (data.ok) Swal.fire({ icon: 'success', title: '¡Eliminada!', confirmButtonColor: '#198754' }).then(() => location.reload()); });
-            }
-        });
-    }
-
-    // =====buscar y filtrar===
-    function buscarVenta() {
-        const term = document.getElementById('searchInput').value.toLowerCase();
-        Array.from(document.getElementById('ventasTableBody').getElementsByTagName('tr')).forEach(f => {
-            f.style.display = f.textContent.toLowerCase().includes(term) ? '' : 'none';
-        });
-    }
-
-    function filtrarPorFecha() {
-    const filtro = document.getElementById('filtroFecha').value;
-    const ahora = new Date();
-    const hoy = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate());
-    
-    Array.from(document.getElementById('ventasTableBody').getElementsByTagName('tr')).forEach(fila => {
-        const partes = fila.children[1].textContent.split(' ')[0].split('/');
-        const fecha = new Date(partes[2], partes[1] - 1, partes[0]);
-        let mostrar = false;
-        
-        if (filtro === 'todas') {
-            mostrar = true;
-        } 
-        else if (filtro === 'hoy') {
-            mostrar = fecha.getTime() === hoy.getTime();
-        }
-        else if (filtro === 'ayer') {
-            const ayer = new Date(hoy);
-            ayer.setDate(hoy.getDate() - 1);
-            mostrar = fecha.getTime() === ayer.getTime();
-        }
-        else if (filtro === 'semana') {
-            const ini = new Date(hoy);
-            ini.setDate(hoy.getDate() - hoy.getDay());
-            const fin = new Date(ini);
-            fin.setDate(ini.getDate() + 6);
-            mostrar = fecha >= ini && fecha <= fin;
-        }
-        else if (filtro === 'semana_pasada') {
-            const ini = new Date(hoy);
-            ini.setDate(hoy.getDate() - hoy.getDay() - 7);
-            const fin = new Date(ini);
-            fin.setDate(ini.getDate() + 6);
-            mostrar = fecha >= ini && fecha <= fin;
-        }
-        else if (filtro === 'mes') {
-            mostrar = fecha.getMonth() === ahora.getMonth() && 
-                     fecha.getFullYear() === ahora.getFullYear();
-        }
-        else if (filtro === 'mes_pasado') {
-            const mesPasado = new Date(ahora.getFullYear(), ahora.getMonth() - 1, 1);
-            mostrar = fecha.getMonth() === mesPasado.getMonth() && 
-                     fecha.getFullYear() === mesPasado.getFullYear();
-        }
-        else if (filtro === 'trimestre') {
-            const hace3meses = new Date(ahora);
-            hace3meses.setMonth(ahora.getMonth() - 3);
-            mostrar = fecha >= hace3meses && fecha <= ahora;
-        }
-        else if (filtro === 'anio') {
-            mostrar = fecha.getFullYear() === ahora.getFullYear();
-        }
-        
-        fila.style.display = mostrar ? '' : 'none';
-    });
+    renderCarritoCrear();
 }
 
-    // =====estadisticas=========
-    function actualizarEstadisticas() {
-        fetch('/ventas/estadisticas/')
-        .then(r => r.json())
-        .then(data => {
-            document.getElementById('ventasHoy').textContent = '$' + Number(data.ventas_hoy).toLocaleString('es-CO');
-            document.getElementById('totalMes').textContent = '$' + Number(data.total_mes).toLocaleString('es-CO');
-            document.getElementById('ventasRealizadas').textContent = data.total_ventas;
-        });
+function quitarProductoCrear(id) {
+    carritoCrear = carritoCrear.filter(i => i.id !== id);
+    renderCarritoCrear();
+}
+
+function renderCarritoCrear() {
+    const div = document.getElementById('carritoCrear');
+    if (carritoCrear.length === 0) {
+        div.innerHTML = '<p class="text-muted small">Sin productos agregados.</p>';
+        document.getElementById('totalCrear').textContent = '0';
+        document.getElementById('productosJsonCrear').value = '[]';
+        return;
     }
+    let total = 0;
+    div.innerHTML = '<table class="table table-sm table-bordered"><thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Subtotal</th><th></th></tr></thead><tbody>' +
+        carritoCrear.map(i => {
+            const sub = i.precio * i.cantidad;
+            total += sub;
+            return `<tr><td>${i.nombre}</td><td>${i.cantidad}</td><td>$${i.precio.toLocaleString('es-CO')}</td><td>$${sub.toLocaleString('es-CO')}</td><td><button type="button" class="btn btn-sm btn-danger" onclick="quitarProductoCrear(${i.id})"><i class="fa-solid fa-times"></i></button></td></tr>`;
+        }).join('') + '</tbody></table>';
+    document.getElementById('totalCrear').textContent = total.toLocaleString('es-CO');
+    document.getElementById('productosJsonCrear').value = JSON.stringify(carritoCrear);
+}
+
+function validarCarritoCrear() {
+    if (carritoCrear.length === 0) {
+        alert('Debe agregar al menos un producto.');
+        return false;
+    }
+    return true;
+}
 </script>
 
 {% endblock %}

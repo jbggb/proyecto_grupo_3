@@ -1,0 +1,64 @@
+/* ═══════════════════════════════════════════════════════════════════════
+   ESTILOS PARA MÓDULO DE VENTAS
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Selector de productos */
+.product-item-select {
+    padding: 10px;
+    margin-bottom: 8px;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.product-item-select:hover {
+    background-color: #f8f9fa;
+    border-color: #0d6efd;
+}
+
+/* Carrito de productos */
+.carrito-producto {
+    background-color: #faf8f8;
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+/* Control de cantidad */
+.cantidad-control {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.cantidad-control button {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 4px;
+}
+
+.cantidad-control input {
+    width: 60px;
+    text-align: center;
+    border-radius: 4px;
+}
+
+/* Resumen total */
+.resumen-total {
+    background-color: #e7f5ff;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #0d6efd;
+}
+
+/* Fila de edición de producto */
+.producto-edit-row {
+    background: #f8f9fa;
+    padding: 8px;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+    margin-bottom: 8px;
+}
