@@ -56,6 +56,7 @@ def crear_producto(request):
 
             if not precio.isdigit() or int(precio) < 1 or int(precio) > 800000:
                 messages.error(request, 'El precio debe ser un numero entre 1 y 800.000.')
+                messages.error(request, 'El precio no puede ser 0 ni negativo, y no puede superar 800.000.')
                 return redirect('productos')
 
             if not stock.isdigit() or int(stock) < 0 or int(stock) > 1000:

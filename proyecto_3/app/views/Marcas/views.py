@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.urls import reverse
 from django.contrib.auth.decorators import login_required
 from app.models import Marca, Producto
 import re
@@ -15,6 +16,7 @@ def marcas(request):
 def crear_marca(request):
     if request.method == 'POST':
         nombre = request.POST.get('nombreMarca', '').strip()
+        next_url = request.POST.get('next', 'productos')
         if not nombre:
             messages.error(request, 'El nombre es obligatorio.')
         elif len(nombre) < 2:
@@ -28,7 +30,10 @@ def crear_marca(request):
         else:
             Marca.objects.create(nombreMarca=nombre)
             messages.success(request, f'Marca "{nombre}" creada exitosamente.')
+            return redirect(reverse('productos') + '?abrir_modal=1')
     return redirect('marcas')
+
+
 
 
 @login_required

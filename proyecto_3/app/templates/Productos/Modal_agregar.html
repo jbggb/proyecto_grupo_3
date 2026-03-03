@@ -23,7 +23,7 @@
                                 <span class="input-group-text">$</span>
                                 <input type="text" inputmode="numeric" class="form-control" name="precio" required
                                        oninput="validarPrecio(this, 'add_precio_error')"
-                                       placeholder="Ej: 1900">
+                                       placeholder="Ej: 5000">
                             </div>
                             <div id="add_precio_error" class="text-danger small mt-1" style="display:none;"></div>
                         </div>
@@ -32,7 +32,8 @@
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Stock <span class="text-danger">*</span></label>
                             <input type="text" inputmode="numeric" class="form-control" name="stock" required
-                                   oninput="validarStock(this, 'add_stock_error')">
+                                   oninput="validarStock(this, 'add_stock_error')"
+                                   placeholder="Ej: 100">
                             <div id="add_stock_error" class="text-danger small mt-1" style="display:none;"></div>
                         </div>
                         <div class="col-md-6 mb-3">
@@ -43,11 +44,7 @@
                                     <option value="{{ marca.idMarca }}">{{ marca.nombreMarca }}</option>
                                 {% endfor %}
                             </select>
-                            <div class="mt-1">
-                                <a href="{% url 'marcas' %}" class="btn btn-outline-success btn-sm">
-                                    <i class="fa-solid fa-plus"></i> Gestionar Marcas
-                                </a>
-                            </div>
+                            <a href="{% url 'marcas' %}?next=productos" class="text-success small mt-1 d-block">+ Gestionar Marcas</a>
                         </div>
                     </div>
                     <div class="row">
@@ -59,11 +56,7 @@
                                     <option value="{{ tipo.idTipo }}">{{ tipo.nombre_tipo }}</option>
                                 {% endfor %}
                             </select>
-                            <div class="mt-1">
-                                <a href="{% url 'tipos' %}" class="btn btn-outline-success btn-sm">
-                                    <i class="fa-solid fa-plus"></i> Gestionar Tipos
-                                </a>
-                            </div>
+                            <a href="{% url 'tipos' %}?next=productos" class="text-success small mt-1 d-block">+ Gestionar Tipos</a>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Unidad de Medida <span class="text-danger">*</span></label>
@@ -73,11 +66,7 @@
                                     <option value="{{ unidad.idUnidad }}">{{ unidad.nombre_unidad }} ({{ unidad.abreviatura }})</option>
                                 {% endfor %}
                             </select>
-                            <div class="mt-1">
-                                <a href="{% url 'unidades' %}" class="btn btn-outline-success btn-sm">
-                                    <i class="fa-solid fa-plus"></i> Gestionar Unidades
-                                </a>
-                            </div>
+                            <a href="{% url 'unidades' %}?next=productos" class="text-success small mt-1 d-block">+ Gestionar Unidades</a>
                         </div>
                     </div>
                 </div>

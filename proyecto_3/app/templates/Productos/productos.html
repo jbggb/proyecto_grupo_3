@@ -58,7 +58,6 @@
                     <td>{{ producto.idTipo.nombre_tipo }}</td>
                     <td>{{ producto.idUnidad.nombre_unidad }}</td>
                     <td>
-                        <!-- Ver -->
                         <button class="btn btn-info btn-sm"
                             onclick="verProducto(
                                 '{{ producto.idProducto }}',
@@ -71,11 +70,9 @@
                             )">
                             <i class="fa-solid fa-eye"></i>
                         </button>
-                        <!-- Editar -->
                         <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ producto.idProducto }}">
                             <i class="fa-solid fa-pen"></i>
                         </button>
-                        <!-- Eliminar -->
                         <button class="btn btn-danger btn-sm"
                             onclick="eliminarProducto('{% url 'eliminar_producto' producto.idProducto %}', '{{ producto.nombre }}')">
                             <i class="fa-solid fa-trash"></i>
@@ -89,6 +86,23 @@
         </table>
     </div>
 </div>
+
+{% if messages %}
+    {% for message in messages %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                title: '{% if message.tags == "success" %}Listo!{% else %}Atencion{% endif %}',
+                text: '{{ message|escapejs }}',
+                icon: '{% if message.tags == "success" %}success{% else %}error{% endif %}',
+                confirmButtonColor: '{% if message.tags == "success" %}#28a745{% else %}#dc3545{% endif %}',
+                timer: 3000,
+                timerProgressBar: true
+            });
+        });
+    </script>
+    {% endfor %}
+{% endif %}
 
 {% include 'Productos/Modal_agregar.html' %}
 {% for producto in productos %}
