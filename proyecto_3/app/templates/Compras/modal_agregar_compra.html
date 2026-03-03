@@ -1,0 +1,53 @@
+<div class="modal fade" id="modalAgregarCompra" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fa-solid fa-plus me-2"></i>Agregar Compra
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'crear_compra' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Proveedor <span class="text-danger">*</span></label>
+                        <select name="proveedor" class="form-control" required>
+                            <option value="">Seleccione un proveedor</option>
+                            {% for proveedor in proveedores %}
+                                <option value="{{ proveedor.id }}">{{ proveedor.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Producto <span class="text-danger">*</span></label>
+                        <select name="producto" class="form-control" required>
+                            <option value="">Seleccione un producto</option>
+                            {% for producto in productos %}
+                                <option value="{{ producto.id }}">{{ producto.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Fecha <span class="text-danger">*</span></label>
+                        <input type="date" name="fecha" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Estado <span class="text-danger">*</span></label>
+                        <select name="estado" class="form-control" required>
+                            <option value="">Seleccione un estado</option>
+                            <option value="Completada">Completada</option>
+                            <option value="Pendiente">Pendiente</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa-solid fa-save me-2"></i>Guardar Compra
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

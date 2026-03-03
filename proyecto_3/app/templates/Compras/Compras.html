@@ -2,14 +2,25 @@
 {% load static %}
 
 {% block content %}
+<script src="{% static 'js/compras_validaciones.js' %}"></script>
 <div class="section-header">
     <h1 class="section-title">
         <i class="fa-solid fa-shopping-cart me-2"></i>Gestión de Compras
     </h1>
-    <a href="{% url 'crear_compra' %}" class="btn btn-success">
+    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregarCompra">
         <i class="fa-solid fa-plus me-2"></i>Agregar Compra
-    </a>
+    </button>
 </div>
+
+<!-- Mensajes de Django -->
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endfor %}
+{% endif %}
 
 <!-- Buscador y filtros -->
 <div class="filter-bar">
@@ -66,13 +77,18 @@
                 </td>
                 <td>
                     <div class="btn-group">
-                        <a href="{% url 'editar_compra' compra.id %}" class="btn btn-sm btn-warning">
+                        <button type="button" class="btn btn-sm btn-warning"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalEditarCompra{{ compra.id }}"
+                                title="Editar">
                             <i class="fa-solid fa-edit"></i>
-                        </a>
-                        <a href="{% url 'eliminar_compra' compra.id %}" class="btn btn-sm btn-danger" 
-                           onclick="return confirm('¿Está seguro de eliminar esta compra?')">
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger"
+                                data-bs-toggle="modal"
+                                data-bs-target="#modalEliminarCompra{{ compra.id }}"
+                                title="Eliminar">
                             <i class="fa-solid fa-trash"></i>
-                        </a>
+                        </button>
                     </div>
                 </td>
             </tr>
@@ -84,4 +100,12 @@
         </tbody>
     </table>
 </div>
+
+{% include 'compras/modal_agregar_compra.html' %}
+
+{% for compra in compras %}
+    {% include 'compras/modal_editar_compra.html' %}
+    {% include 'compras/modal_eliminar_compra.html' %}
+{% endfor %}
+
 {% endblock %}

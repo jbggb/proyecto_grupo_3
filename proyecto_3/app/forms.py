@@ -1,6 +1,6 @@
 from django import forms
 from django.core.exceptions import ValidationError
-from .models import Administrador
+from .models import Administrador,Cliente
 import re
 
 class AdministradorRegistroForm(forms.ModelForm):
@@ -75,3 +75,14 @@ class ventaForm(forms.Form):
             raise ValidationError('El nombre debe tener al menos 5 caracteres.')
 
         return cliente
+    
+class ClienteForm(forms.ModelForm):
+    class Meta:
+        model = Cliente
+        fields = ['nombre', 'documento', 'telefono', 'email', 'direccion', 'estado']
+
+    def clean_documento(self):
+        documento = self.cleaned_data.get('documento')
+        if len(documento) != 10:
+            raise ValidationError('El documento debe tener exactamente 10 dígitos.')
+        return documento

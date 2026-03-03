@@ -25,8 +25,8 @@ class Cliente(models.Model):
         ('inactivo', 'Inactivo'),
     ]
     nombre = models.CharField(max_length=150)
-    documento = models.CharField(max_length=12, blank=True, default='', db_column='documento')
-    telefono = models.CharField(max_length=20)
+    documento = models.CharField(max_length=10, blank=True, default='', db_column='documento')
+    telefono = models.CharField(max_length=10)
     email = models.EmailField(max_length=100)
     direccion = models.CharField(max_length=200, blank=True, default='')
     estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='activo')
