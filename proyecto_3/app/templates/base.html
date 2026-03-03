@@ -13,14 +13,11 @@
 </head>
 <body>
 
-<!-- ================= BARRA SUPERIOR ================= -->
 <nav class="navbar navbar-dark bg-dark">
     <div class="container-fluid">
         <span class="navbar-brand mb-0 h1">
             <i class="fa-solid fa-shop me-2"></i>Sistema de Inventario
         </span>
-
-        <!-- ← BOTONES AQUÍ DENTRO DEL NAV -->
         <div class="d-flex align-items-center">
             {% if user.is_authenticated %}
                 <span class="text-light me-3">
@@ -38,13 +35,10 @@
                 </a>
             {% endif %}
         </div>
-
     </div>
 </nav>
 
 <div class="d-flex min-vh-100">
-
-    <!-- ================= MENÚ LATERAL ================= -->
     <aside class="bg-dark text-light p-3" style="width: 250px;">
         <h4 class="text-center mb-4">Inventario</h4>
         <a href="{% url 'inicio' %}" class="d-block text-light mb-3 text-decoration-none">
@@ -60,42 +54,30 @@
             <i class="fa-solid fa-cart-shopping me-2"></i> Ventas
         </a>
         <a href="{% url 'proveedores' %}" class="d-block text-light mb-3 text-decoration-none">
-    <i class="fa-solid fa-truck me-2"></i> Proveedores
-</a>
-
-<a href="{% url 'reportes' %}" class="d-block text-light mb-3 text-decoration-none">
-    <i class="fa-solid fa-chart-line me-2"></i> Reportes
-</a>
-
-<a href="{% url 'compras' %}" class="d-block text-light mb-3 text-decoration-none">
-    <i class="fa-solid fa-shopping-bag me-2"></i> Compras
-</a>
-
+            <i class="fa-solid fa-truck me-2"></i> Proveedores
+        </a>
+        <a href="{% url 'reportes' %}" class="d-block text-light mb-3 text-decoration-none">
+            <i class="fa-solid fa-chart-line me-2"></i> Reportes
+        </a>
+        <a href="{% url 'compras' %}" class="d-block text-light mb-3 text-decoration-none">
+            <i class="fa-solid fa-shopping-bag me-2"></i> Compras
+        </a>
     </aside>
 
-    <!-- ================= CONTENIDO ================= -->
     <main class="flex-fill p-4">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        {% block content %}
-        {% endblock %}
+        {% block messages %}{% endblock %}
+        {% block content %}{% endblock %}
     </main>
-
 </div>
 
-<!-- ================= FOOTER ================= -->
 <footer class="bg-dark text-light text-center py-2">
     <small>Proyecto Inventario - Grupo 3 © 2025</small>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="{% static 'js/alertas.js' %}"></script>
+<script src="{% static 'js/confirmaciones.js' %}"></script>
+{% block extra_js %}{% endblock %}
 
 </body>
 </html>
