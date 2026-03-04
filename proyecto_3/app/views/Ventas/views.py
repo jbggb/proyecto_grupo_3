@@ -1,31 +1,94 @@
-"""Vistas para gestión de ventas"""
-import json
+"""Vistas para gestion de ventas"""
+import re
+import datetime
+import calendar
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.utils import timezone
 from django.db.models import Sum
+from django.http import JsonResponse
 from ...models import Venta, DetalleVenta, Producto, Cliente
+
+
+def rango_dia(fecha):
+    inicio = timezone.make_aware(datetime.datetime.combine(fecha, datetime.time.min))
+    fin = timezone.make_aware(datetime.datetime.combine(fecha, datetime.time.max))
+    return inicio, fin
 
 
 @login_required
 def ventas(request):
-    """Lista de ventas con estadísticas"""
-    hoy = timezone.now().date()
+    ahora = timezone.localtime(timezone.now())
+    hoy = ahora.date()
 
+    inicio_hoy, fin_hoy = rango_dia(hoy)
     ventas_hoy = Venta.objects.filter(
-        fecha__date=hoy
+        fecha__range=(inicio_hoy, fin_hoy)
     ).aggregate(total=Sum('total'))['total'] or 0
 
+    inicio_mes = timezone.make_aware(datetime.datetime(hoy.year, hoy.month, 1))
     total_mes = Venta.objects.filter(
-        fecha__year=hoy.year,
-        fecha__month=hoy.month
+        fecha__gte=inicio_mes
     ).aggregate(total=Sum('total'))['total'] or 0
 
     buscar = request.GET.get('buscar', '').strip()
+    fecha_filtro = request.GET.get('fecha_filtro', '').strip()
     lista_ventas = Venta.objects.prefetch_related('detalles').all()
+
     if buscar:
         lista_ventas = lista_ventas.filter(cliente__icontains=buscar)
+
+    if fecha_filtro == 'hoy':
+        lista_ventas = lista_ventas.filter(fecha__range=rango_dia(hoy))
+
+    elif fecha_filtro == 'ayer':
+        ayer = hoy - datetime.timedelta(days=1)
+        lista_ventas = lista_ventas.filter(fecha__range=rango_dia(ayer))
+
+    elif fecha_filtro == 'semana':
+        inicio_semana = hoy - datetime.timedelta(days=hoy.weekday())
+        inicio = timezone.make_aware(
+            datetime.datetime.combine(inicio_semana, datetime.time.min)
+        )
+        lista_ventas = lista_ventas.filter(fecha__gte=inicio)
+
+    elif fecha_filtro == 'semana_pasada':
+        inicio_semana = hoy - datetime.timedelta(days=hoy.weekday())
+        inicio_sp = inicio_semana - datetime.timedelta(days=7)
+        fin_sp = inicio_semana - datetime.timedelta(days=1)
+
+        inicio = timezone.make_aware(
+            datetime.datetime.combine(inicio_sp, datetime.time.min)
+        )
+        fin = timezone.make_aware(
+            datetime.datetime.combine(fin_sp, datetime.time.max)
+        )
+
+        lista_ventas = lista_ventas.filter(fecha__range=(inicio, fin))
+
+    elif fecha_filtro == 'mes':
+        inicio = timezone.make_aware(datetime.datetime(hoy.year, hoy.month, 1))
+        lista_ventas = lista_ventas.filter(fecha__gte=inicio)
+
+    elif fecha_filtro == 'mes_pasado':
+        if hoy.month == 1:
+            anio, mes = hoy.year - 1, 12
+        else:
+            anio, mes = hoy.year, hoy.month - 1
+
+        ultimo_dia = calendar.monthrange(anio, mes)[1]
+
+        inicio = timezone.make_aware(datetime.datetime(anio, mes, 1))
+        fin = timezone.make_aware(
+            datetime.datetime(anio, mes, ultimo_dia, 23, 59, 59)
+        )
+
+        lista_ventas = lista_ventas.filter(fecha__range=(inicio, fin))
+
+    elif fecha_filtro == 'anio':
+        inicio = timezone.make_aware(datetime.datetime(hoy.year, 1, 1))
+        lista_ventas = lista_ventas.filter(fecha__gte=inicio)
 
     return render(request, "Ventas/Ventas.html", {
         'ventas': lista_ventas,
@@ -37,42 +100,56 @@ def ventas(request):
     })
 
 
+
 @login_required
 def crear_venta(request):
-    """Crear una nueva venta"""
     if request.method == 'POST':
         cliente_nombre = request.POST.get('cliente', '').strip()
         estado = request.POST.get('estado', 'Pendiente')
-        productos_json_str = request.POST.get('productos', '[]')
 
         if not cliente_nombre or len(cliente_nombre) < 3:
             messages.error(request, 'El nombre del cliente debe tener al menos 3 caracteres.')
             return redirect('ventas')
 
-        try:
-            productos_lista = json.loads(productos_json_str)
-        except (json.JSONDecodeError, ValueError):
-            productos_lista = []
+        if len(cliente_nombre) > 50:
+            messages.error(request, 'El nombre del cliente no puede superar 50 caracteres.')
+            return redirect('ventas')
 
-        if not productos_lista:
+        if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', cliente_nombre):
+            messages.error(request, 'El nombre del cliente solo puede contener letras y espacios.')
+            return redirect('ventas')
+
+        ids = request.POST.getlist('producto_id[]')
+        nombres = request.POST.getlist('producto_nombre[]')
+        precios = request.POST.getlist('producto_precio[]')
+        cantidades = request.POST.getlist('producto_cantidad[]')
+
+        if not ids:
             messages.error(request, 'Debe agregar al menos un producto.')
             return redirect('ventas')
 
         try:
-            total = sum(float(p.get('precio', 0)) * int(p.get('cantidad', 1)) for p in productos_lista)
+            total = sum(
+                float(precios[i]) * int(cantidades[i])
+                for i in range(len(ids))
+            )
+
             venta = Venta.objects.create(
                 cliente=cliente_nombre,
                 estado=estado,
-                total=total,
+                total=total
             )
-            for p in productos_lista:
+
+            for i in range(len(ids)):
                 DetalleVenta.objects.create(
                     venta=venta,
-                    producto_nombre=p['nombre'],
-                    precio=p['precio'],
-                    cantidad=p['cantidad'],
+                    producto_nombre=nombres[i],
+                    precio=float(precios[i]),
+                    cantidad=int(cantidades[i]),
                 )
+
             messages.success(request, f'Venta #{venta.id} creada exitosamente.')
+
         except Exception as e:
             messages.error(request, f'Error al crear la venta: {str(e)}')
 
@@ -81,22 +158,28 @@ def crear_venta(request):
 
 @login_required
 def detalle_venta(request, id):
-    """Ver detalle de una venta"""
     venta = get_object_or_404(Venta, id=id)
     return render(request, 'Ventas/detalle_venta.html', {'venta': venta})
 
 
 @login_required
 def editar_venta(request, id):
-    """Editar una venta existente (cliente y estado)"""
     venta = get_object_or_404(Venta, id=id)
 
     if request.method == 'POST':
         cliente_nombre = request.POST.get('cliente', '').strip()
         estado = request.POST.get('estado', 'Pendiente')
 
-        if not cliente_nombre:
-            messages.error(request, 'El nombre del cliente es obligatorio.')
+        if not cliente_nombre or len(cliente_nombre) < 3:
+            messages.error(request, 'El nombre del cliente debe tener al menos 3 caracteres.')
+            return redirect('ventas')
+
+        if len(cliente_nombre) > 50:
+            messages.error(request, 'El nombre no puede superar 50 caracteres.')
+            return redirect('ventas')
+
+        if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', cliente_nombre):
+            messages.error(request, 'El nombre solo puede contener letras y espacios.')
             return redirect('ventas')
 
         try:
@@ -104,6 +187,7 @@ def editar_venta(request, id):
             venta.estado = estado
             venta.save()
             messages.success(request, f'Venta #{venta.id} actualizada exitosamente.')
+
         except Exception as e:
             messages.error(request, f'Error al actualizar: {str(e)}')
 
@@ -112,36 +196,43 @@ def editar_venta(request, id):
 
 @login_required
 def completar_venta(request, id):
-    """Marcar una venta como completada"""
     if request.method == 'POST':
         venta = get_object_or_404(Venta, id=id)
         venta.estado = 'Completada'
         venta.save()
         messages.success(request, f'Venta #{venta.id} marcada como completada.')
+
     return redirect('ventas')
 
 
 @login_required
 def eliminar_venta(request, id):
-    """Eliminar una venta"""
     if request.method == 'POST':
         venta = get_object_or_404(Venta, id=id)
         venta_id = venta.id
         venta.delete()
         messages.success(request, f'Venta #{venta_id} eliminada exitosamente.')
+
     return redirect('ventas')
 
 
 @login_required
 def estadisticas_ventas(request):
-    """Estadísticas de ventas en JSON"""
-    hoy = timezone.now().date()
-    ventas_hoy = Venta.objects.filter(fecha__date=hoy).aggregate(total=Sum('total'))['total'] or 0
-    total_mes = Venta.objects.filter(fecha__year=hoy.year, fecha__month=hoy.month).aggregate(total=Sum('total'))['total'] or 0
-    total_ventas = Venta.objects.count()
-    from django.http import JsonResponse
+    ahora = timezone.localtime(timezone.now())
+    hoy = ahora.date()
+
+    inicio_hoy, fin_hoy = rango_dia(hoy)
+    ventas_hoy = Venta.objects.filter(
+        fecha__range=(inicio_hoy, fin_hoy)
+    ).aggregate(total=Sum('total'))['total'] or 0
+
+    inicio_mes = timezone.make_aware(datetime.datetime(hoy.year, hoy.month, 1))
+    total_mes = Venta.objects.filter(
+        fecha__gte=inicio_mes
+    ).aggregate(total=Sum('total'))['total'] or 0
+
     return JsonResponse({
         'ventas_hoy': float(ventas_hoy),
         'total_mes': float(total_mes),
-        'total_ventas': total_ventas,
+        'total_ventas': Venta.objects.count(),
     })
