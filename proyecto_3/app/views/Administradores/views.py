@@ -1,12 +1,12 @@
 """Vistas para gestión de administradores"""
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from app.decorators import admin_login_required
 from ...models import Administrador
 from ...forms import AdministradorRegistroForm
 
 
-@login_required
+@admin_login_required
 def admin_registro(request):
     """Vista de registro de administradores"""
     if request.method == 'POST':

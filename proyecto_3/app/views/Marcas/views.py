@@ -1,18 +1,18 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.urls import reverse
-from django.contrib.auth.decorators import login_required
+from app.decorators import admin_login_required
 from app.models import Marca, Producto
 import re
 
 
-@login_required
+@admin_login_required
 def marcas(request):
     lista = Marca.objects.all()
     return render(request, 'Marcas/marcas.html', {'marcas': lista})
 
 
-@login_required
+@admin_login_required
 def crear_marca(request):
     if request.method == 'POST':
         nombre = request.POST.get('nombreMarca', '').strip()
@@ -36,7 +36,7 @@ def crear_marca(request):
 
 
 
-@login_required
+@admin_login_required
 def eliminar_marca(request, id):
     marca = get_object_or_404(Marca, idMarca=id)
     if request.method == 'POST':

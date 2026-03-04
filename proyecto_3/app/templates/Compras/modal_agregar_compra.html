@@ -31,7 +31,7 @@
         <select name="estado" class="form-control" style="width: auto;">
             <option value="">Filtrar por estado</option>
             <option value="Completada" {% if request.GET.estado == "Completada" %}selected{% endif %}>Completada</option>
-            <option value="Pendiente"  {% if request.GET.estado == "Pendiente"  %}selected{% endif %}>Pendiente</option>
+            <option value="Pendiente" {% if request.GET.estado == "Pendiente" %}selected{% endif %}>Pendiente</option>
         </select>
         <button type="submit" class="btn btn-primary">
             <i class="fa-solid fa-filter me-2"></i>Filtrar
@@ -61,28 +61,28 @@
         <tbody>
             {% for compra in compras %}
             <tr>
-                <td>{{ compra.id }}</td>
+                <td>{{ compra.idCompra }}</td>
                 <td>{{ compra.Proveedor.nombre }}</td>
                 <td>{{ compra.Producto.nombre }}</td>
                 <td>{{ compra.Administrador.nombre }}</td>
                 <td>{{ compra.fecha|date:"d/m/Y" }}</td>
                 <td>
-                    {% if compra.estado %}
+                    {% if compra.estado == True %}
                         <span class="badge badge-success">Completada</span>
                     {% else %}
-                        <span class="badge badge-warning">Pendiente</span>
+                        <span class="badge badge-warning">{{ compra.estado|default:"Pendiente" }}</span>
                     {% endif %}
                 </td>
                 <td>
                     <div class="btn-group">
                         <button class="btn btn-sm btn-warning"
                                 data-bs-toggle="modal"
-                                data-bs-target="#modalEditarCompra{{ compra.id }}">
+                                data-bs-target="#modalEditarCompra{{ compra.idCompra }}">
                             <i class="fa-solid fa-edit"></i>
                         </button>
                         <button class="btn btn-sm btn-danger"
                                 data-bs-toggle="modal"
-                                data-bs-target="#modalEliminarCompra{{ compra.id }}">
+                                data-bs-target="#modalEliminarCompra{{ compra.idCompra }}">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
@@ -97,7 +97,7 @@
     </table>
 </div>
 
-<!-- ===================== Modal: Crear Compra ===================== -->
+<!-- Modal: Crear Compra -->
 <div class="modal fade" id="modalCrearCompra" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -105,7 +105,7 @@
                 <h5 class="modal-title"><i class="fa-solid fa-plus me-1"></i> Nueva Compra</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{% url 'crear_compra' %}">
+            <form method="post" action="{% url 'crear_compra' %}">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="mb-3">
@@ -116,8 +116,8 @@
                     <div class="mb-3">
                         <label class="form-label">Estado</label>
                         <select name="estado" class="form-control">
-                            <option value="False">Pendiente</option>
-                            <option value="True">Completada</option>
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Completada">Completada</option>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -150,30 +150,29 @@
     </div>
 </div>
 
-<!-- ===================== Modales Editar y Eliminar por compra ===================== -->
+<!-- Modales Editar y Eliminar por compra -->
 {% for compra in compras %}
-
-<!-- Modal Editar -->
 <div class="modal fade" id="modalEditarCompra{{ compra.id }}" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-warning">
-                <h5 class="modal-title"><i class="fa-solid fa-edit me-1"></i> Editar Compra #{{ compra.id }}</h5>
+                <h5 class="modal-title"><i class="fa-solid fa-edit me-1"></i> Editar Compra</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{% url 'modal_editar_compra' compra.id %}">
+            <form method="post" action="{% url 'editar_compra' compra.idCompra %}">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Fecha <span class="text-danger">*</span></label>
                         <input type="date" name="fecha" class="form-control"
-                               value="{{ compra.fecha|date:'Y-m-d' }}" required>
+                               value="{{ compra.fecha|date:'Y-m-d' }}"
+                               min="{{ fecha_min }}" max="{{ fecha_max }}" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Estado</label>
                         <select name="estado" class="form-control">
-                            <option value="False" {% if not compra.estado %}selected{% endif %}>Pendiente</option>
-                            <option value="True"  {% if compra.estado %}selected{% endif %}>Completada</option>
+                            <option value="Pendiente" {% if compra.estado == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+                            <option value="Completada" {% if compra.estado == 'Completada' %}selected{% endif %}>Completada</option>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -210,25 +209,18 @@
     </div>
 </div>
 
-<!-- Modal Eliminar -->
-<div class="modal fade" id="modalEliminarCompra{{ compra.id }}" tabindex="-1">
+<div class="modal fade" id="modalEliminarCompra{{ compra.idCompra }}" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title"><i class="fa-solid fa-trash me-1"></i> Eliminar Compra</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{% url 'modal_eliminar_compra' compra.id %}">
+            <form method="post" action="{% url 'eliminar_compra' compra.idCompra %}">
                 {% csrf_token %}
                 <div class="modal-body">
-                    <p>¿Está seguro de eliminar la compra <strong>#{{ compra.id }}</strong>?</p>
-                    <p>
-                        Proveedor: <strong>{{ compra.Proveedor.nombre }}</strong> —
-                        Producto: <strong>{{ compra.Producto.nombre }}</strong>
-                    </p>
-                    <p class="text-danger">
-                        <i class="fa-solid fa-warning me-2"></i>Esta acción no se puede deshacer.
-                    </p>
+                    <p>¿Está seguro de eliminar la compra <strong>#{{ compra.idCompra }}</strong>?</p>
+                    <p class="text-danger"><i class="fa-solid fa-warning me-2"></i>Esta acción no se puede deshacer.</p>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -240,7 +232,6 @@
         </div>
     </div>
 </div>
-
 {% endfor %}
 
 {% endblock %}

@@ -71,8 +71,11 @@
                                 onclick="abrirEditar({{ p.id }}, '{{ p.nombre|escapejs }}', '{{ p.telefono|escapejs }}', '{{ p.email|escapejs }}', {{ p.envio }})">
                             <i class="fa-solid fa-pen"></i>
                         </button>
+                        <form method="post" action="{% url 'eliminar_proveedor' p.id %}" id="formEliminar{{ p.id }}" style="display:none;">
+                            {% csrf_token %}
+                        </form>
                         <button class="btn btn-danger btn-sm"
-                                onclick="confirmarEliminar({{ p.id }}, '{{ p.nombre|escapejs }}')">
+                                onclick="confirmarEliminar('{{ p.nombre|escapejs }}', document.getElementById('formEliminar{{ p.id }}'))">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </td>
@@ -100,19 +103,29 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Nombre <span class="text-danger">*</span></label>
-                        <input type="text" name="nombre" class="form-control" placeholder="Nombre del proveedor" required>
+                        <input type="text" name="nombre" class="form-control"
+                               oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '')"
+                               placeholder="Nombre del proveedor" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Teléfono <span class="text-danger">*</span></label>
-                        <input type="text" name="telefono" class="form-control" placeholder="3001234567" maxlength="20" required>
+                        <input type="text" name="telefono" class="form-control"
+                               maxlength="15" oninput="this.value = this.value.replace(/[^\d]/g, '')"
+                               placeholder="3001234567" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Email <span class="text-danger">*</span></label>
-                        <input type="email" name="email" class="form-control" placeholder="proveedor@email.com" required>
+                        <input type="text" name="email" class="form-control"
+                               placeholder="proveedor@empresa.com"
+                               pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
+                               title="Ingrese un email válido (ejemplo: proveedor@empresa.com)"
+                               required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Días de envío</label>
-                        <input type="number" name="envio" class="form-control" placeholder="0" min="0" value="0">
+                        <label class="form-label">Días de envío <span class="text-danger">*</span></label>
+                        <!-- ✅ min="1" impide el valor 0 desde el navegador -->
+                        <input type="number" name="envio" class="form-control"
+                               min="1" placeholder="Mínimo 1 día" required>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -139,19 +152,28 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Nombre <span class="text-danger">*</span></label>
-                        <input type="text" name="nombre" id="edit_nombre" class="form-control" required>
+                        <input type="text" name="nombre" id="edit_nombre" class="form-control"
+                               oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '')"
+                               required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Teléfono <span class="text-danger">*</span></label>
-                        <input type="text" name="telefono" id="edit_telefono" class="form-control" maxlength="20" required>
+                        <input type="text" name="telefono" id="edit_telefono" class="form-control"
+                               maxlength="15" oninput="this.value = this.value.replace(/[^\d]/g, '')"
+                               required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Email <span class="text-danger">*</span></label>
-                        <input type="email" name="email" id="edit_email" class="form-control" required>
+                        <input type="text" name="email" id="edit_email" class="form-control"
+                               pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
+                               title="Ingrese un email válido (ejemplo: proveedor@empresa.com)"
+                               required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Días de envío</label>
-                        <input type="number" name="envio" id="edit_envio" class="form-control" min="0">
+                        <label class="form-label">Días de envío <span class="text-danger">*</span></label>
+                        <!-- ✅ min="1" impide el valor 0 -->
+                        <input type="number" name="envio" id="edit_envio" class="form-control"
+                               min="1" required>
                     </div>
                 </div>
                 <div class="modal-footer">
