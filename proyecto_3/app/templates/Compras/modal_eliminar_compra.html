@@ -7,7 +7,7 @@
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{% url 'eliminar_compra' compra.id %}">
+            <form method="POST" action="{% url 'modal_eliminar_compra' compra.id %}">
                 {% csrf_token %}
                 <div class="modal-body">
                     <p>¿Está seguro de que desea eliminar la compra <strong>#{{ compra.id }}</strong>?</p>

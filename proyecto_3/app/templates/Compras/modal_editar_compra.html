@@ -7,7 +7,7 @@
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{% url 'editar_compra' compra.id %}">
+            <form method="POST" action="{% url 'modal_editar_compra' compra.id %}">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="mb-3">
@@ -40,8 +40,8 @@
                     <div class="mb-3">
                         <label class="form-label">Estado <span class="text-danger">*</span></label>
                         <select name="estado" class="form-control" required>
-                            <option value="Completada" {% if compra.estado == "Completada" %}selected{% endif %}>Completada</option>
-                            <option value="Pendiente" {% if compra.estado == "Pendiente" %}selected{% endif %}>Pendiente</option>
+                            <option value="Completada" {% if compra.estado == True %}selected{% endif %}>Completada</option>
+                            <option value="Pendiente" {% if compra.estado == False %}selected{% endif %}>Pendiente</option>
                         </select>
                     </div>
                 </div>

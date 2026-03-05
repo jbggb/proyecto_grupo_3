@@ -1,33 +1,40 @@
 """Vistas de autenticación: login, logout, registro"""
 from django.shortcuts import render, redirect
 from django.contrib import messages
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.hashers import check_password
+from django.contrib.auth import logout
+from ...models import Administrador
 from ...forms import AdministradorRegistroForm
 
 
 def login_view(request):
-    """Vista de inicio de sesión"""
-    if request.user.is_authenticated:
+    """Vista de inicio de sesión contra tabla Administrador"""
+    if request.session.get('admin_id'):
         return redirect('inicio')
     
     if request.method == 'POST':
-        user = authenticate(
-            request,
-            username=request.POST.get('username'),
-            password=request.POST.get('password')
-        )
-        if user:
-            login(request, user)
-            messages.success(request, f'¡Bienvenido, {user.username}!')
-            return redirect('inicio')
-        messages.error(request, 'Usuario o contraseña incorrectos.')
-    
+        username = request.POST.get('username', '').strip()
+        password = request.POST.get('password', '').strip()
+
+        try:
+            admin = Administrador.objects.get(usuario=username)
+            if check_password(password, admin.contrasena):
+                request.session['admin_id']      = admin.id
+                request.session['admin_nombre']  = admin.nombre
+                request.session['admin_usuario'] = admin.usuario
+                messages.success(request, f'¡Bienvenido, {admin.nombre}!')
+                return redirect('inicio')
+            else:
+                messages.error(request, 'Usuario o contraseña incorrectos.')
+        except Administrador.DoesNotExist:
+            messages.error(request, 'Usuario o contraseña incorrectos.')
+
     return render(request, 'Login/login.html')
 
 
 def logout_view(request):
     """Vista de cierre de sesión"""
-    logout(request)
+    request.session.flush()
     messages.success(request, 'Sesión cerrada correctamente.')
     return redirect('login')
 
@@ -39,9 +46,9 @@ def registrar_administrador(request):
         if form.is_valid():
             form.save()
             messages.success(request, '¡Administrador registrado exitosamente!')
-            return redirect('inicio')
+            return redirect('login')
         messages.error(request, 'Por favor corrige los errores del formulario.')
     else:
         form = AdministradorRegistroForm()
-    
+
     return render(request, 'Login/registro.html', {'form': form})

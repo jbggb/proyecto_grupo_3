@@ -60,14 +60,13 @@ document.addEventListener("DOMContentLoaded", function() {
 
             var valido = true;
 
+            // Limpiar errores previos
             var errores = formAgregar.querySelectorAll(".error-msg");
-            for (var i = 0; i < errores.length; i++) {
-                errores[i].remove();
-            }
+            for (var i = 0; i < errores.length; i++) errores[i].remove();
 
-            var regexSoloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+            var regexSoloLetras  = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
             var regexSoloNumeros = /^[0-9]+$/;
-            var regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            var regexEmail       = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
 
             // Validar Nombre
             var nombre = formAgregar.querySelector("input[name='nombre']");
@@ -75,49 +74,39 @@ document.addEventListener("DOMContentLoaded", function() {
                 mostrarError(nombre, "El nombre es obligatorio.");
                 valido = false;
             } else if (!regexSoloLetras.test(nombre.value.trim())) {
-                mostrarError(nombre, "El nombre no puede contener números.");
+                mostrarError(nombre, "El nombre no puede contener números ni caracteres especiales.");
                 valido = false;
             } else if (nombreDuplicado(nombre.value.trim(), null)) {
                 mostrarError(nombre, "Ya existe un cliente con ese nombre.");
                 valido = false;
             }
 
-            // Validar Documento
+            // Validar Documento: entre 6 y 12 dígitos ✅
             var documento = formAgregar.querySelector("input[name='documento']");
             if (documento.value.trim() === "") {
                 mostrarError(documento, "El documento es obligatorio.");
                 valido = false;
             } else if (!regexSoloNumeros.test(documento.value.trim())) {
-                mostrarError(documento, "El documento no puede contener caracteres especiales.");
+                mostrarError(documento, "El documento solo puede contener números.");
                 valido = false;
-            } else if (documento.value.trim().length !== 10) {
-                mostrarError(documento, "El documento debe tener exactamente 10 dígitos.");
+            } else if (documento.value.trim().length < 6 || documento.value.trim().length > 12) {
+                mostrarError(documento, "El documento debe tener entre 6 y 12 dígitos.");
                 valido = false;
             } else if (documentoDuplicado(documento.value.trim(), null)) {
                 mostrarError(documento, "Ya existe un cliente con ese documento.");
                 valido = false;
             }
 
-            // Validar Teléfono
-            function solonumeros(e){const char= e.key;
-                if (char.length > 1)return;
-                if (!/[0-9]/.test(char)) {e.preventDefault();
-                }
-            }
-            function solonumerospaste(e){const texto=(e.clipboardData || window.clipboardData).getData('text');
-                if (!/^\d+$/.test(texto)) {e.preventDefault();
-                    e.preventDefault();
-                }
-            }
+            // Validar Teléfono: entre 7 y 15 dígitos ✅
             var telefono = formAgregar.querySelector("input[name='telefono']");
             if (telefono.value.trim() === "") {
                 mostrarError(telefono, "El teléfono es obligatorio.");
                 valido = false;
             } else if (!regexSoloNumeros.test(telefono.value.trim())) {
-                mostrarError(telefono, "El teléfono no puede contener caracteres especiales.");
+                mostrarError(telefono, "El teléfono solo puede contener números.");
                 valido = false;
-            } else if (telefono.value.trim().length !== 10) {
-                mostrarError(telefono, "El teléfono debe tener exactamente 10 dígitos.");
+            } else if (telefono.value.trim().length < 7 || telefono.value.trim().length > 15) {
+                mostrarError(telefono, "El teléfono debe tener entre 7 y 15 dígitos.");
                 valido = false;
             } else if (telefono.value.trim()[0] !== "3") {
                 mostrarError(telefono, "El teléfono debe iniciar con 3.");
@@ -127,26 +116,26 @@ document.addEventListener("DOMContentLoaded", function() {
                 valido = false;
             }
 
-            // Validar Email
+            // Validar Email ✅
             var email = formAgregar.querySelector("input[name='email']");
             if (email.value.trim() === "") {
                 mostrarError(email, "El email es obligatorio.");
                 valido = false;
             } else if (!regexEmail.test(email.value.trim())) {
-                mostrarError(email, "Ingrese un email válido.");
+                mostrarError(email, "Ingrese un email válido (ejemplo: cliente@empresa.com).");
                 valido = false;
             } else if (emailDuplicado(email.value.trim(), null)) {
                 mostrarError(email, "Ya existe un cliente con ese email.");
                 valido = false;
             }
 
-            // Validar Dirección
+            // Validar Dirección: mínimo 5 caracteres ✅
             var direccion = formAgregar.querySelector("input[name='direccion']");
             if (direccion.value.trim() === "") {
                 mostrarError(direccion, "La dirección es obligatoria.");
                 valido = false;
-            } else if (direccion.value.trim().length < 20) {
-                mostrarError(direccion, "La dirección debe tener mínimo 20 caracteres.");
+            } else if (direccion.value.trim().length < 5) {
+                mostrarError(direccion, "La dirección debe tener mínimo 5 caracteres.");
                 valido = false;
             }
 
@@ -157,9 +146,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 valido = false;
             }
 
-            if (!valido) {
-                e.preventDefault();
-            }
+            if (!valido) e.preventDefault();
         });
     }
 
@@ -174,11 +161,11 @@ document.addEventListener("DOMContentLoaded", function() {
             var formActual = e.target;
             var valido = true;
 
+            // Limpiar errores previos
             var errores = formActual.querySelectorAll(".error-msg");
-            for (var i = 0; i < errores.length; i++) {
-                errores[i].remove();
-            }
+            for (var i = 0; i < errores.length; i++) errores[i].remove();
 
+            // Obtener id actual desde la action
             var action = formActual.getAttribute("action");
             var partes = action.split("/");
             var idActual = null;
@@ -188,9 +175,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 }
             }
 
-            var regexSoloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+            var regexSoloLetras  = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
             var regexSoloNumeros = /^[0-9]+$/;
-            var regexEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            var regexEmail       = /^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$/;
 
             // Validar Nombre
             var nombre = formActual.querySelector("input[name='nombre']");
@@ -198,39 +185,39 @@ document.addEventListener("DOMContentLoaded", function() {
                 mostrarError(nombre, "El nombre es obligatorio.");
                 valido = false;
             } else if (!regexSoloLetras.test(nombre.value.trim())) {
-                mostrarError(nombre, "El nombre no puede contener números.");
+                mostrarError(nombre, "El nombre no puede contener números ni caracteres especiales.");
                 valido = false;
             } else if (nombreDuplicado(nombre.value.trim(), idActual)) {
                 mostrarError(nombre, "Ya existe un cliente con ese nombre.");
                 valido = false;
             }
 
-            // Validar Documento
+            // Validar Documento: entre 6 y 12 dígitos ✅
             var documento = formActual.querySelector("input[name='documento']");
             if (documento.value.trim() === "") {
                 mostrarError(documento, "El documento es obligatorio.");
                 valido = false;
             } else if (!regexSoloNumeros.test(documento.value.trim())) {
-                mostrarError(documento, "El documento no puede contener caracteres especiales.");
+                mostrarError(documento, "El documento solo puede contener números.");
                 valido = false;
-            } else if (documento.value.trim().length !== 10) {
-                mostrarError(documento, "El documento debe tener exactamente 10 dígitos.");
+            } else if (documento.value.trim().length < 6 || documento.value.trim().length > 12) {
+                mostrarError(documento, "El documento debe tener entre 6 y 12 dígitos.");
                 valido = false;
             } else if (documentoDuplicado(documento.value.trim(), idActual)) {
                 mostrarError(documento, "Ya existe un cliente con ese documento.");
                 valido = false;
             }
 
-            // Validar Teléfono
+            // Validar Teléfono: entre 7 y 15 dígitos ✅
             var telefono = formActual.querySelector("input[name='telefono']");
             if (telefono.value.trim() === "") {
                 mostrarError(telefono, "El teléfono es obligatorio.");
                 valido = false;
             } else if (!regexSoloNumeros.test(telefono.value.trim())) {
-                mostrarError(telefono, "El teléfono no puede contener caracteres especiales.");
+                mostrarError(telefono, "El teléfono solo puede contener números.");
                 valido = false;
-            } else if (telefono.value.trim().length !== 10) {
-                mostrarError(telefono, "El teléfono debe tener exactamente 10 dígitos.");
+            } else if (telefono.value.trim().length < 7 || telefono.value.trim().length > 15) {
+                mostrarError(telefono, "El teléfono debe tener entre 7 y 15 dígitos.");
                 valido = false;
             } else if (telefono.value.trim()[0] !== "3") {
                 mostrarError(telefono, "El teléfono debe iniciar con 3.");
@@ -240,26 +227,26 @@ document.addEventListener("DOMContentLoaded", function() {
                 valido = false;
             }
 
-            // Validar Email
+            // Validar Email ✅
             var email = formActual.querySelector("input[name='email']");
             if (email.value.trim() === "") {
                 mostrarError(email, "El email es obligatorio.");
                 valido = false;
             } else if (!regexEmail.test(email.value.trim())) {
-                mostrarError(email, "Ingrese un email válido.");
+                mostrarError(email, "Ingrese un email válido (ejemplo: cliente@empresa.com).");
                 valido = false;
             } else if (emailDuplicado(email.value.trim(), idActual)) {
                 mostrarError(email, "Ya existe un cliente con ese email.");
                 valido = false;
             }
 
-            // Validar Dirección
+            // Validar Dirección: mínimo 5 caracteres ✅
             var direccion = formActual.querySelector("input[name='direccion']");
             if (direccion.value.trim() === "") {
                 mostrarError(direccion, "La dirección es obligatoria.");
                 valido = false;
-            } else if (direccion.value.trim().length < 20) {
-                mostrarError(direccion, "La dirección debe tener mínimo 20 caracteres.");
+            } else if (direccion.value.trim().length < 5) {
+                mostrarError(direccion, "La dirección debe tener mínimo 5 caracteres.");
                 valido = false;
             }
 
@@ -270,9 +257,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 valido = false;
             }
 
-            if (!valido) {
-                e.preventDefault();
-            }
+            if (!valido) e.preventDefault();
         });
     }
 
@@ -287,11 +272,9 @@ function nombreDuplicado(valor, idExcluir) {
     for (var i = 0; i < filas.length; i++) {
         var celdas = filas[i].querySelectorAll("td");
         if (celdas.length > 0) {
-            var idFila = celdas[0].textContent.trim();
-            var nombreFila = celdas[1].textContent.trim().toLowerCase();
-            if (nombreFila === valor.toLowerCase() && idFila !== idExcluir) {
-                return true;
-            }
+            var idFila      = celdas[0].textContent.trim();
+            var nombreFila  = celdas[1].textContent.trim().toLowerCase();
+            if (nombreFila === valor.toLowerCase() && idFila !== idExcluir) return true;
         }
     }
     return false;
@@ -302,11 +285,9 @@ function documentoDuplicado(valor, idExcluir) {
     for (var i = 0; i < filas.length; i++) {
         var celdas = filas[i].querySelectorAll("td");
         if (celdas.length > 0) {
-            var idFila = celdas[0].textContent.trim();
+            var idFila        = celdas[0].textContent.trim();
             var documentoFila = celdas[2].textContent.trim();
-            if (documentoFila === valor && idFila !== idExcluir) {
-                return true;
-            }
+            if (documentoFila === valor && idFila !== idExcluir) return true;
         }
     }
     return false;
@@ -317,11 +298,9 @@ function telefonoDuplicado(valor, idExcluir) {
     for (var i = 0; i < filas.length; i++) {
         var celdas = filas[i].querySelectorAll("td");
         if (celdas.length > 0) {
-            var idFila = celdas[0].textContent.trim();
+            var idFila       = celdas[0].textContent.trim();
             var telefonoFila = celdas[3].textContent.trim();
-            if (telefonoFila === valor && idFila !== idExcluir) {
-                return true;
-            }
+            if (telefonoFila === valor && idFila !== idExcluir) return true;
         }
     }
     return false;
@@ -332,11 +311,9 @@ function emailDuplicado(valor, idExcluir) {
     for (var i = 0; i < filas.length; i++) {
         var celdas = filas[i].querySelectorAll("td");
         if (celdas.length > 0) {
-            var idFila = celdas[0].textContent.trim();
+            var idFila    = celdas[0].textContent.trim();
             var emailFila = celdas[4].textContent.trim().toLowerCase();
-            if (emailFila === valor.toLowerCase() && idFila !== idExcluir) {
-                return true;
-            }
+            if (emailFila === valor.toLowerCase() && idFila !== idExcluir) return true;
         }
     }
     return false;

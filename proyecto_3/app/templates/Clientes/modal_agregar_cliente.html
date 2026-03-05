@@ -12,67 +12,54 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Nombre Completo <span class="text-danger">*</span></label>
-                        <input type="text" 
-                               name="nombre" 
-                               class="form-control" 
-                               required
-                               minlength="3"
-                               maxlength="100"
-                               pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+"
+                        <input type="text" name="nombre" class="form-control"
+                               required minlength="3" maxlength="100"
+                               pattern="[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+"
                                title="Solo letras y espacios (mínimo 3 caracteres)"
                                placeholder="Ej: Juan Pérez">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Documento <span class="text-danger">*</span></label>
-                        <input type="text" 
-                               name="documento" 
-                               class="form-control" 
-                               required
-                               minlength="10"
-                               maxlength="10"
+                        <!-- ✅ min 6, max 12 según modelo -->
+                        <input type="text" name="documento" class="form-control"
+                               required minlength="6" maxlength="12"
                                pattern="[0-9]+"
-                               title="Solo números (exactamente 10 dígitos)"
+                               title="Solo números (entre 6 y 12 dígitos)"
+                               oninput="this.value = this.value.replace(/[^\d]/g, '')"
                                placeholder="Ej: 1234567890">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Teléfono <span class="text-danger">*</span></label>
-                        <input type="tel" 
-                               name="telefono" 
-                               class="form-control" 
-                               required
-                               minlength="10"
-                               maxlength="10"
+                        <input type="text" name="telefono" class="form-control"
+                               required minlength="7" maxlength="15"
                                pattern="[0-9]+"
-                               title="Solo números (exactamente 10 dígitos)"
+                               title="Solo números (entre 7 y 15 dígitos)"
+                               oninput="this.value = this.value.replace(/[^\d]/g, '')"
                                placeholder="Ej: 3001234567">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Email <span class="text-danger">*</span></label>
-                        <input type="email" 
-                               name="email" 
-                               class="form-control" 
-                               required
-                               maxlength="100"
-                               title="Ingrese un email válido"
+                        <!-- ✅ type="text" + pattern para no bloquear edición de emails inválidos ya guardados -->
+                        <input type="text" name="email" class="form-control"
+                               required maxlength="100"
+                               pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
+                               title="Ingrese un email válido (ejemplo: cliente@empresa.com)"
                                placeholder="Ej: cliente@ejemplo.com">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Dirección <span class="text-danger">*</span></label>
-                        <input type="text" 
-                               name="direccion" 
-                               class="form-control" 
-                               required
-                               minlength="5"
-                               maxlength="200"
+                        <input type="text" name="direccion" class="form-control"
+                               required minlength="5" maxlength="200"
                                title="Mínimo 5 caracteres"
                                placeholder="Ej: Calle 123 #45-67">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Estado <span class="text-danger">*</span></label>
+                        <!-- ✅ valores en minúscula según modelo ('activo', 'inactivo') -->
                         <select name="estado" class="form-control" required>
                             <option value="">Seleccione un estado</option>
-                            <option value="Activo">Activo</option>
-                            <option value="Inactivo">Inactivo</option>
+                            <option value="activo">Activo</option>
+                            <option value="inactivo">Inactivo</option>
                         </select>
                     </div>
                 </div>

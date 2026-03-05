@@ -1,4 +1,3 @@
-{% for cliente in clientes %}
 <div class="modal fade" id="modalEditarCliente{{ cliente.id }}" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -13,66 +12,53 @@
                 <div class="modal-body">
                     <div class="mb-3">
                         <label class="form-label">Nombre Completo <span class="text-danger">*</span></label>
-                        <input type="text" 
-                               name="nombre" 
-                               class="form-control" 
+                        <input type="text" name="nombre" class="form-control"
                                value="{{ cliente.nombre }}"
-                               required
-                               minlength="3"
-                               maxlength="100"
-                               pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+"
+                               required minlength="3" maxlength="100"
+                               pattern="[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+"
                                title="Solo letras y espacios (mínimo 3 caracteres)">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Documento <span class="text-danger">*</span></label>
-                        <input type="text" 
-                               name="documento" 
-                               class="form-control" 
+                        <!-- ✅ min 6, max 12 según modelo -->
+                        <input type="text" name="documento" class="form-control"
                                value="{{ cliente.documento }}"
-                               required
-                               minlength="10"
-                               maxlength="10"
+                               required minlength="6" maxlength="12"
                                pattern="[0-9]+"
-                               title="Solo números (exactamente 10 dígitos)">
+                               title="Solo números (entre 6 y 12 dígitos)"
+                               oninput="this.value = this.value.replace(/[^\d]/g, '')">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Teléfono <span class="text-danger">*</span></label>
-                        <input type="tel" 
-                               name="telefono" 
-                               class="form-control" 
+                        <input type="text" name="telefono" class="form-control"
                                value="{{ cliente.telefono }}"
-                               required
-                               minlength="10"
-                               maxlength="10"
+                               required minlength="7" maxlength="15"
                                pattern="[0-9]+"
-                               title="Solo números (exactamente 10 dígitos)">
+                               title="Solo números (entre 7 y 15 dígitos)"
+                               oninput="this.value = this.value.replace(/[^\d]/g, '')">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Email <span class="text-danger">*</span></label>
-                        <input type="email" 
-                               name="email" 
-                               class="form-control" 
+                        <!-- ✅ type="text" + pattern para no bloquear emails inválidos ya guardados -->
+                        <input type="text" name="email" class="form-control"
                                value="{{ cliente.email }}"
-                               required
-                               maxlength="100"
-                               title="Ingrese un email válido">
+                               required maxlength="100"
+                               pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
+                               title="Ingrese un email válido (ejemplo: cliente@empresa.com)">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Dirección <span class="text-danger">*</span></label>
-                        <input type="text" 
-                               name="direccion" 
-                               class="form-control" 
+                        <input type="text" name="direccion" class="form-control"
                                value="{{ cliente.direccion }}"
-                               required
-                               minlength="5"
-                               maxlength="200"
+                               required minlength="5" maxlength="200"
                                title="Mínimo 5 caracteres">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Estado <span class="text-danger">*</span></label>
+                        <!-- ✅ valores en minúscula según modelo -->
                         <select name="estado" class="form-control" required>
-                            <option value="Activo" {% if cliente.estado == 'Activo' %}selected{% endif %}>Activo</option>
-                            <option value="Inactivo" {% if cliente.estado == 'Inactivo' %}selected{% endif %}>Inactivo</option>
+                            <option value="activo" {% if cliente.estado == 'activo' %}selected{% endif %}>Activo</option>
+                            <option value="inactivo" {% if cliente.estado == 'inactivo' %}selected{% endif %}>Inactivo</option>
                         </select>
                     </div>
                 </div>
@@ -86,4 +72,3 @@
         </div>
     </div>
 </div>
-{% endfor %}

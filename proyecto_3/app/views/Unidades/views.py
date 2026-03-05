@@ -1,37 +1,43 @@
-"""Vistas para gestión de unidades de medida"""
-from django.shortcuts import redirect, get_object_or_404
+from django.shortcuts import redirect, render, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
-from ...models import unidad_medida, Producto
+from django.urls import reverse
+from app.models import unidad_medida, Producto
+import re
 
 
-@login_required
+def unidades(request):
+    lista = unidad_medida.objects.all()
+    return render(request, 'Unidad_medida/unidades.html', {'unidades': lista})
+
+
 def crear_unidad(request):
-    """Crear una nueva unidad de medida"""
     if request.method == 'POST':
         nombre = request.POST.get('nombre_unidad', '').strip()
-        abrev = request.POST.get('abreviatura', '-').strip() or '-'
-
+        abreviatura = request.POST.get('abreviatura', '').strip()
         if not nombre:
-            messages.error(request, 'El nombre de la unidad es obligatorio.')
+            messages.error(request, 'El nombre es obligatorio.')
+        elif len(nombre) < 2:
+            messages.error(request, 'El nombre debe tener al menos 2 letras.')
+        elif len(nombre) > 100:
+            messages.error(request, 'El nombre no puede superar 100 letras.')
+        elif not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$', nombre):
+            messages.error(request, 'El nombre solo puede contener letras y espacios.')
+        elif unidad_medida.objects.filter(nombre_unidad__iexact=nombre).exists():
+            messages.error(request, f'Ya existe una unidad llamada "{nombre}".')
         else:
-            unidad_medida.objects.create(nombre_unidad=nombre, abreviatura=abrev)
+            unidad_medida.objects.create(nombre_unidad=nombre, abreviatura=abreviatura or '-')
             messages.success(request, f'Unidad "{nombre}" creada exitosamente.')
+            return redirect(reverse('productos') + '?abrir_modal=1')
+    return redirect('unidades')
 
-    return redirect(request.POST.get('next', 'productos'))
 
-
-@login_required
 def eliminar_unidad(request, id):
-    """Eliminar una unidad de medida"""
+    unidad = get_object_or_404(unidad_medida, idUnidad=id)
     if request.method == 'POST':
-        unidad = get_object_or_404(unidad_medida, idUnidad=id)
-
         if Producto.objects.filter(idUnidad=unidad).exists():
-            messages.error(request, f'No se puede eliminar la unidad "{unidad.nombre_unidad}": tiene productos asociados.')
+            messages.error(request, f'No se puede eliminar "{unidad.nombre_unidad}": tiene productos asociados.')
         else:
             nombre = unidad.nombre_unidad
             unidad.delete()
-            messages.success(request, f'Unidad "{nombre}" eliminada exitosamente.')
-
-    return redirect(request.POST.get('next', 'productos'))
+            messages.success(request, f'Unidad "{nombre}" eliminada.')
+    return redirect('unidades')
