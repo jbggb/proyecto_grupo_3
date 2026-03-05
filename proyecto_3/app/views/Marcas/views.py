@@ -12,7 +12,13 @@ def marcas(request):
     return render(request, 'Marcas/marcas.html', {'marcas': lista})
 
 
-@login_required
+@admin_login_required
+def marcas(request):
+    lista = Marca.objects.all()
+    return render(request, 'Marcas/marcas.html', {'marcas': lista})
+
+
+@admin_login_required
 def crear_marca(request):
     if request.method == 'POST':
         nombre = request.POST.get('nombreMarca', '').strip()
@@ -36,7 +42,9 @@ def crear_marca(request):
 
 
 
-@login_required
+
+
+@admin_login_required
 def eliminar_marca(request, id):
     marca = get_object_or_404(Marca, idMarca=id)
     if request.method == 'POST':
