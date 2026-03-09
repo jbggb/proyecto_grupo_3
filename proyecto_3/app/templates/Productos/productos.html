@@ -2,14 +2,18 @@
 {% load static %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/reporte_1.css' %}">
 
-<h1 class="mb-1">Panel de Gestión del Inventario</h1>
-<p class="text-muted mb-3">Sistema de inventario por el Grupo 3</p>
-
-<button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#modalAgregar">
-    + Agregar Producto
-</button>
-
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="fa-solid fa-box me-2"></i>Panel de Gestión de Productos</h2>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregar">
+        <i class="fa-solid fa-plus me-1"></i> Agregar Producto
+    </button>
+</div>
+<div class="contenedor-exportar">
+    <a href="{% url 'exportar_productos_pdf' %}" class="btn-pdf"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</a>
+    <a href="{% url 'exportar_productos_excel' %}" class="btn-excel"><i class="fa-solid fa-file-excel"></i> Exportar Excel</a>
+</div>
 <div class="card mb-3">
     <div class="card-body">
         <form method="GET">
@@ -87,22 +91,6 @@
     </div>
 </div>
 
-{% if messages %}
-    {% for message in messages %}
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            Swal.fire({
-                title: '{% if message.tags == "success" %}Listo!{% else %}Atencion{% endif %}',
-                text: '{{ message|escapejs }}',
-                icon: '{% if message.tags == "success" %}success{% else %}error{% endif %}',
-                confirmButtonColor: '{% if message.tags == "success" %}#28a745{% else %}#dc3545{% endif %}',
-                timer: 3000,
-                timerProgressBar: true
-            });
-        });
-    </script>
-    {% endfor %}
-{% endif %}
 
 {% include 'Productos/Modal_agregar.html' %}
 {% for producto in productos %}
