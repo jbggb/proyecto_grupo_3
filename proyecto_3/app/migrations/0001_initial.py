@@ -33,7 +33,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('nombre', models.CharField(max_length=150)),
                 ('documento', models.CharField(blank=True, db_column='documento', default='', max_length=12)),
-                ('telefono', models.CharField(max_length=20)),
+                ('telefono', models.CharField(max_length=10)),
                 ('email', models.EmailField(max_length=100)),
                 ('direccion', models.CharField(blank=True, default='', max_length=200)),
                 ('estado', models.CharField(
@@ -107,7 +107,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('nombre', models.CharField(max_length=150)),
-                ('telefono', models.CharField(max_length=20)),
+                ('telefono', models.CharField(max_length=10)),
                 ('email', models.EmailField(max_length=100)),
                 ('envio', models.IntegerField(default=0)),
                 ('fechaRegistro', models.DateField(default=datetime.datetime.now)),

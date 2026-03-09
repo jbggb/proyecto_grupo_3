@@ -32,9 +32,9 @@
                         <label class="form-label">Teléfono <span class="text-danger">*</span></label>
                         <input type="text" name="telefono" class="form-control"
                                value="{{ cliente.telefono }}"
-                               required minlength="7" maxlength="15"
+                               required minlength="7" maxlength="10"
                                pattern="[0-9]+"
-                               title="Solo números (entre 7 y 15 dígitos)"
+                               title="Solo números (entre 7 y 10 dígitos)"
                                oninput="this.value = this.value.replace(/[^\d]/g, '')">
                     </div>
                     <div class="mb-3">

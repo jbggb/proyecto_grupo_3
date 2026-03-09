@@ -114,12 +114,14 @@
                     <div class="mb-3">
                         <label class="form-label">Teléfono <span class="text-danger">*</span></label>
                         <input type="text" name="telefono" class="form-control"
-                            maxlength="15"
-                            oninput="this.value = this.value.replace(/[^\d]/g, ''); if(this.value.length === 1 && this.value[0] !== '3') this.value = '';"
+                            maxlength="10" pattern="[0-9]+"
+                            title="Solo números (entre 7 y 10 dígitos)"
+                            oninput="this.value = this.value.replace(/[^\d]/g, ''); 
+                            if(this.value.length === 1 && this.value[0] !== '3') this.value = '';"
                             placeholder="3001234567" required>
                     </div>
                                
-                    </div>
+    
                     <div class="mb-3">
                         <label class="form-label">Email <span class="text-danger">*</span></label>
                         <input type="text" name="email" class="form-control"
@@ -166,8 +168,11 @@
                     <div class="mb-3">
                         <label class="form-label">Teléfono <span class="text-danger">*</span></label>
                         <input type="text" name="telefono" id="edit_telefono" class="form-control"
-                               maxlength="15" oninput="this.value = this.value.replace(/[^\d]/g, '')"
-                               required>
+                            maxlength="10" pattern="[0-9]+"
+                            title="Solo números (entre 7 y 10 dígitos)"
+                            oninput="this.value = this.value.replace(/[^\d]/g, ''); 
+                            if(this.value.length === 1 && this.value[0] !== '3') this.value = '';"
+                            placeholder="3001234567" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Email <span class="text-danger">*</span></label>
