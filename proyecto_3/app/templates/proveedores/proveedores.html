@@ -3,21 +3,15 @@
 
 {% block content %}
 
+
+<link rel="stylesheet" href="{% static 'css/reporte_1.css' %}">
+
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="fa-solid fa-truck me-2"></i>Gestión de Proveedores</h2>
     <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCrearProveedor">
         <i class="fa-solid fa-plus me-1"></i> Nuevo Proveedor
     </button>
 </div>
-
-{% if messages %}
-    {% for message in messages %}
-        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-            {{ message }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    {% endfor %}
-{% endif %}
 
 <!-- Búsqueda -->
 <div class="card border-0 shadow-sm mb-4">
@@ -38,7 +32,17 @@
         </form>
     </div>
 </div>
+<!-- Botones de exportar -->
+<div class="contenedor-exportar">
+    <a href="{% url 'exportar_proveedores_pdf' %}" class="btn-pdf">
+        <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+    </a>
+    <a href="{% url 'exportar_proveedores_excel' %}" class="btn-excel">
+        <i class="fa-solid fa-file-excel"></i> Exportar Excel
+    </a>
+</div>
 
+<!-- Tabla -->
 <!-- Tabla -->
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-dark text-white">
@@ -110,9 +114,14 @@
                     <div class="mb-3">
                         <label class="form-label">Teléfono <span class="text-danger">*</span></label>
                         <input type="text" name="telefono" class="form-control"
-                               maxlength="15" oninput="this.value = this.value.replace(/[^\d]/g, '')"
-                               placeholder="3001234567" required>
+                            maxlength="10" pattern="[0-9]+"
+                            title="Solo números (entre 7 y 10 dígitos)"
+                            oninput="this.value = this.value.replace(/[^\d]/g, ''); 
+                            if(this.value.length === 1 && this.value[0] !== '3') this.value = '';"
+                            placeholder="3001234567" required>
                     </div>
+                               
+    
                     <div class="mb-3">
                         <label class="form-label">Email <span class="text-danger">*</span></label>
                         <input type="text" name="email" class="form-control"
@@ -159,8 +168,11 @@
                     <div class="mb-3">
                         <label class="form-label">Teléfono <span class="text-danger">*</span></label>
                         <input type="text" name="telefono" id="edit_telefono" class="form-control"
-                               maxlength="15" oninput="this.value = this.value.replace(/[^\d]/g, '')"
-                               required>
+                            maxlength="10" pattern="[0-9]+"
+                            title="Solo números (entre 7 y 10 dígitos)"
+                            oninput="this.value = this.value.replace(/[^\d]/g, ''); 
+                            if(this.value.length === 1 && this.value[0] !== '3') this.value = '';"
+                            placeholder="3001234567" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Email <span class="text-danger">*</span></label>

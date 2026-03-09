@@ -75,11 +75,19 @@ class AdministradorRegistroForm(forms.ModelForm):
         email = self.cleaned_data.get('email', '').strip()
         if not email:
             raise ValidationError('El correo electrónico es obligatorio.')
+        
         patron = r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$'
         if not re.match(patron, email):
             raise ValidationError('Ingrese un correo electrónico válido.')
+        
+        dominios_permitidos = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com']
+        dominio = email.split('@')[1]
+        if dominio not in dominios_permitidos:
+            raise ValidationError(f"Solo se permiten correos de: {', '.join(dominios_permitidos)}")
+        
         if Administrador.objects.filter(email=email).exists():
             raise ValidationError('Este correo electrónico ya está registrado.')
+        
         return email
 
     def clean_contrasena(self):

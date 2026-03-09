@@ -7,7 +7,7 @@
 </h1>
 <p class="text-muted">Sistema de inventario - Grupo 3</p>
 
-<!-- Cards de acceso rápido -->
+<!-- Cards de acceso rápido - Fila 1 -->
 <div class="row mt-4">
     <div class="col-md-4 mb-4">
         <div class="card shadow-sm h-100 border-0">
@@ -49,6 +49,48 @@
     </div>
 </div>
 
+<!-- Cards de acceso rápido - Fila 2 -->
+<div class="row">
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100 border-0">
+            <div class="card-body text-center py-4">
+                <i class="fa-solid fa-truck fa-3x text-info mb-3"></i>
+                <h5 class="card-title">Proveedores</h5>
+                <p class="card-text text-muted">Gestiona tus proveedores</p>
+                <a href="{% url 'proveedores' %}" class="btn btn-info">
+                    <i class="fa-solid fa-arrow-right me-2"></i>Ver Proveedores
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100 border-0">
+            <div class="card-body text-center py-4">
+                <i class="fa-solid fa-bag-shopping fa-3x text-danger mb-3"></i>
+                <h5 class="card-title">Compras</h5>
+                <p class="card-text text-muted">Registra y consulta compras</p>
+                <a href="{% url 'compras' %}" class="btn btn-danger">
+                    <i class="fa-solid fa-arrow-right me-2"></i>Ver Compras
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card shadow-sm h-100 border-0">
+            <div class="card-body text-center py-4">
+                <i class="fa-solid fa-chart-line fa-3x mb-3" style="color: #6f42c1;"></i>
+                <h5 class="card-title">Reportes</h5>
+                <p class="card-text text-muted">Consulta estadísticas del sistema</p>
+                <a href="{% url 'reportes' %}" class="btn" style="background-color: #6f42c1; color: white;">
+                    <i class="fa-solid fa-arrow-right me-2"></i>Ver Reportes
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Resumen estadísticas -->
 <div class="card shadow-sm border-0 mt-2">
     <div class="card-header bg-dark text-white">
@@ -56,20 +98,35 @@
     </div>
     <div class="card-body">
         <div class="row text-center">
-            <div class="col-md-4 border-end">
+            <div class="col-md-2 border-end">
                 <i class="fa-solid fa-box fa-2x text-primary mb-2"></i>
-                <p class="mb-0 text-muted">Productos Registrados</p>
+                <p class="mb-0 text-muted small">Productos</p>
                 <h3 class="fw-bold">{{ total_productos }}</h3>
             </div>
-            <div class="col-md-4 border-end">
+            <div class="col-md-2 border-end">
                 <i class="fa-solid fa-users fa-2x text-success mb-2"></i>
-                <p class="mb-0 text-muted">Clientes Activos</p>
+                <p class="mb-0 text-muted small">Clientes</p>
                 <h3 class="fw-bold">{{ total_clientes }}</h3>
             </div>
-            <div class="col-md-4">
+            <div class="col-md-2 border-end">
                 <i class="fa-solid fa-cart-shopping fa-2x text-warning mb-2"></i>
-                <p class="mb-0 text-muted">Ventas Realizadas</p>
+                <p class="mb-0 text-muted small">Ventas</p>
                 <h3 class="fw-bold">{{ total_ventas }}</h3>
+            </div>
+            <div class="col-md-2 border-end">
+                <i class="fa-solid fa-truck fa-2x text-info mb-2"></i>
+                <p class="mb-0 text-muted small">Proveedores</p>
+                <h3 class="fw-bold">{{ total_proveedores }}</h3>
+            </div>
+            <div class="col-md-2 border-end">
+                <i class="fa-solid fa-bag-shopping fa-2x text-danger mb-2"></i>
+                <p class="mb-0 text-muted small">Compras</p>
+                <h3 class="fw-bold">{{ total_compras }}</h3>
+            </div>
+            <div class="col-md-2">
+                <i class="fa-solid fa-chart-line fa-2x mb-2" style="color: #6f42c1;"></i>
+                <p class="mb-0 text-muted small">Reportes</p>
+                <h3 class="fw-bold">{{ total_reportes }}</h3>
             </div>
         </div>
     </div>
