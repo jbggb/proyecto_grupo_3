@@ -17,104 +17,101 @@
 <div class="container">
     <div class="row justify-content-center mt-5">
         <div class="col-md-6">
-            
-            <!-- Card de registro -->
+
             <div class="card shadow">
                 <div class="card-header bg-dark text-light text-center">
                     <h4><i class="fa-solid fa-user-plus me-2"></i>Registro de Administrador</h4>
                 </div>
-                
+
                 <div class="card-body p-4">
-                    
-                    <!-- Formulario -->
-                    <form method="POST" novalidate>
+
+                    <form method="POST" novalidate id="formRegistro">
                         {% csrf_token %}
-                        
+
                         <!-- Nombre -->
                         <div class="mb-3">
-                            <label for="{{ form.nombre.id_for_label }}" class="form-label">
-                                {{ form.nombre.label }}
-                            </label>
+                            <label for="{{ form.nombre.id_for_label }}" class="form-label">{{ form.nombre.label }}</label>
                             {{ form.nombre }}
                             {% if form.nombre.errors %}
                                 <div class="text-danger mt-1">
-                                    {% for error in form.nombre.errors %}
-                                        <small>{{ error }}</small>
-                                    {% endfor %}
+                                    {% for error in form.nombre.errors %}<small>{{ error }}</small>{% endfor %}
                                 </div>
                             {% endif %}
+                            <span id="err_nombre" class="text-danger" style="font-size:12px;display:none;"></span>
                         </div>
-                        
+
                         <!-- Usuario -->
                         <div class="mb-3">
-                            <label for="{{ form.usuario.id_for_label }}" class="form-label">
-                                {{ form.usuario.label }}
-                            </label>
+                            <label for="{{ form.usuario.id_for_label }}" class="form-label">{{ form.usuario.label }}</label>
                             {{ form.usuario }}
                             {% if form.usuario.errors %}
                                 <div class="text-danger mt-1">
-                                    {% for error in form.usuario.errors %}
-                                        <small>{{ error }}</small>
-                                    {% endfor %}
+                                    {% for error in form.usuario.errors %}<small>{{ error }}</small>{% endfor %}
                                 </div>
                             {% endif %}
+                            <span id="err_usuario" class="text-danger" style="font-size:12px;display:none;"></span>
                         </div>
-                        
+
                         <!-- Email -->
                         <div class="mb-3">
-                            <label for="{{ form.email.id_for_label }}" class="form-label">
-                                {{ form.email.label }}
-                            </label>
+                            <label for="{{ form.email.id_for_label }}" class="form-label">{{ form.email.label }}</label>
                             {{ form.email }}
                             {% if form.email.errors %}
                                 <div class="text-danger mt-1">
-                                    {% for error in form.email.errors %}
-                                        <small>{{ error }}</small>
-                                    {% endfor %}
+                                    {% for error in form.email.errors %}<small>{{ error }}</small>{% endfor %}
                                 </div>
                             {% endif %}
+                            <span id="err_email" class="text-danger" style="font-size:12px;display:none;"></span>
                         </div>
-                        
+
                         <!-- Contraseña -->
                         <div class="mb-3">
-                            <label for="{{ form.contrasena.id_for_label }}" class="form-label">
-                                {{ form.contrasena.label }}
-                            </label>
-                            {{ form.contrasena }}
+                            <label for="{{ form.contrasena.id_for_label }}" class="form-label">{{ form.contrasena.label }}</label>
+                            <div class="input-group">
+                                {{ form.contrasena }}
+                                <span class="input-group-text" id="togglePassword1" style="cursor:pointer;">
+                                    <i class="fa-solid fa-eye" id="eyeIcon1"></i>
+                                </span>
+                            </div>
                             {% if form.contrasena.errors %}
                                 <div class="text-danger mt-1">
-                                    {% for error in form.contrasena.errors %}
-                                        <small>{{ error }}</small>
-                                    {% endfor %}
+                                    {% for error in form.contrasena.errors %}<small>{{ error }}</small>{% endfor %}
                                 </div>
                             {% endif %}
+                            <span id="err_contrasena" class="text-danger" style="font-size:12px;display:none;"></span>
+                            <!-- Barra de fortaleza -->
+                            <div id="fortaleza_bar" class="mt-1" style="display:none;">
+                                <div class="progress" style="height:6px;">
+                                    <div id="fortaleza_fill" class="progress-bar" style="width:0%;"></div>
+                                </div>
+                                <small id="fortaleza_texto" class="text-muted"></small>
+                            </div>
                         </div>
-                        
+
                         <!-- Confirmar contraseña -->
                         <div class="mb-3">
-                            <label for="{{ form.confirmar_contrasena.id_for_label }}" class="form-label">
-                                {{ form.confirmar_contrasena.label }}
-                            </label>
-                            {{ form.confirmar_contrasena }}
+                            <label for="{{ form.confirmar_contrasena.id_for_label }}" class="form-label">{{ form.confirmar_contrasena.label }}</label>
+                            <div class="input-group">
+                                {{ form.confirmar_contrasena }}
+                                <span class="input-group-text" id="togglePassword2" style="cursor:pointer;">
+                                    <i class="fa-solid fa-eye" id="eyeIcon2"></i>
+                                </span>
+                            </div>
                             {% if form.confirmar_contrasena.errors %}
                                 <div class="text-danger mt-1">
-                                    {% for error in form.confirmar_contrasena.errors %}
-                                        <small>{{ error }}</small>
-                                    {% endfor %}
+                                    {% for error in form.confirmar_contrasena.errors %}<small>{{ error }}</small>{% endfor %}
                                 </div>
                             {% endif %}
+                            <span id="err_confirmar" class="text-danger" style="font-size:12px;display:none;"></span>
                         </div>
-                        
-                        <!-- Errores generales del formulario -->
+
+                        <!-- Errores generales -->
                         {% if form.non_field_errors %}
                             <div class="alert alert-danger">
-                                {% for error in form.non_field_errors %}
-                                    {{ error }}
-                                {% endfor %}
+                                {% for error in form.non_field_errors %}{{ error }}{% endfor %}
                             </div>
                         {% endif %}
-                        
-                        <!-- Botones -->
+
                         <div class="d-grid gap-2">
                             <button type="submit" class="btn btn-primary">
                                 <i class="fa-solid fa-save me-2"></i>Registrar
@@ -123,38 +120,36 @@
                                 <i class="fa-solid fa-arrow-left me-2"></i>Volver
                             </a>
                         </div>
-                        
+
                     </form>
-                    
+
                 </div>
             </div>
-            
+
         </div>
     </div>
 </div>
 
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<!-- ✅ JS externo con todas las validaciones -->
+<script src="{% static 'js/Registro.js' %}"></script>
 
-<!-- SweetAlert2 para mensajes -->
 <script>
     {% if messages %}
         {% for message in messages %}
             {% if message.tags == 'success' %}
                 Swal.fire({
                     title: "¡Registro exitoso!",
-                    text: "El administrador ha sido registrado correctamente",
+                    text: "El administrador ha sido registrado correctamente.",
                     icon: "success",
                     confirmButtonColor: "#198754"
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        window.location.href = "{% url 'inicio' %}";
-                    }
+                }).then(function(result) {
+                    if (result.isConfirmed) window.location.href = "{% url 'inicio' %}";
                 });
             {% elif message.tags == 'error' %}
                 Swal.fire({
                     title: "Error",
-                    text: "Por favor corrige los errores del formulario",
+                    text: "Por favor corrige los errores del formulario.",
                     icon: "error",
                     confirmButtonColor: "#dc3545"
                 });
@@ -164,4 +159,4 @@
 </script>
 
 </body>
-</html>             
+</html>

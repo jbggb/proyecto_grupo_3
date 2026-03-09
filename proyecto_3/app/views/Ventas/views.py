@@ -4,7 +4,7 @@ import datetime
 import calendar
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from app.decorators import admin_login_required
 from django.utils import timezone
 from django.db.models import Sum
 from django.http import JsonResponse
@@ -17,7 +17,13 @@ def rango_dia(fecha):
     return inicio, fin
 
 
-@login_required
+def rango_dia(fecha):
+    inicio = timezone.make_aware(datetime.datetime.combine(fecha, datetime.time.min))
+    fin = timezone.make_aware(datetime.datetime.combine(fecha, datetime.time.max))
+    return inicio, fin
+
+
+@admin_login_required
 def ventas(request):
     ahora = timezone.localtime(timezone.now())
     hoy = ahora.date()
@@ -101,7 +107,8 @@ def ventas(request):
 
 
 
-@login_required
+
+@admin_login_required
 def crear_venta(request):
     if request.method == 'POST':
         cliente_nombre = request.POST.get('cliente', '').strip()
@@ -156,13 +163,13 @@ def crear_venta(request):
     return redirect('ventas')
 
 
-@login_required
+@admin_login_required
 def detalle_venta(request, id):
     venta = get_object_or_404(Venta, id=id)
     return render(request, 'Ventas/detalle_venta.html', {'venta': venta})
 
 
-@login_required
+@admin_login_required
 def editar_venta(request, id):
     venta = get_object_or_404(Venta, id=id)
 
@@ -194,7 +201,7 @@ def editar_venta(request, id):
     return redirect('ventas')
 
 
-@login_required
+@admin_login_required
 def completar_venta(request, id):
     if request.method == 'POST':
         venta = get_object_or_404(Venta, id=id)
@@ -205,7 +212,7 @@ def completar_venta(request, id):
     return redirect('ventas')
 
 
-@login_required
+@admin_login_required
 def eliminar_venta(request, id):
     if request.method == 'POST':
         venta = get_object_or_404(Venta, id=id)
@@ -216,7 +223,7 @@ def eliminar_venta(request, id):
     return redirect('ventas')
 
 
-@login_required
+@admin_login_required
 def estadisticas_ventas(request):
     ahora = timezone.localtime(timezone.now())
     hoy = ahora.date()

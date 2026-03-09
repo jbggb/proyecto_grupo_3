@@ -1,6 +1,8 @@
 from django.db import models
 from datetime import datetime
 from decimal import Decimal
+from django.core.exceptions import ValidationError
+import re
 
 
 class Administrador(models.Model):
@@ -98,7 +100,6 @@ class Producto(models.Model):
         verbose_name = "producto"
         verbose_name_plural = "productos"
         db_table = "producto"
-        unique_together = [('nombre', 'idMarca', 'idTipo')]
 
 
 class Proveedor(models.Model):
@@ -117,6 +118,7 @@ class Proveedor(models.Model):
         db_table = "proveedor"
 
 
+# ===== MODELO DE VENTAS (Ricardo) =====
 class Venta(models.Model):
     ESTADO_CHOICES = [
         ('Completada', 'Completada'),
@@ -154,22 +156,23 @@ class DetalleVenta(models.Model):
         db_table = "detalle_venta"
 
 
+# ===== MODELO DE COMPRAS (MOJICA) =====
 class Compra(models.Model):
-    idCompra = models.AutoField(primary_key=True, db_column='idCompra')
-    fecha = models.DateField(default=datetime.now, db_column='fechaCompra')
-    estado = models.CharField(max_length=50, blank=True, default='', db_column='estado')
-    Administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE, db_column='idAdministrador')
-    Producto = models.ForeignKey(Producto, on_delete=models.SET_NULL, null=True, db_column='idProducto')
-    Proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE, db_column='idProveedor')
+    fecha = models.DateField(default=datetime.now)
+    estado = models.BooleanField(default=False)
+    Administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE, db_column='Administrador_id')
+    Producto = models.ForeignKey(Producto, on_delete=models.CASCADE, db_column='Producto_id')
+    Proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE, db_column='Proveedor_id')
 
     def __str__(self):
-        return f"Compra #{self.idCompra}"
+        return f"Compra #{self.id}"
 
     class Meta:
         db_table = "compra"
         verbose_name = "compra"
         verbose_name_plural = "compras"
         ordering = ['-fecha']
+
 
 class Pedidos(models.Model):
     id_administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE)

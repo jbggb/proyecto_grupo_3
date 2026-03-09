@@ -63,11 +63,11 @@ urlpatterns = [
     path('proveedores/editar/<int:id>/', proveedores_views.editar_proveedor, name='editar_proveedor'),
     path('proveedores/eliminar/<int:id>/', proveedores_views.eliminar_proveedor, name='eliminar_proveedor'),
 
-    # Compras
+    # Compras ✅ nombres corregidos
     path('compras/', compras_views.compras, name='compras'),
     path('compras/crear/', compras_views.crear_compra, name='crear_compra'),
-    path('compras/editar/<int:id>/', compras_views.editar_compra, name='editar_compra'),
-    path('compras/eliminar/<int:id>/', compras_views.eliminar_compra, name='eliminar_compra'),
+    path('compras/editar/<int:id>/', compras_views.modal_editar_compra, name='modal_editar_compra'),
+    path('compras/eliminar/<int:id>/', compras_views.modal_eliminar_compra, name='modal_eliminar_compra'),
 
     # Administrador
     path('admin/registro/', admin_views.admin_registro, name='admin_registro'),
