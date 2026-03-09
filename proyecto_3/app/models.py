@@ -6,6 +6,7 @@ import re
 
 
 class Administrador(models.Model):
+    idAdministrador = models.AutoField(primary_key=True, db_column='idAdministrador')
     nombre = models.CharField(max_length=150)
     usuario = models.CharField(max_length=50, unique=True)
     contrasena = models.CharField(max_length=255)
@@ -172,6 +173,7 @@ class Compra(models.Model):
         verbose_name = "compra"
         verbose_name_plural = "compras"
         ordering = ['-fecha']
+
 
 class Pedidos(models.Model):
     id_administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE)

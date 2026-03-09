@@ -1,15 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.urls import reverse
-from django.contrib.auth.decorators import login_required
+from app.decorators import admin_login_required
 from app.models import Marca, Producto
 import re
-
-
-@login_required
-def marcas(request):
-    lista = Marca.objects.all()
-    return render(request, 'Marcas/marcas.html', {'marcas': lista})
 
 
 @admin_login_required
@@ -38,10 +32,6 @@ def crear_marca(request):
             messages.success(request, f'Marca "{nombre}" creada exitosamente.')
             return redirect(reverse('productos') + '?abrir_modal=1')
     return redirect('marcas')
-
-
-
-
 
 
 @admin_login_required
