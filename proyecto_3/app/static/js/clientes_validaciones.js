@@ -293,18 +293,7 @@ function documentoDuplicado(valor, idExcluir) {
     return false;
 }
 
-function telefonoDuplicado(valor, idExcluir) {
-    var filas = document.querySelectorAll("table tbody tr");
-    for (var i = 0; i < filas.length; i++) {
-        var celdas = filas[i].querySelectorAll("td");
-        if (celdas.length > 0) {
-            var idFila       = celdas[0].textContent.trim();
-            var telefonoFila = celdas[3].textContent.trim();
-            if (telefonoFila === valor && idFila !== idExcluir) return true;
-        }
-    }
-    return false;
-}
+
 
 function emailDuplicado(valor, idExcluir) {
     var filas = document.querySelectorAll("table tbody tr");

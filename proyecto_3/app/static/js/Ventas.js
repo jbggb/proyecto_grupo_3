@@ -51,13 +51,64 @@ document.addEventListener('DOMContentLoaded', function () {
         var contador = input.parentElement.querySelector('.contador-editar');
         input.oninput = function () { validarCliente(this, feedback, contador); };
     });
+
+    // ── Fix 1: adjuntar submit al form aquí, dentro del DOMContentLoaded ──
+    var formCrear = document.getElementById('formCrearVenta');
+    if (formCrear) {
+        formCrear.removeAttribute('onsubmit'); // quitar el onsubmit inline
+        formCrear.addEventListener('submit', function (e) {
+            if (!validarFormVenta()) {
+                e.preventDefault();
+            }
+        });
+    }
+
+    // ── Fix 2: validar formularios de editar ──
+    document.querySelectorAll('[id^="formEditarVenta"]').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            var cliente   = form.querySelector('input[name="cliente"]');
+            var estado    = form.querySelector('select[name="estado"]');
+            var feedbackC = form.querySelector('.feedback-editar');
+            var feedbackE = form.querySelector('.feedback-estado-editar');
+            var valido    = true;
+
+            if (feedbackC) feedbackC.textContent = '';
+            if (feedbackE) feedbackE.textContent = '';
+
+            if (!cliente.value.trim()) {
+                if (feedbackC) feedbackC.textContent = 'El nombre del cliente es obligatorio';
+                valido = false;
+            } else if (cliente.value.trim().length < 3) {
+                if (feedbackC) feedbackC.textContent = 'El nombre debe tener al menos 3 caracteres';
+                valido = false;
+            }
+
+            if (!estado.value) {
+                if (feedbackE) feedbackE.textContent = 'Debes seleccionar un estado';
+                valido = false;
+            }
+
+            if (!valido) e.preventDefault();
+        });
+    });
+
+    // ── Fix 3: mostrar mensajes Django dentro del modal si venía de crear/editar ──
+    var mensajes = document.querySelectorAll('.django-message');
+    if (mensajes.length > 0) {
+        var contenedor = document.getElementById('mensajesModal');
+        if (contenedor) {
+            mensajes.forEach(function (m) {
+                contenedor.appendChild(m.cloneNode(true));
+            });
+        }
+    }
 });
 
 
 function validarCliente(input, feedbackEl, contadorEl) {
     if (/[0-9]/.test(input.value)) {
         input.value = input.value.replace(/[0-9]/g, '');
-        if (feedbackEl) feedbackEl.textContent = 'No se permiten numeros';
+        if (feedbackEl) feedbackEl.textContent = 'No se permiten números';
     } else if (/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(input.value)) {
         input.value = input.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
         if (feedbackEl) feedbackEl.textContent = 'No se permiten caracteres especiales';
@@ -71,7 +122,7 @@ function validarCliente(input, feedbackEl, contadorEl) {
 
 function agregarProducto(id, nombre, precio, stock) {
     id = String(id);
-    var stockNum = parseInt(stock) || 999;
+    var stockNum  = parseInt(stock) || 999;
     var existente = null;
     for (var i = 0; i < carrito.length; i++) {
         if (carrito[i].id === id) { existente = carrito[i]; break; }
@@ -90,10 +141,7 @@ function agregarProducto(id, nombre, precio, stock) {
 function sumar(id) {
     for (var i = 0; i < carrito.length; i++) {
         if (carrito[i].id === id) {
-            if (carrito[i].cantidad < carrito[i].stock) {
-                carrito[i].cantidad++;
-                renderCarrito();
-            }
+            if (carrito[i].cantidad < carrito[i].stock) { carrito[i].cantidad++; renderCarrito(); }
             return;
         }
     }
@@ -102,17 +150,12 @@ function sumar(id) {
 function restar(id) {
     for (var i = 0; i < carrito.length; i++) {
         if (carrito[i].id === id) {
-            if (carrito[i].cantidad > 1) {
-                carrito[i].cantidad--;
-                renderCarrito();
-            } else {
-                eliminarProducto(id);
-            }
+            if (carrito[i].cantidad > 1) { carrito[i].cantidad--; renderCarrito(); }
+            else { eliminarProducto(id); }
             return;
         }
     }
 }
-
 
 function eliminarProducto(id) {
     carrito = carrito.filter(function (i) { return i.id !== id; });
@@ -147,7 +190,7 @@ function renderCarrito() {
     tbody.innerHTML = '';
 
     for (var k = 0; k < carrito.length; k++) {
-        var item = carrito[k];
+        var item     = carrito[k];
         var subtotal = item.precio * item.cantidad;
         total += subtotal;
 
@@ -155,17 +198,14 @@ function renderCarrito() {
         tr.innerHTML =
             '<td><span class="fw-bold">' + item.nombre + '</span><br>' +
             '<small class="text-muted">$' + item.precio.toLocaleString('es-CO') + ' c/u</small></td>' +
-            '<td>' +
-                '<div class="d-flex align-items-center gap-1">' +
-                    '<button type="button" class="btn btn-outline-secondary btn-sm px-2" onclick="restar(\'' + item.id + '\')">-</button>' +
-                    '<span class="fw-bold px-2">' + item.cantidad + '</span>' +
-                    '<button type="button" class="btn btn-outline-secondary btn-sm px-2" onclick="sumar(\'' + item.id + '\')">+</button>' +
-                '</div>' +
-            '</td>' +
+            '<td><div class="d-flex align-items-center gap-1">' +
+            '<button type="button" class="btn btn-outline-secondary btn-sm px-2" onclick="restar(\'' + item.id + '\')">-</button>' +
+            '<span class="fw-bold px-2">' + item.cantidad + '</span>' +
+            '<button type="button" class="btn btn-outline-secondary btn-sm px-2" onclick="sumar(\'' + item.id + '\')">+</button>' +
+            '</div></td>' +
             '<td class="text-end fw-bold">$' + subtotal.toLocaleString('es-CO') + '</td>' +
             '<td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger" ' +
-            'onclick="eliminarProducto(\'' + item.id + '\')">' +
-            '<i class="fa-solid fa-trash"></i></button></td>';
+            'onclick="eliminarProducto(\'' + item.id + '\')"><i class="fa-solid fa-trash"></i></button></td>';
         tbody.appendChild(tr);
 
         var names = ['producto_id[]', 'producto_nombre[]', 'producto_precio[]', 'producto_cantidad[]'];
@@ -186,6 +226,7 @@ function renderCarrito() {
 function validarFormVenta() {
     var valido = true;
 
+    // Validar carrito
     if (carrito.length === 0) {
         var alerta   = document.getElementById('alertaCarritoVacio');
         var msgVacio = document.getElementById('msgCarritoVacio');
@@ -195,25 +236,29 @@ function validarFormVenta() {
         valido = false;
     }
 
-    var cliente   = document.getElementById('inputClienteCrear').value.trim();
-    var feedbackC = document.getElementById('feedbackCliente');
+    // Validar cliente
+    var clienteInput = document.getElementById('inputClienteCrear');
+    var feedbackC    = document.getElementById('feedbackCliente');
+    var cliente      = clienteInput ? clienteInput.value.trim() : '';
     if (!cliente) {
-        feedbackC.textContent = 'El nombre del cliente es obligatorio';
+        if (feedbackC) feedbackC.textContent = 'El nombre del cliente es obligatorio';
         valido = false;
     } else if (cliente.length < 3) {
-        feedbackC.textContent = 'El nombre debe tener al menos 3 caracteres';
+        if (feedbackC) feedbackC.textContent = 'El nombre debe tener al menos 3 caracteres';
         valido = false;
     } else {
-        feedbackC.textContent = '';
+        if (feedbackC) feedbackC.textContent = '';
     }
 
-    var estado    = document.getElementById('selectEstado').value;
-    var feedbackE = document.getElementById('feedbackEstado');
+    // Validar estado
+    var estadoSelect = document.getElementById('selectEstado');
+    var feedbackE    = document.getElementById('feedbackEstado');
+    var estado       = estadoSelect ? estadoSelect.value : '';
     if (!estado) {
-        feedbackE.textContent = 'Debes seleccionar un estado';
+        if (feedbackE) feedbackE.textContent = 'Debes seleccionar un estado';
         valido = false;
     } else {
-        feedbackE.textContent = '';
+        if (feedbackE) feedbackE.textContent = '';
     }
 
     return valido;

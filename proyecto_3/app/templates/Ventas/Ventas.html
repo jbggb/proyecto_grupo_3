@@ -2,6 +2,7 @@
 {% load static %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/reporte_1.css' %}">
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="fa-solid fa-cart-shopping me-2"></i>Panel de Gestión de Ventas</h2>
@@ -9,15 +10,10 @@
         <i class="fa-solid fa-plus me-1"></i> Nueva Venta
     </button>
 </div>
-
-{% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    {% endfor %}
-{% endif %}
+<div class="contenedor-exportar">
+    <a href="{% url 'exportar_ventas_pdf' %}" class="btn-pdf"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</a>
+    <a href="{% url 'exportar_ventas_excel' %}" class="btn-excel"><i class="fa-solid fa-file-excel"></i> Exportar Excel</a>
+</div>
 
 <!-- Estadísticas -->
 <div class="row mb-4">
@@ -160,7 +156,7 @@
                 <h5 class="modal-title"><i class="fa-solid fa-plus me-1"></i> Nueva Venta</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="post" action="{% url 'crear_venta' %}" id="formCrearVenta" onsubmit="return validarFormVenta()">
+            <form method="post" action="{% url 'crear_venta' %}" id="formCrearVenta">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="row g-4">
