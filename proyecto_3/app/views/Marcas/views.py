@@ -1,22 +1,24 @@
+"""Vistas para gestión de marcas"""
+import re
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
+from django.views import View
+from django.utils.decorators import method_decorator
 from django.urls import reverse
 from app.decorators import admin_login_required
 from app.models import Marca, Producto
-import re
 
 
-@admin_login_required
-def marcas(request):
-    lista = Marca.objects.all()
-    return render(request, 'Marcas/marcas.html', {'marcas': lista})
+@method_decorator(admin_login_required, name='dispatch')
+class MarcasView(View):
+    def get(self, request):
+        return render(request, 'Marcas/marcas.html', {'marcas': Marca.objects.all()})
 
 
-@admin_login_required
-def crear_marca(request):
-    if request.method == 'POST':
+@method_decorator(admin_login_required, name='dispatch')
+class CrearMarcaView(View):
+    def post(self, request):
         nombre = request.POST.get('nombreMarca', '').strip()
-        next_url = request.POST.get('next', 'productos')
         if not nombre:
             messages.error(request, 'El nombre es obligatorio.')
         elif len(nombre) < 2:
@@ -31,17 +33,22 @@ def crear_marca(request):
             Marca.objects.create(nombreMarca=nombre)
             messages.success(request, f'Marca "{nombre}" creada exitosamente.')
             return redirect(reverse('productos') + '?abrir_modal=1')
-    return redirect('marcas')
+        return redirect('marcas')
 
 
-@admin_login_required
-def eliminar_marca(request, id):
-    marca = get_object_or_404(Marca, idMarca=id)
-    if request.method == 'POST':
+@method_decorator(admin_login_required, name='dispatch')
+class EliminarMarcaView(View):
+    def post(self, request, id):
+        marca = get_object_or_404(Marca, idMarca=id)
         if Producto.objects.filter(idMarca=marca).exists():
             messages.error(request, f'No se puede eliminar "{marca.nombreMarca}": tiene productos asociados.')
         else:
             nombre = marca.nombreMarca
             marca.delete()
             messages.success(request, f'Marca "{nombre}" eliminada.')
-    return redirect('marcas')
+        return redirect('marcas')
+
+
+marcas         = MarcasView.as_view()
+crear_marca    = CrearMarcaView.as_view()
+eliminar_marca = EliminarMarcaView.as_view()

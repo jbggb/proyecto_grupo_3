@@ -15,14 +15,6 @@
             </div>
             <div class="card-body">
 
-                {% if messages %}
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} py-2">
-                            {{ message }}
-                        </div>
-                    {% endfor %}
-                {% endif %}
-
                 <form method="POST" action="{% url 'crear_unidad' %}">
                     {% csrf_token %}
                     <input type="hidden" name="next" value="{{ request.GET.next|default:'productos' }}">

@@ -6,7 +6,8 @@ from app.views.Clientes import views as clientes_views
 from app.views.Proveedores import views as proveedores_views
 from app.views.Compras import views as compras_views
 from app.views.Ventas import views as ventas_views
-from app.views.Reportes import views as reportes_views
+from app.views.Reportes import views as reportes_views 
+from app.views import reportes as exportar_views  
 from app.views.Administradores import views as admin_views
 from app.views.Marcas import views as marcas_views
 from app.views.Tipo_producto import views as tipos_views
@@ -26,6 +27,8 @@ urlpatterns = [
     path('productos/crear/', productos_views.crear_producto, name='crear_producto'),
     path('productos/editar/<int:id>/', productos_views.editar_producto, name='editar_producto'),
     path('productos/eliminar/<int:id>/', productos_views.eliminar_producto, name='eliminar_producto'),
+    path('reporte/productos/pdf', exportar_views.ExportarProductosPDF.as_view(), name='exportar_productos_pdf'),
+    path('reporte/productos/excel', exportar_views.ExportarProductosExcel.as_view(), name='exportar_productos_excel'),
 
     # Marcas
     path('marcas/', marcas_views.marcas, name='marcas'),
@@ -47,6 +50,8 @@ urlpatterns = [
     path('clientes/crear/', clientes_views.crear_cliente, name='crear_cliente'),
     path('clientes/editar/<int:id>/', clientes_views.editar_cliente, name='editar_cliente'),
     path('clientes/eliminar/<int:id>/', clientes_views.eliminar_cliente, name='eliminar_cliente'),
+    path('reporte/clientes/pdf', exportar_views.ExportarClientesPDF.as_view(), name='exportar_clientes_pdf'),
+    path('reporte/clientes/excel', exportar_views.ExportarClientesExcel.as_view(), name='exportar_clientes_excel'),
 
     # Ventas
     path('ventas/', ventas_views.ventas, name='ventas'),
@@ -56,18 +61,23 @@ urlpatterns = [
     path('ventas/completar/<int:id>/', ventas_views.completar_venta, name='completar_venta'),
     path('ventas/eliminar/<int:id>/', ventas_views.eliminar_venta, name='eliminar_venta'),
     path('ventas/estadisticas/', ventas_views.estadisticas_ventas, name='estadisticas_ventas'),
+    path('reporte/ventas/pdf', exportar_views.ExportarVentasPDF.as_view(), name='exportar_ventas_pdf'),
+    path('reporte/ventas/excel', exportar_views.ExportarVentasExcel.as_view(), name='exportar_ventas_excel'),
 
     # Proveedores
     path('proveedores/', proveedores_views.proveedores, name='proveedores'),
     path('proveedores/crear/', proveedores_views.crear_proveedor, name='crear_proveedor'),
     path('proveedores/editar/<int:id>/', proveedores_views.editar_proveedor, name='editar_proveedor'),
     path('proveedores/eliminar/<int:id>/', proveedores_views.eliminar_proveedor, name='eliminar_proveedor'),
+    path('reporte/proveedores/pdf', exportar_views.ExportarProveedoresPDF.as_view(), name='exportar_proveedores_pdf'),
+    path('reporte/proveedores/excel', exportar_views.ExportarProveedoresExcel.as_view(), name='exportar_proveedores_excel'),
 
     # Compras
     path('compras/', compras_views.compras, name='compras'),
     path('compras/crear/', compras_views.crear_compra, name='crear_compra'),
-    path('compras/editar/<int:id>/', compras_views.modal_editar_compra, name='editar_compra'),
-    path('compras/eliminar/<int:id>/', compras_views.modal_eliminar_compra, name='eliminar_compra'),
+    path('compras/editar/<int:id>/', compras_views.modal_editar_compra, name='modal_editar_compra'),
+    path('compras/eliminar/<int:id>/', compras_views.modal_eliminar_compra, name='modal_eliminar_compra'),path('reporte/compras/pdf', exportar_views.ExportarComprasPDF.as_view(), name='exportar_compras_pdf'),
+    path('reporte/compras/excel', exportar_views.ExportarComprasExcel.as_view(), name='exportar_compras_excel'),
 
     # Administrador
     path('admin/registro/', admin_views.admin_registro, name='admin_registro'),

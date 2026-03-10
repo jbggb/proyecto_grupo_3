@@ -105,8 +105,8 @@ document.addEventListener("DOMContentLoaded", function() {
             } else if (!regexSoloNumeros.test(telefono.value.trim())) {
                 mostrarError(telefono, "El teléfono solo puede contener números.");
                 valido = false;
-            } else if (telefono.value.trim().length < 7 || telefono.value.trim().length > 15) {
-                mostrarError(telefono, "El teléfono debe tener entre 7 y 15 dígitos.");
+            } else if (telefono.value.trim().length < 7 || telefono.value.trim().length > 10) {
+                mostrarError(telefono, "El teléfono debe tener entre 7 y 10 dígitos.");
                 valido = false;
             } else if (telefono.value.trim()[0] !== "3") {
                 mostrarError(telefono, "El teléfono debe iniciar con 3.");
@@ -293,18 +293,7 @@ function documentoDuplicado(valor, idExcluir) {
     return false;
 }
 
-function telefonoDuplicado(valor, idExcluir) {
-    var filas = document.querySelectorAll("table tbody tr");
-    for (var i = 0; i < filas.length; i++) {
-        var celdas = filas[i].querySelectorAll("td");
-        if (celdas.length > 0) {
-            var idFila       = celdas[0].textContent.trim();
-            var telefonoFila = celdas[3].textContent.trim();
-            if (telefonoFila === valor && idFila !== idExcluir) return true;
-        }
-    }
-    return false;
-}
+
 
 function emailDuplicado(valor, idExcluir) {
     var filas = document.querySelectorAll("table tbody tr");
