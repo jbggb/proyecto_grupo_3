@@ -57,7 +57,7 @@
         <tbody>
             {% for compra in compras %}
             <tr>
-                <td>{{ compra.id }}</td>
+                <td>{{ compra.idCompra }}</td>
                 <td>{{ compra.Proveedor.nombre }}</td>
                 <td>{{ compra.Producto.nombre }}</td>
                 <td>{{ compra.Administrador.nombre }}</td>
@@ -73,12 +73,12 @@
                     <div class="btn-group">
                         <button class="btn btn-sm btn-warning"
                                 data-bs-toggle="modal"
-                                data-bs-target="#modalEditarCompra{{ compra.id }}">
+                                data-bs-target="#modalEditarCompra{{ compra.idCompra }}">
                             <i class="fa-solid fa-edit"></i>
                         </button>
                         <button class="btn btn-sm btn-danger"
                                 data-bs-toggle="modal"
-                                data-bs-target="#modalEliminarCompra{{ compra.id }}">
+                                data-bs-target="#modalEliminarCompra{{ compra.idCompra }}">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
@@ -93,7 +93,7 @@
     </table>
 </div>
 
-<!-- ===================== Modal: Crear Compra ===================== -->
+<!-- Modal: Crear Compra -->
 <div class="modal fade" id="modalCrearCompra" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -146,18 +146,18 @@
     </div>
 </div>
 
-<!-- ===================== Modales Editar y Eliminar por compra ===================== -->
+<!-- Modales Editar y Eliminar por compra -->
 {% for compra in compras %}
 
 <!-- Modal Editar -->
-<div class="modal fade" id="modalEditarCompra{{ compra.id }}" tabindex="-1">
+<div class="modal fade" id="modalEditarCompra{{ compra.idCompra }}" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-warning">
-                <h5 class="modal-title"><i class="fa-solid fa-edit me-1"></i> Editar Compra #{{ compra.id }}</h5>
+                <h5 class="modal-title"><i class="fa-solid fa-edit me-1"></i> Editar Compra #{{ compra.idCompra }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{% url 'modal_editar_compra' compra.id %}">
+            <form method="POST" action="{% url 'modal_editar_compra' compra.idCompra %}">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="mb-3">
@@ -207,17 +207,17 @@
 </div>
 
 <!-- Modal Eliminar -->
-<div class="modal fade" id="modalEliminarCompra{{ compra.id }}" tabindex="-1">
+<div class="modal fade" id="modalEliminarCompra{{ compra.idCompra }}" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title"><i class="fa-solid fa-trash me-1"></i> Eliminar Compra</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{% url 'modal_eliminar_compra' compra.id %}">
+            <form method="POST" action="{% url 'modal_eliminar_compra' compra.idCompra %}">
                 {% csrf_token %}
                 <div class="modal-body">
-                    <p>¿Está seguro de eliminar la compra <strong>#{{ compra.id }}</strong>?</p>
+                    <p>¿Está seguro de eliminar la compra <strong>#{{ compra.idCompra }}</strong>?</p>
                     <p>
                         Proveedor: <strong>{{ compra.Proveedor.nombre }}</strong> —
                         Producto: <strong>{{ compra.Producto.nombre }}</strong>
@@ -238,5 +238,4 @@
 </div>
 
 {% endfor %}
-
 {% endblock %}
