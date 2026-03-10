@@ -1,7 +1,8 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static humanize %}
 
 {% block content %}
+<link rel="stylesheet" href="{% static 'css/reporte_1.css' %}">
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h2><i class="fa-solid fa-cart-shopping me-2"></i>Panel de Gestión de Ventas</h2>
@@ -9,15 +10,10 @@
         <i class="fa-solid fa-plus me-1"></i> Nueva Venta
     </button>
 </div>
-
-{% if messages %}
-    {% for message in messages %}
-    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
-        {{ message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    {% endfor %}
-{% endif %}
+<div class="contenedor-exportar">
+    <a href="{% url 'exportar_ventas_pdf' %}" class="btn-pdf"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</a>
+    <a href="{% url 'exportar_ventas_excel' %}" class="btn-excel"><i class="fa-solid fa-file-excel"></i> Exportar Excel</a>
+</div>
 
 <!-- Estadísticas -->
 <div class="row mb-4">
@@ -25,7 +21,7 @@
         <div class="card text-white bg-success">
             <div class="card-body">
                 <h6 class="card-title">Ventas de Hoy</h6>
-                <h4>${{ ventas_hoy|floatformat:0 }}</h4>
+                <h4>${{ ventas_hoy|floatformat:0|intcomma }}</h4>
             </div>
         </div>
     </div>
@@ -33,7 +29,7 @@
         <div class="card text-white bg-primary">
             <div class="card-body">
                 <h6 class="card-title">Total del Mes</h6>
-                <h4>${{ total_mes|floatformat:0 }}</h4>
+                <h4>${{ total_mes|floatformat:0|intcomma }}</h4>
             </div>
         </div>
     </div>
@@ -109,7 +105,7 @@
                             <span class="text-muted">—</span>
                         {% endfor %}
                     </td>
-                    <td><strong>${{ v.total|floatformat:0 }}</strong></td>
+                    <td><strong>${{ v.total|floatformat:0|intcomma }}</strong></td>
                     <td>
                         <span class="badge {% if v.estado == 'Completada' %}bg-success{% else %}bg-warning text-dark{% endif %}">
                             {{ v.estado }}
@@ -160,7 +156,7 @@
                 <h5 class="modal-title"><i class="fa-solid fa-plus me-1"></i> Nueva Venta</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="post" action="{% url 'crear_venta' %}" id="formCrearVenta" onsubmit="return validarFormVenta()">
+            <form method="post" action="{% url 'crear_venta' %}" id="formCrearVenta">
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="row g-4">
@@ -180,7 +176,7 @@
                                                 <small class="text-muted">Stock: {{ p.stock }}</small>
                                             </div>
                                             <div class="text-end">
-                                                <div class="text-primary fw-bold mb-1">${{ p.precio|floatformat:0 }}</div>
+                                                <div class="text-primary fw-bold mb-1">${{ p.precio|floatformat:0|intcomma }}</div>
                                                 <button type="button" class="btn btn-primary btn-sm"
                                                         onclick="agregarProducto('{{ p.idProducto }}', '{{ p.nombre }}', {{ p.precio }}, {{ p.stock }})">
                                                     <i class="fa-solid fa-plus"></i> Agregar
@@ -215,7 +211,7 @@
 
                                 <!-- Alerta carrito vacío al intentar guardar -->
                                 <div id="alertaCarritoVacio" class="alert alert-danger d-none py-2 mb-0">
-                                    ❌ Debes agregar al menos un producto antes de guardar
+                                    Por favor debe agregar al menos un producto para poder guardar la venta
                                 </div>
 
                                 <!-- Tabla del carrito -->
@@ -318,7 +314,7 @@
                     <strong>Productos actuales:</strong>
                     <ul class="mt-1">
                         {% for d in v.detalles.all %}
-                        <li>{{ d.producto_nombre }} x{{ d.cantidad }} — ${{ d.precio|floatformat:0 }}</li>
+                        <li>{{ d.producto_nombre }} x{{ d.cantidad }} — ${{ d.precio|floatformat:0|intcomma }}</li>
                         {% endfor %}
                     </ul>
                 </div>

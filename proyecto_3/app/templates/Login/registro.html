@@ -134,29 +134,5 @@
 <!-- ✅ JS externo con todas las validaciones -->
 <script src="{% static 'js/Registro.js' %}"></script>
 
-<script>
-    {% if messages %}
-        {% for message in messages %}
-            {% if message.tags == 'success' %}
-                Swal.fire({
-                    title: "¡Registro exitoso!",
-                    text: "El administrador ha sido registrado correctamente.",
-                    icon: "success",
-                    confirmButtonColor: "#198754"
-                }).then(function(result) {
-                    if (result.isConfirmed) window.location.href = "{% url 'inicio' %}";
-                });
-            {% elif message.tags == 'error' %}
-                Swal.fire({
-                    title: "Error",
-                    text: "Por favor corrige los errores del formulario.",
-                    icon: "error",
-                    confirmButtonColor: "#dc3545"
-                });
-            {% endif %}
-        {% endfor %}
-    {% endif %}
-</script>
-
 </body>
 </html>
