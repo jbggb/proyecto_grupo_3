@@ -89,15 +89,15 @@ document.addEventListener("DOMContentLoaded", function() {
             } else if (!regexSoloNumeros.test(documento.value.trim())) {
                 mostrarError(documento, "El documento solo puede contener números.");
                 valido = false;
-            } else if (documento.value.trim().length < 6 || documento.value.trim().length > 12) {
-                mostrarError(documento, "El documento debe tener entre 6 y 12 dígitos.");
+            } else if (documento.value.trim().length !== 10){
+                mostrarError(documento, "El documento debe tener entre 10 digitos solamente.");
                 valido = false;
             } else if (documentoDuplicado(documento.value.trim(), null)) {
                 mostrarError(documento, "Ya existe un cliente con ese documento.");
                 valido = false;
             }
 
-            // Validar Teléfono: entre 7 y 15 dígitos ✅
+            // Validar Teléfono: solo dies digitos ✅
             var telefono = formAgregar.querySelector("input[name='telefono']");
             if (telefono.value.trim() === "") {
                 mostrarError(telefono, "El teléfono es obligatorio.");
@@ -105,8 +105,13 @@ document.addEventListener("DOMContentLoaded", function() {
             } else if (!regexSoloNumeros.test(telefono.value.trim())) {
                 mostrarError(telefono, "El teléfono solo puede contener números.");
                 valido = false;
+<<<<<<< HEAD
             } else if (telefono.value.trim().length < 7 || telefono.value.trim().length > 10) {
                 mostrarError(telefono, "El teléfono debe tener entre 7 y 10 dígitos.");
+=======
+            } else if (telefono.value.trim().length !== 10) {
+                mostrarError(telefono, "El teléfono debe tener 10 dígitos.");
+>>>>>>> origin/MOJICA
                 valido = false;
             } else if (telefono.value.trim()[0] !== "3") {
                 mostrarError(telefono, "El teléfono debe iniciar con 3.");

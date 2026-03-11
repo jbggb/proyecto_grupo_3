@@ -57,7 +57,11 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'proyecto',
         'USER': 'root',
+<<<<<<< HEAD
         'PASSWORD': '123456',  # <-- CAMBIA ESTO
+=======
+        'PASSWORD': 'parceroj',  # <-- CAMBIA ESTO
+>>>>>>> origin/MOJICA
         'HOST': 'localhost',
         'PORT': '3306',
     }

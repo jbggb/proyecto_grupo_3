@@ -28,7 +28,11 @@ class Cliente(models.Model):
         ('inactivo', 'Inactivo'),
     ]
     nombre = models.CharField(max_length=150)
+<<<<<<< HEAD
     documento = models.CharField(max_length=12, blank=True, default='', db_column='documento')
+=======
+    documento = models.CharField(max_length=10, blank=True, default='', db_column='documento')
+>>>>>>> origin/MOJICA
     telefono = models.CharField(max_length=10)
     email = models.EmailField(max_length=100)
     direccion = models.CharField(max_length=200, blank=True, default='')
