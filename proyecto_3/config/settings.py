@@ -16,6 +16,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.humanize',
 ]
 
 MIDDLEWARE = [
@@ -58,10 +59,14 @@ DATABASES = {
         'NAME': 'proyecto',
         'USER': 'root',
 <<<<<<< HEAD
+<<<<<<< HEAD
         'PASSWORD': '123456',  # <-- CAMBIA ESTO
 =======
         'PASSWORD': 'parceroj',  # <-- CAMBIA ESTO
 >>>>>>> origin/MOJICA
+=======
+        'PASSWORD': 'aprendermysql123',  # <-- CAMBIA ESTO
+>>>>>>> origin/ricardo
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -77,7 +82,10 @@ AUTH_PASSWORD_VALIDATORS = [
 LANGUAGE_CODE = 'es-co'
 TIME_ZONE = 'America/Bogota'
 USE_I18N = True
+USE_L10N = True
 USE_TZ = True
+USE_THOUSAND_SEPARATOR = True
+THOUSAND_SEPARATOR = '.'
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'app' / 'static']

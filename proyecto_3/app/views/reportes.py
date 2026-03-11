@@ -165,7 +165,7 @@ class ExportarVentasPDF(DjangoView):
     def get(self, request):
         ventas = Venta.objects.all()
         columnas = ['ID', 'Cliente', 'Fecha', 'Total', 'Estado']
-        datos = [(v.id, v.cliente, v.fecha, v.total, v.estado) for v in ventas]
+        datos = [(v.id, v.cliente, v.fecha.replace(tzinfo=None), v.total, v.estado) for v in ventas]
         return exportar_pdf(
             titulo='REPORTE DE VENTAS',
             columnas=columnas,
@@ -177,7 +177,7 @@ class ExportarVentasExcel(DjangoView):
     def get(self, request):
         ventas = Venta.objects.all()
         columnas = ['ID', 'Cliente', 'Fecha', 'Total', 'Estado']
-        datos = [(v.id, v.cliente, v.fecha, v.total, v.estado) for v in ventas]
+        datos = [(v.id, v.cliente, v.fecha.replace(tzinfo=None), v.total, v.estado) for v in ventas]
         return exportar_excel(
             titulo='REPORTE DE VENTAS',
             columnas=columnas,
