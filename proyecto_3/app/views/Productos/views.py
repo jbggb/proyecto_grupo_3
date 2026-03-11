@@ -68,6 +68,8 @@ class EditarProductoView(View):
     def post(self, request, id):
         producto = get_object_or_404(Producto, idProducto=id)
         nombre   = request.POST.get('nombre', '').strip()
+        precio   = request.POST.get('precio', '').strip()
+        stock    = request.POST.get('stock', '').strip()
         idMarca  = request.POST.get('idMarca')
         idTipo   = request.POST.get('idTipo')
 
@@ -81,10 +83,14 @@ class EditarProductoView(View):
             messages.error(request, f'"{nombre}" ya existe como Unidad de medida.'); return redirect('productos')
         if Producto.objects.filter(nombre__iexact=nombre, idMarca=idMarca, idTipo=idTipo).exclude(idProducto=id).exists():
             messages.error(request, f'Ya existe un producto "{nombre}" con esa marca y tipo.'); return redirect('productos')
+        if not precio.isdigit() or int(precio) < 1 or int(precio) > 800000:
+            messages.error(request, 'El precio debe ser un número entre 1 y 800.000.'); return redirect('productos')
+        if not stock.isdigit() or int(stock) < 0 or int(stock) > 1000:
+            messages.error(request, 'El stock debe ser un número entre 0 y 1.000.'); return redirect('productos')
 
         producto.nombre = nombre
-        producto.precio = request.POST.get('precio')
-        producto.stock  = request.POST.get('stock')
+        producto.precio = precio
+        producto.stock  = stock
         producto.idMarca  = get_object_or_404(Marca, idMarca=idMarca)
         producto.idTipo   = get_object_or_404(TipoProductos, idTipo=idTipo)
         producto.idUnidad = get_object_or_404(unidad_medida, idUnidad=request.POST.get('idUnidad'))

@@ -48,25 +48,12 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-# =============================================
-# BASE DE DATOS - MySQL
-# Cambia 'proyecto' por el nombre de tu BD
-# Cambia 'tu_contraseña' por tu contraseña de MySQL
-# =============================================
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'proyecto',
         'USER': 'root',
-<<<<<<< HEAD
-<<<<<<< HEAD
-        'PASSWORD': '123456',  # <-- CAMBIA ESTO
-=======
-        'PASSWORD': 'parceroj',  # <-- CAMBIA ESTO
->>>>>>> origin/MOJICA
-=======
-        'PASSWORD': 'aprendermysql123',  # <-- CAMBIA ESTO
->>>>>>> origin/ricardo
+        'PASSWORD': '12345678',
         'HOST': 'localhost',
         'PORT': '3306',
     }
@@ -91,7 +78,6 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'app' / 'static']
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
 
 # ===== LOGIN CONFIG =====
 LOGIN_URL = '/login/'

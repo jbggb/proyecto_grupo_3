@@ -6,7 +6,7 @@ import re
 
 
 class Administrador(models.Model):
-    idAdministrador = models.AutoField(primary_key=True, db_column='idAdministrador')
+    # BD: columna 'id' (AutoField estándar)
     nombre = models.CharField(max_length=150)
     usuario = models.CharField(max_length=50, unique=True)
     contrasena = models.CharField(max_length=255)
@@ -28,12 +28,8 @@ class Cliente(models.Model):
         ('inactivo', 'Inactivo'),
     ]
     nombre = models.CharField(max_length=150)
-<<<<<<< HEAD
-    documento = models.CharField(max_length=12, blank=True, default='', db_column='documento')
-=======
-    documento = models.CharField(max_length=10, blank=True, default='', db_column='documento')
->>>>>>> origin/MOJICA
-    telefono = models.CharField(max_length=10)
+    documento = models.CharField(max_length=10, blank=True, default='')
+    telefono = models.CharField(max_length=20)
     email = models.EmailField(max_length=100)
     direccion = models.CharField(max_length=200, blank=True, default='')
     estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='activo')
@@ -109,8 +105,9 @@ class Producto(models.Model):
 
 
 class Proveedor(models.Model):
+    # BD: columna 'id' (AutoField estándar), telefono varchar(20)
     nombre = models.CharField(max_length=150)
-    telefono = models.CharField(max_length=10)
+    telefono = models.CharField(max_length=20)
     email = models.EmailField(max_length=100)
     envio = models.IntegerField(default=0)
     fechaRegistro = models.DateField(default=datetime.now)
@@ -129,6 +126,7 @@ class Venta(models.Model):
         ('Completada', 'Completada'),
         ('Pendiente', 'Pendiente'),
     ]
+    # BD: columna 'id', estado varchar(20) default 'pendiente'
     cliente = models.CharField(max_length=100)
     fecha = models.DateTimeField(auto_now_add=True)
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -145,14 +143,15 @@ class Venta(models.Model):
 
 
 class DetalleVenta(models.Model):
+    # BD: columna 'id', venta_id, cantidad puede ser null
     venta = models.ForeignKey(Venta, on_delete=models.CASCADE, related_name='detalles')
     producto_nombre = models.CharField(max_length=255)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
-    cantidad = models.IntegerField(default=1)
+    cantidad = models.IntegerField(default=1, null=True, blank=True)
 
     @property
     def subtotal(self):
-        return self.precio * self.cantidad
+        return self.precio * (self.cantidad or 0)
 
     def __str__(self):
         return f"{self.producto_nombre} x{self.cantidad}"
@@ -162,15 +161,15 @@ class DetalleVenta(models.Model):
 
 
 class Compra(models.Model):
-    idCompra = models.AutoField(primary_key=True, db_column='idCompra')
-    fecha = models.DateField(default=datetime.now, db_column='fechaCompra')
-    estado = models.CharField(max_length=50, blank=True, default='', db_column='estado')
-    Administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE, db_column='idAdministrador')
-    Producto = models.ForeignKey(Producto, on_delete=models.SET_NULL, null=True, db_column='idProducto')
-    Proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE, db_column='idProveedor')
+    # BD: columna 'id', estado tinyint(1) boolean, FK con nombres Administrador_id, Producto_id, Proveedor_id
+    fecha = models.DateField(default=datetime.now)
+    estado = models.BooleanField(default=False)
+    Administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE)
+    Producto = models.ForeignKey(Producto, on_delete=models.SET_NULL, null=True)
+    Proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"Compra #{self.idCompra}"
+        return f"Compra #{self.id}"
 
     class Meta:
         db_table = "compra"
