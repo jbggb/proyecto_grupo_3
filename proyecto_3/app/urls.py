@@ -6,8 +6,8 @@ from app.views.Clientes import views as clientes_views
 from app.views.Proveedores import views as proveedores_views
 from app.views.Compras import views as compras_views
 from app.views.Ventas import views as ventas_views
-from app.views.Reportes import views as reportes_views 
-from app.views import reportes as exportar_views  
+from app.views.Reportes import views as reportes_views
+from app.views import reportes as exportar_views
 from app.views.Administradores import views as admin_views
 from app.views.Marcas import views as marcas_views
 from app.views.Tipo_producto import views as tipos_views
@@ -72,11 +72,12 @@ urlpatterns = [
     path('reporte/proveedores/pdf', exportar_views.ExportarProveedoresPDF.as_view(), name='exportar_proveedores_pdf'),
     path('reporte/proveedores/excel', exportar_views.ExportarProveedoresExcel.as_view(), name='exportar_proveedores_excel'),
 
-    # Compras ✅ nombres corregidos
+    # Compras
     path('compras/', compras_views.compras, name='compras'),
     path('compras/crear/', compras_views.crear_compra, name='crear_compra'),
     path('compras/editar/<int:id>/', compras_views.modal_editar_compra, name='modal_editar_compra'),
-    path('compras/eliminar/<int:id>/', compras_views.modal_eliminar_compra, name='modal_eliminar_compra'),path('reporte/compras/pdf', exportar_views.ExportarComprasPDF.as_view(), name='exportar_compras_pdf'),
+    path('compras/eliminar/<int:id>/', compras_views.modal_eliminar_compra, name='modal_eliminar_compra'),
+    path('reporte/compras/pdf', exportar_views.ExportarComprasPDF.as_view(), name='exportar_compras_pdf'),
     path('reporte/compras/excel', exportar_views.ExportarComprasExcel.as_view(), name='exportar_compras_excel'),
 
     # Administrador
@@ -84,4 +85,5 @@ urlpatterns = [
 
     # Reportes
     path('reportes/', reportes_views.reportes, name='reportes'),
+    path('reportes/data/', reportes_views.reportes_data, name='reportes_data'),  # ← NUEVO: tiempo real
 ]

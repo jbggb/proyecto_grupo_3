@@ -37,3 +37,20 @@ function mostrarErrorMarca(msg) {
         setTimeout(function () { el.style.display = 'none'; }, 3000);
     }
 }
+
+function confirmarEliminar(nombre, form) {
+    Swal.fire({
+        title: '¿Eliminar marca?',
+        html: 'Estás a punto de eliminar <strong>"' + nombre + '"</strong>.<br>Esta acción no se puede deshacer.',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then(function (result) {
+        if (result.isConfirmed) {
+            form.submit();
+        }
+    });
+}

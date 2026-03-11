@@ -1,7 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block messages %}{% endblock %}
+
 {% block content %}
+<h1 class="mb-1">Gestion de Marcas</h1>
+<p class="text-muted mb-3">Agrega o elimina marcas de productos</p>
+
 <div class="row">
     <div class="col-md-4">
         <div class="card">
@@ -11,13 +16,13 @@
             <div class="card-body">
                 <form method="POST" action="{% url 'crear_marca' %}">
                     {% csrf_token %}
-                    <input type="hidden" name="next" value="{% url 'marcas' %}">
+                    <input type="hidden" name="next" value="{{ request.GET.next|default:'productos' }}">
                     <div class="mb-3">
                         <label class="form-label">Nombre de la Marca <span class="text-danger">*</span></label>
                         <input type="text" name="nombreMarca" class="form-control" required
                                minlength="2" maxlength="100"
                                oninput="bloquearNombreMarca(this)"
-                               placeholder="Ej: Diana, Zenu...">
+                               placeholder="Ej: Alpina, Diana...">
                         <div id="marca_error" class="text-danger small mt-1" style="display:none;"></div>
                     </div>
                     <button type="submit" class="btn btn-success w-100">Guardar</button>
@@ -25,6 +30,7 @@
             </div>
         </div>
     </div>
+
     <div class="col-md-8">
         <div class="card">
             <div class="card-header bg-dark text-white">
@@ -36,7 +42,6 @@
                     <span>{{ marca.nombreMarca }}</span>
                     <form method="POST" action="{% url 'eliminar_marca' marca.idMarca %}">
                         {% csrf_token %}
-                        <input type="hidden" name="next" value="{% url 'marcas' %}">
                         <button type="button" class="btn btn-danger btn-sm"
                                 onclick="confirmarEliminar('{{ marca.nombreMarca }}', this.closest('form'))">
                             <i class="fa-solid fa-trash"></i> Eliminar
@@ -50,6 +55,7 @@
         </div>
     </div>
 </div>
+
 {% endblock %}
 
 {% block extra_js %}

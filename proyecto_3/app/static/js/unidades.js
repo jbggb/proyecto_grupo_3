@@ -1,4 +1,3 @@
-
 function bloquearNombreUnidad(input) {
     var antes = input.value;
     var limpio = antes.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ ]/g, '');

@@ -21,7 +21,7 @@ class LoginView(View):
         try:
             admin = Administrador.objects.get(usuario=username)
             if check_password(password, admin.contrasena):
-                request.session['admin_id']      = admin.id
+                request.session['admin_id']      = admin.idAdministrador
                 request.session['admin_nombre']  = admin.nombre
                 request.session['admin_usuario'] = admin.usuario
                 messages.success(request, f'¡Bienvenido, {admin.nombre}!')
