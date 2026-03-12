@@ -67,7 +67,11 @@ class AdministradorRegistroForm(forms.ModelForm):
             raise ValidationError('El usuario debe tener al menos 3 caracteres.')
         if not re.match(r'^[a-zA-Z0-9_]+$', usuario):
             raise ValidationError('El usuario solo puede contener letras, números y guión bajo (_).')
-        if Administrador.objects.filter(usuario=usuario).exists():
+        # ✅ CORREGIDO: excluir el registro actual al editar (self.instance.pk existe si es edición)
+        qs = Administrador.objects.filter(usuario=usuario)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
             raise ValidationError('Este usuario ya está registrado.')
         return usuario
 
@@ -75,19 +79,23 @@ class AdministradorRegistroForm(forms.ModelForm):
         email = self.cleaned_data.get('email', '').strip()
         if not email:
             raise ValidationError('El correo electrónico es obligatorio.')
-        
+
         patron = r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$'
         if not re.match(patron, email):
             raise ValidationError('Ingrese un correo electrónico válido.')
-        
-        dominios_permitidos = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com']
+
+        dominios_permitidos = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'sena.edu.co']
         dominio = email.split('@')[1]
         if dominio not in dominios_permitidos:
             raise ValidationError(f"Solo se permiten correos de: {', '.join(dominios_permitidos)}")
-        
-        if Administrador.objects.filter(email=email).exists():
+
+        # ✅ CORREGIDO: excluir el registro actual al editar
+        qs = Administrador.objects.filter(email=email)
+        if self.instance and self.instance.pk:
+            qs = qs.exclude(pk=self.instance.pk)
+        if qs.exists():
             raise ValidationError('Este correo electrónico ya está registrado.')
-        
+
         return email
 
     def clean_contrasena(self):
@@ -112,7 +120,6 @@ class AdministradorRegistroForm(forms.ModelForm):
 
     def save(self, commit=True):
         admin = super().save(commit=False)
-        # ✅ Hashear la contraseña antes de guardar
         admin.contrasena = make_password(self.cleaned_data['contrasena'])
         if commit:
             admin.save()

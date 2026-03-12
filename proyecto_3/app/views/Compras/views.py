@@ -9,20 +9,6 @@ from app.decorators import admin_login_required
 from ...models import Compra, Proveedor, Producto, Administrador
 
 
-def _get_or_create_admin():
-    admin = Administrador.objects.first()
-    if not admin:
-        from django.contrib.auth.models import User
-        user = User.objects.filter(is_superuser=True).first() or User.objects.first()
-        if user:
-            admin = Administrador.objects.create(
-                nombre=user.get_full_name() or user.username,
-                usuario=user.username, contrasena=user.password,
-                email=user.email or f'{user.username}@admin.com',
-                fechaRegistro=date.today(),
-            )
-    return admin
-
 def _validar_fecha_nueva(fecha_str):
     try:
         fecha = date.fromisoformat(fecha_str)
@@ -36,14 +22,27 @@ def _validar_fecha_nueva(fecha_str):
         return None, f'La fecha no puede ser mayor a 7 días desde hoy ({limite.strftime("%d/%m/%Y")}).'
     return fecha, None
 
+
 def _validar_fecha_editar(fecha_str):
     try:
         return date.fromisoformat(fecha_str), None
     except ValueError:
         return None, 'La fecha no tiene un formato válido.'
 
+
 def _str_a_bool(valor_str):
     return valor_str in ('True', 'Completada', 'true', '1')
+
+
+def _get_admin_de_sesion(request):
+    """Obtiene el administrador actualmente logueado desde la sesión."""
+    admin_id = request.session.get('admin_id')
+    if not admin_id:
+        return None
+    try:
+        return Administrador.objects.get(id=admin_id)
+    except Administrador.DoesNotExist:
+        return None
 
 
 @method_decorator(admin_login_required, name='dispatch')
@@ -82,12 +81,19 @@ class CrearCompraView(View):
                 return redirect('compras')
             fecha, error = _validar_fecha_nueva(fecha_str)
             if error:
-                messages.error(request, error); return redirect('compras')
-            admin = _get_or_create_admin()
+                messages.error(request, error)
+                return redirect('compras')
+            admin = _get_admin_de_sesion(request)
             if not admin:
-                messages.error(request, 'No hay administradores registrados.'); return redirect('compras')
-            Compra.objects.create(fecha=fecha, estado=_str_a_bool(estado_str),
-                                  Administrador=admin, Producto_id=int(producto_id), Proveedor_id=int(proveedor_id))
+                messages.error(request, 'No se pudo identificar el administrador. Por favor vuelve a iniciar sesión.')
+                return redirect('compras')
+            Compra.objects.create(
+                fecha=fecha,
+                estado=_str_a_bool(estado_str),
+                Administrador=admin,
+                Producto_id=int(producto_id),
+                Proveedor_id=int(proveedor_id)
+            )
             messages.success(request, 'Compra registrada exitosamente.')
         except Exception as e:
             messages.error(request, f'Error al crear la compra: {str(e)}')
@@ -108,12 +114,17 @@ class EditarCompraView(View):
                 return redirect('compras')
             fecha, error = _validar_fecha_editar(fecha_str)
             if error:
-                messages.error(request, error); return redirect('compras')
-            admin = _get_or_create_admin()
+                messages.error(request, error)
+                return redirect('compras')
+            admin = _get_admin_de_sesion(request)
             if not admin:
-                messages.error(request, 'No hay administradores registrados.'); return redirect('compras')
-            compra.fecha = fecha; compra.estado = _str_a_bool(estado_str)
-            compra.Administrador = admin; compra.Producto_id = int(producto_id); compra.Proveedor_id = int(proveedor_id)
+                messages.error(request, 'No se pudo identificar el administrador. Por favor vuelve a iniciar sesión.')
+                return redirect('compras')
+            compra.fecha = fecha
+            compra.estado = _str_a_bool(estado_str)
+            compra.Administrador = admin
+            compra.Producto_id = int(producto_id)
+            compra.Proveedor_id = int(proveedor_id)
             compra.save()
             messages.success(request, 'Compra actualizada exitosamente.')
         except Exception as e:

@@ -1,4 +1,3 @@
-"""Vistas de autenticación: login, logout, registro"""
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.hashers import check_password
@@ -21,7 +20,7 @@ class LoginView(View):
         try:
             admin = Administrador.objects.get(usuario=username)
             if check_password(password, admin.contrasena):
-                request.session['admin_id']      = admin.idAdministrador
+                request.session['admin_id']      = admin.id  
                 request.session['admin_nombre']  = admin.nombre
                 request.session['admin_usuario'] = admin.usuario
                 messages.success(request, f'¡Bienvenido, {admin.nombre}!')
@@ -63,4 +62,3 @@ class RegistrarAdministradorView(View):
 login_view              = LoginView.as_view()
 logout_view             = LogoutView.as_view()
 registrar_administrador = RegistrarAdministradorView.as_view()
-

@@ -82,8 +82,10 @@ urlpatterns = [
 
     # Administrador
     path('admin/registro/', admin_views.admin_registro, name='admin_registro'),
+    # ✅ NUEVO: ruta para eliminar un administrador de forma segura
+    path('admin/eliminar/<int:id>/', admin_views.eliminar_admin, name='eliminar_admin'),
 
     # Reportes
     path('reportes/', reportes_views.reportes, name='reportes'),
-    path('reportes/data/', reportes_views.reportes_data, name='reportes_data'),  # ← NUEVO: tiempo real
+    path('reportes/data/', reportes_views.reportes_data, name='reportes_data'),
 ]
