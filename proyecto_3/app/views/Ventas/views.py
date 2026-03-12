@@ -71,7 +71,7 @@ class VentasView(View):
             'ventas_hoy':   ventas_hoy,
             'total_mes':    total_mes,
             'total_ventas': Venta.objects.count(),
-            'clientes':     Cliente.objects.filter(estado='Activo'),
+            'clientes':     Cliente.objects.filter(estado='activo'),
             'productos':    Producto.objects.all(),
         })
 
@@ -98,6 +98,14 @@ class CrearVentaView(View):
             messages.error(request, 'Debe agregar al menos un producto.'); return redirect('ventas')
 
         try:
+            for i in range(len(ids)):
+                if not cantidades[i].isdigit() or int(cantidades[i]) < 1:
+                    messages.error(request, 'Las cantidades deben ser números enteros mayores a 0.'); return redirect('ventas')
+                try:
+                    if float(precios[i]) <= 0:
+                        messages.error(request, 'Los precios deben ser mayores a 0.'); return redirect('ventas')
+                except ValueError:
+                    messages.error(request, 'Los precios deben ser números válidos.'); return redirect('ventas')
             total = sum(float(precios[i]) * int(cantidades[i]) for i in range(len(ids)))
             venta = Venta.objects.create(cliente=cliente_nombre, estado=estado, total=total)
             for i in range(len(ids)):

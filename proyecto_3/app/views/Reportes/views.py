@@ -110,7 +110,7 @@ class ReportesView(View):
         compras_data = []
         for c in Compra.objects.select_related('Producto', 'Proveedor', 'Administrador').order_by('-fecha')[:50]:
             compras_data.append({
-                'id': c.idCompra,
+                'id': c.id,
                 'producto': c.Producto.nombre if c.Producto else '-',
                 'proveedor': c.Proveedor.nombre if c.Proveedor else '-',
                 'admin': c.Administrador.nombre if c.Administrador else '-',
@@ -120,15 +120,16 @@ class ReportesView(View):
         # Gráfica compras: por fecha (línea)
         compras_por_dia = (
             Compra.objects
-            .values('fecha').annotate(total_dia=Count('idCompra'))
+            .values('fecha').annotate(total_dia=Count('id'))
             .order_by('fecha')
         )[:14]
         graf_compras_labels  = [str(c['fecha']) for c in compras_por_dia]
         graf_compras_valores = [c['total_dia'] for c in compras_por_dia]
 
         # Gráfica compras: Completadas vs Pendientes (dona)
-        compras_completadas = Compra.objects.filter(estado='Completada').count()
-        compras_pendientes  = Compra.objects.exclude(estado='Completada').count()
+        compras_completadas = Compra.objects.filter(estado=True).count()
+        compras_pendientes  = Compra.objects.filter(estado=False).count()
+        
 
         # ── TODO ──
         productos_mini   = productos_data[:5]
@@ -147,7 +148,7 @@ class ReportesView(View):
             })
         for c in Compra.objects.select_related('Producto', 'Proveedor').order_by('-fecha')[:50]:
             todas.append({
-                'id': f"C{str(c.idCompra).zfill(3)}", 'modulo': 'Compra', 'tipo': 'compra',
+                'id': f"C{str(c.id).zfill(3)}", 'modulo': 'Compra', 'tipo': 'compra',
                 'descripcion': f"{c.Producto.nombre if c.Producto else '-'} — {c.Proveedor.nombre if c.Proveedor else '-'}",
                 'valor': None, 'fecha': c.fecha, 'estado': c.estado,
             })

@@ -122,8 +122,8 @@ class AdministradorRegistroForm(forms.ModelForm):
 class ventaForm(forms.Form):
     cliente = forms.CharField(max_length=100)
     estado = forms.ChoiceField(choices=[
-        ('completada', 'Completada'),
-        ('pendiente', 'Pendiente'),
+        ('Completada', 'Completada'),
+        ('Pendiente', 'Pendiente'),
     ])
 
     def clean_cliente(self):

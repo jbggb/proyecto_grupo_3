@@ -22,9 +22,9 @@
                         <label class="form-label">Documento <span class="text-danger">*</span></label>
                         <!-- ✅ min 6, max 12 según modelo -->
                         <input type="text" name="documento" class="form-control"
-                               required minlength="6" maxlength="12"
-                               pattern="[0-9]+"
-                               title="Solo números (entre 6 y 12 dígitos)"
+                               required minlength="10" maxlength="10"
+                               pattern="[0-9]{10}"
+                               title="Solo números (diez digitos)"
                                oninput="this.value = this.value.replace(/[^\d]/g, '')"
                                placeholder="Ej: 1234567890">
                     </div>
