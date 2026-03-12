@@ -105,13 +105,8 @@ document.addEventListener("DOMContentLoaded", function() {
             } else if (!regexSoloNumeros.test(telefono.value.trim())) {
                 mostrarError(telefono, "El teléfono solo puede contener números.");
                 valido = false;
-<<<<<<< HEAD
-            } else if (telefono.value.trim().length < 7 || telefono.value.trim().length > 10) {
-                mostrarError(telefono, "El teléfono debe tener entre 7 y 10 dígitos.");
-=======
             } else if (telefono.value.trim().length !== 10) {
                 mostrarError(telefono, "El teléfono debe tener 10 dígitos.");
->>>>>>> origin/MOJICA
                 valido = false;
             } else if (telefono.value.trim()[0] !== "3") {
                 mostrarError(telefono, "El teléfono debe iniciar con 3.");
