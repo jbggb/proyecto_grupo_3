@@ -43,7 +43,6 @@
     </div>
 </div>
 
-
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
         <form method="get" class="row g-2">
@@ -160,8 +159,6 @@
                 {% csrf_token %}
                 <div class="modal-body">
                     <div class="row g-4">
-
-                        <!-- COLUMNA IZQUIERDA: productos -->
                         <div class="col-md-6 border-end">
                             <h6 class="fw-bold mb-3">1. Seleccionar Productos</h6>
                             <input type="text" id="busquedaProductos" class="form-control mb-3"
@@ -178,7 +175,7 @@
                                             <div class="text-end">
                                                 <div class="text-primary fw-bold mb-1">${{ p.precio|floatformat:0|intcomma }}</div>
                                                 <button type="button" class="btn btn-primary btn-sm"
-                                                        onclick="agregarProducto('{{ p.idProducto }}', '{{ p.nombre }}', {{ p.precio }}, {{ p.stock }})">
+                                                        onclick="agregarProducto('{{ p.idProducto }}', '{{ p.nombre|escapejs }}', {{ p.precio|stringformat:'f' }}, {{ p.stock }})">
                                                     <i class="fa-solid fa-plus"></i> Agregar
                                                 </button>
                                             </div>
@@ -190,50 +187,36 @@
                                 {% endif %}
                             </div>
                         </div>
-
-                        <!-- COLUMNA DERECHA: carrito + datos -->
                         <div class="col-md-6">
                             <h6 class="fw-bold mb-3">2. Resumen de Venta</h6>
-
-                            <!-- Zona del carrito -->
                             <div id="zonaCarrito" style="min-height: 160px; max-height: 260px; overflow-y: auto;" class="mb-2">
-
-                                <!-- Titulo productos agregados -->
                                 <p id="tituloCarrito" class="fw-bold text-success mb-1 d-none">
                                     <i class="fa-solid fa-check-circle me-1"></i> Productos agregados al carrito
                                 </p>
-
-                                <!-- Mensaje carrito vacío -->
                                 <div id="msgCarritoVacio" class="text-center text-muted py-4">
                                     <i class="fa-solid fa-cart-shopping fa-2x mb-2"></i>
                                     <p class="mb-0">Agrega productos para comenzar</p>
                                 </div>
-
-                                <!-- Alerta carrito vacío al intentar guardar -->
                                 <div id="alertaCarritoVacio" class="alert alert-danger d-none py-2 mb-0">
                                     Por favor debe agregar al menos un producto para poder guardar la venta
                                 </div>
-
-                                <!-- Tabla del carrito -->
+                                <div id="alertaProductoDuplicado" class="alert alert-warning d-none py-2 mb-0">
+                                    El producto ya está agregado. Ajusta la cantidad desde el carrito.
+                                </div>
                                 <table class="table table-sm table-bordered d-none" id="tablaCarrito">
                                     <thead class="table-light">
                                         <tr>
                                             <th>Producto</th>
                                             <th style="width:110px">Cantidad</th>
-                                            <th class="text-end">Subtotal</th>
+                                            <th class="text-end">Total</th>
                                             <th style="width:40px"></th>
                                         </tr>
                                     </thead>
                                     <tbody id="filasCarrito"></tbody>
                                 </table>
                             </div>
-
-                            <!-- Campos ocultos para POST -->
                             <div id="camposOcultosProductos"></div>
-
                             <hr>
-
-                            <!-- Cliente -->
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Nombre del Cliente <span class="text-danger">*</span></label>
                                 <input type="text" name="cliente" id="inputClienteCrear"
@@ -242,19 +225,15 @@
                                 <div id="feedbackCliente" class="text-danger small mt-1"></div>
                                 <small id="contadorCliente" class="text-muted">0/30 caracteres</small>
                             </div>
-
-                            <!-- Estado -->
                             <div class="mb-3">
                                 <label class="form-label fw-bold">Estado <span class="text-danger">*</span></label>
                                 <select name="estado" id="selectEstado" class="form-select">
                                     <option value="">— Seleccionar estado —</option>
                                     <option value="Pendiente">Pendiente</option>
                                     <option value="Completada">Completada</option>
-                                </select>
+                                </select> 
                                 <div id="feedbackEstado" class="text-danger small mt-1"></div>
                             </div>
-
-                            <!-- Total -->
                             <div class="bg-light border rounded p-3">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <span class="h5 fw-bold mb-0">Total a pagar:</span>
@@ -275,58 +254,190 @@
     </div>
 </div>
 
-<!-- ==================== MODALES EDITAR Y ELIMINAR ==================== -->
+<!-- ==================== MODALES EDITAR ==================== -->
 {% for v in ventas %}
 {% if v.estado != 'Completada' %}
-
 <div class="modal fade" id="modalEditarVenta{{ v.id }}" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-xl">
         <div class="modal-content">
             <div class="modal-header bg-warning text-dark">
                 <h5 class="modal-title"><i class="fa-solid fa-pen me-1"></i> Editar Venta #{{ forloop.counter }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="post" action="{% url 'editar_venta' v.id %}">
+            <form method="post" action="{% url 'editar_venta' v.id %}" id="formEditarVenta{{ v.id }}">
                 {% csrf_token %}
                 <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Cliente <span class="text-danger">*</span></label>
-                        <input type="text" name="cliente"
-                               class="form-control input-cliente-editar"
-                               value="{{ v.cliente }}"
-                               maxlength="30" autocomplete="off">
-                        <div class="feedback-editar text-danger small mt-1"></div>
-                        <small class="contador-editar text-muted">{{ v.cliente|length }}/30 caracteres</small>
+                    <div class="row g-4">
+                        <div class="col-md-6 border-end">
+                            <h6 class="fw-bold mb-3">Agregar más productos</h6>
+                            <input type="text" id="busquedaProductosEdit{{ v.id }}" class="form-control mb-3"
+                                   placeholder="🔍 Filtrar productos...">
+                            <div style="max-height: 380px; overflow-y: auto; padding-right: 4px;">
+                                {% for p in productos %}
+                                <div class="card mb-2 shadow-sm border producto-card-edit{{ v.id }}" data-nombre="{{ p.nombre|lower }}">
+                                    <div class="card-body d-flex justify-content-between align-items-center p-3">
+                                        <div>
+                                            <h6 class="mb-0 fw-bold">{{ p.nombre }}</h6>
+                                            <small class="text-muted">Stock: {{ p.stock }}</small>
+                                        </div>
+                                        <div class="text-end">
+                                            <div class="text-primary fw-bold mb-1">${{ p.precio|floatformat:0|intcomma }}</div>
+                                            <button type="button" class="btn btn-primary btn-sm"
+                                                    onclick="agregarProductoEdit{{ v.id }}('{{ p.idProducto }}', '{{ p.nombre|escapejs }}', {{ p.precio|stringformat:'f' }}, {{ p.stock }})">
+                                                <i class="fa-solid fa-plus"></i> Agregar
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="fw-bold mb-3">Productos en la venta</h6>
+                            <div id="zonaCarritoEdit{{ v.id }}" style="min-height: 200px; max-height: 260px; overflow-y: auto;" class="mb-2">
+                                <table class="table table-sm table-bordered" id="tablaCarritoEdit{{ v.id }}">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Producto</th>
+                                            <th style="width:110px">Cantidad</th>
+                                            <th class="text-end">Total</th>
+                                            <th style="width:40px"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="filasCarritoEdit{{ v.id }}"></tbody>
+                                </table>
+                                <div id="alertaProductoDuplicadoEdit{{ v.id }}" class="alert alert-warning d-none py-2 mb-0">
+                                    El producto ya está agregado, ajusta la cantidad.
+                                </div>
+                            </div>
+                            <div id="camposOcultosProductosEdit{{ v.id }}"></div>
+                            <hr>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Cliente <span class="text-danger">*</span></label>
+                                <input type="text" name="cliente" id="inputClienteEdit{{ v.id }}"
+                                       class="form-control input-cliente-editar"
+                                       value="{{ v.cliente }}"
+                                       maxlength="30" autocomplete="off">
+                                <div class="feedback-editar text-danger small mt-1"></div>
+                                <small class="contador-editar text-muted">{{ v.cliente|length }}/30 caracteres</small>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-bold">Estado <span class="text-danger">*</span></label>
+                                <select name="estado" class="form-select select-estado-editar">
+                                    <option value="">— Seleccionar estado —</option>
+                                    <option value="Pendiente"  {% if v.estado == 'Pendiente'  %}selected{% endif %}>Pendiente</option>
+                                    <option value="Completada" {% if v.estado == 'Completada' %}selected{% endif %}>Completada</option>
+                                </select>
+                                <div class="feedback-estado-editar text-danger small mt-1"></div>
+                            </div>
+                            <div class="bg-light border rounded p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="h5 fw-bold mb-0">Total a pagar:</span>
+                                    <span class="h5 fw-bold text-primary mb-0" id="totalCarritoEdit{{ v.id }}">$0</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-bold">Estado <span class="text-danger">*</span></label>
-                        <select name="estado" class="form-select select-estado-editar">
-                            <option value="">— Seleccionar estado —</option>
-                            <option value="Pendiente"  {% if v.estado == 'Pendiente'  %}selected{% endif %}>Pendiente</option>
-                            <option value="Completada" {% if v.estado == 'Completada' %}selected{% endif %}>Completada</option>
-                        </select>
-                        <div class="feedback-estado-editar text-danger small mt-1"></div>
-                    </div>
-                    <div class="alert alert-info small">
-                        <i class="fa-solid fa-info-circle me-1"></i>
-                        Los productos se conservan. Para cambiarlos elimine esta venta y cree una nueva.
-                    </div>
-                    <strong>Productos actuales:</strong>
-                    <ul class="mt-1">
-                        {% for d in v.detalles.all %}
-                        <li>{{ d.producto_nombre }} x{{ d.cantidad }} — ${{ d.precio|floatformat:0|intcomma }}</li>
-                        {% endfor %}
-                    </ul>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-warning"><i class="fa-solid fa-save me-1"></i> Guardar</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fa-solid fa-save me-1"></i> Guardar cambios
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
+<script>
+var carritoEdit{{ v.id }} = [
+    {% for d in v.detalles.all %}
+    { productoId: '{{ d.producto_nombre|escapejs }}', nombre: '{{ d.producto_nombre|escapejs }}', precio: parseFloat('{{ d.precio|stringformat:"f" }}'), cantidad: parseInt('{{ d.cantidad }}'), stock: 999 }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+];
+
+document.getElementById('modalEditarVenta{{ v.id }}').addEventListener('shown.bs.modal', function () {
+    renderCarritoEdit{{ v.id }}();
+});
+
+document.getElementById('busquedaProductosEdit{{ v.id }}').addEventListener('input', function () {
+    var term = this.value.toLowerCase();
+    document.querySelectorAll('.producto-card-edit{{ v.id }}').forEach(function (card) {
+        card.style.display = card.getAttribute('data-nombre').includes(term) ? 'block' : 'none';
+    });
+});
+
+function agregarProductoEdit{{ v.id }}(id, nombre, precio, stock) {
+    // Comparar por nombre porque DetalleVenta no guarda idProducto
+    for (var i = 0; i < carritoEdit{{ v.id }}.length; i++) {
+        if (carritoEdit{{ v.id }}[i].nombre === nombre) {
+            var al = document.getElementById('alertaProductoDuplicadoEdit{{ v.id }}');
+            if (al) { al.classList.remove('d-none'); setTimeout(function () { al.classList.add('d-none'); }, 2500); }
+            return;
+        }
+    }
+    var p = parseFloat(String(precio).replace(',', '.')) || 0;
+    carritoEdit{{ v.id }}.push({ productoId: String(id), nombre: nombre, precio: p, cantidad: 1, stock: parseInt(stock) || 999 });
+    renderCarritoEdit{{ v.id }}();
+}
+
+function sumarEdit{{ v.id }}(idx) {
+    if (carritoEdit{{ v.id }}[idx].cantidad < carritoEdit{{ v.id }}[idx].stock) {
+        carritoEdit{{ v.id }}[idx].cantidad++;
+        renderCarritoEdit{{ v.id }}();
+    }
+}
+
+function restarEdit{{ v.id }}(idx) {
+    if (carritoEdit{{ v.id }}[idx].cantidad > 1) { carritoEdit{{ v.id }}[idx].cantidad--; }
+    else { carritoEdit{{ v.id }}.splice(idx, 1); }
+    renderCarritoEdit{{ v.id }}();
+}
+
+function eliminarEdit{{ v.id }}(idx) {
+    carritoEdit{{ v.id }}.splice(idx, 1);
+    renderCarritoEdit{{ v.id }}();
+}
+
+function renderCarritoEdit{{ v.id }}() {
+    var tbody = document.getElementById('filasCarritoEdit{{ v.id }}');
+    var totalEl = document.getElementById('totalCarritoEdit{{ v.id }}');
+    var ocultos = document.getElementById('camposOcultosProductosEdit{{ v.id }}');
+    if (!tbody) return;
+    ocultos.innerHTML = '';
+    tbody.innerHTML = '';
+    var total = 0;
+    for (var k = 0; k < carritoEdit{{ v.id }}.length; k++) {
+        var item = carritoEdit{{ v.id }}[k];
+        var sub = item.precio * item.cantidad;
+        total += sub;
+        var tr = document.createElement('tr');
+        tr.innerHTML =
+            '<td><span class="fw-bold">' + item.nombre + '</span><br><small class="text-muted">$' + item.precio.toLocaleString('es-CO') + ' c/u</small></td>' +
+            '<td><div class="d-flex align-items-center gap-1">' +
+            '<button type="button" class="btn btn-outline-secondary btn-sm px-2" onclick="restarEdit{{ v.id }}(' + k + ')">-</button>' +
+            '<span class="fw-bold px-2">' + item.cantidad + '</span>' +
+            '<button type="button" class="btn btn-outline-secondary btn-sm px-2" onclick="sumarEdit{{ v.id }}(' + k + ')">+</button>' +
+            '</div></td>' +
+            '<td class="text-end fw-bold">$' + sub.toLocaleString('es-CO') + '</td>' +
+            '<td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger" onclick="eliminarEdit{{ v.id }}(' + k + ')"><i class="fa-solid fa-trash"></i></button></td>';
+        tbody.appendChild(tr);
+        [['producto_id[]', item.productoId], ['producto_nombre[]', item.nombre], ['producto_precio[]', item.precio], ['producto_cantidad[]', item.cantidad]].forEach(function (pair) {
+            var inp = document.createElement('input');
+            inp.type = 'hidden'; inp.name = pair[0]; inp.value = pair[1];
+            ocultos.appendChild(inp);
+        });
+    }
+    totalEl.textContent = '$' + total.toLocaleString('es-CO');
+}
+</script>
+{% endif %}
+{% endfor %}
+
+<!-- ==================== MODALES ELIMINAR ==================== -->
+{% for v in ventas %}
+{% if v.estado != 'Completada' %}
 <div class="modal fade" id="modalEliminarVenta{{ v.id }}" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -348,7 +459,6 @@
         </div>
     </div>
 </div>
-
 {% endif %}
 {% endfor %}
 
