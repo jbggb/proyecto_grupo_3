@@ -98,6 +98,12 @@ class CrearCompraView(View):
 class EditarCompraView(View):
     def post(self, request, id):
         compra = get_object_or_404(Compra, id=id)
+
+        # Bloquear edición si está Completada
+        if compra.estado:
+            messages.error(request, 'No se puede editar una compra completada.')
+            return redirect('compras')
+
         try:
             fecha_str = request.POST.get('fecha', '').strip()
             estado_str = request.POST.get('estado', 'False').strip()
@@ -119,7 +125,6 @@ class EditarCompraView(View):
         except Exception as e:
             messages.error(request, f'Error al actualizar: {str(e)}')
         return redirect('compras')
-
 
 @method_decorator(admin_login_required, name='dispatch')
 class EliminarCompraView(View):
