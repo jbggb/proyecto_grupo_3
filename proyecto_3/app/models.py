@@ -6,20 +6,20 @@ import re
 
 
 class Administrador(models.Model):
-    # BD: columna 'id' (AutoField estándar)
-    nombre = models.CharField(max_length=150)
-    usuario = models.CharField(max_length=50, unique=True)
-    contrasena = models.CharField(max_length=255)
-    email = models.EmailField(max_length=100)
-    fechaRegistro = models.DateField(default=datetime.now)
+    idAdministrador = models.AutoField(primary_key=True)
+    nombre          = models.CharField(max_length=150)
+    usuario         = models.CharField(max_length=50, unique=True)
+    contrasena      = models.CharField(max_length=255)
+    email           = models.EmailField(max_length=100)
+    fechaRegistro   = models.DateField(default=datetime.now)
 
     def __str__(self):
         return self.nombre
 
     class Meta:
-        verbose_name = "administrador"
-        verbose_name_plural = "administradores"
-        db_table = "administrador"
+        verbose_name          = "administrador"
+        verbose_name_plural   = "administradores"
+        db_table              = "administrador"
 
 
 class Cliente(models.Model):
@@ -161,22 +161,21 @@ class DetalleVenta(models.Model):
 
 
 class Compra(models.Model):
-    # BD: columna 'id', estado tinyint(1) boolean, FK con nombres Administrador_id, Producto_id, Proveedor_id
-    fecha = models.DateField(default=datetime.now)
-    estado = models.BooleanField(default=False)
-    Administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE)
-    Producto = models.ForeignKey(Producto, on_delete=models.SET_NULL, null=True)
-    Proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE)
+    idCompra = models.AutoField(primary_key=True)
+    fechaCompra = models.DateField(default=datetime.now)
+    estado = models.CharField(max_length=50, default='Pendiente')
+    Administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE, db_column='idAdministrador')
+    Producto = models.ForeignKey(Producto, on_delete=models.SET_NULL, null=True, db_column='idProducto')
+    Proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE, db_column='idProveedor')
 
     def __str__(self):
-        return f"Compra #{self.id}"
+        return f"Compra #{self.idCompra}"
 
     class Meta:
         db_table = "compra"
         verbose_name = "compra"
         verbose_name_plural = "compras"
-        ordering = ['-fecha']
-
+        ordering = ['-fechaCompra']
 
 class Pedidos(models.Model):
     id_administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE)

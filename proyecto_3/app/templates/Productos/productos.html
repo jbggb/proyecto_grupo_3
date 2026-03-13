@@ -2,6 +2,9 @@
 {% load static %}
 
 {% block content %}
+<!-- Select2 CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
 <link rel="stylesheet" href="{% static 'css/reporte_1.css' %}">
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -10,10 +13,12 @@
         <i class="fa-solid fa-plus me-1"></i> Agregar Producto
     </button>
 </div>
+
 <div class="contenedor-exportar">
     <a href="{% url 'exportar_productos_pdf' %}" class="btn-pdf"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</a>
     <a href="{% url 'exportar_productos_excel' %}" class="btn-excel"><i class="fa-solid fa-file-excel"></i> Exportar Excel</a>
 </div>
+
 <div class="card mb-3">
     <div class="card-body">
         <form method="GET">
@@ -23,8 +28,8 @@
                 <select name="stock" class="form-select w-auto">
                     <option value="">Todos</option>
                     <option value="disponible" {% if request.GET.stock == 'disponible' %}selected{% endif %}>Disponible</option>
-                    <option value="bajo" {% if request.GET.stock == 'bajo' %}selected{% endif %}>Stock bajo</option>
-                    <option value="agotado" {% if request.GET.stock == 'agotado' %}selected{% endif %}>Agotado</option>
+                    <option value="bajo"       {% if request.GET.stock == 'bajo'       %}selected{% endif %}>Stock bajo</option>
+                    <option value="agotado"    {% if request.GET.stock == 'agotado'    %}selected{% endif %}>Agotado</option>
                 </select>
                 <button type="submit" class="btn btn-primary">Buscar</button>
                 {% if request.GET.q or request.GET.stock %}
@@ -41,14 +46,8 @@
         <table class="table table-hover mb-0">
             <thead class="table-dark">
                 <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Precio</th>
-                    <th>Stock</th>
-                    <th>Marca</th>
-                    <th>Tipo</th>
-                    <th>Unidad</th>
-                    <th>Accion</th>
+                    <th>ID</th><th>Nombre</th><th>Precio</th><th>Stock</th>
+                    <th>Marca</th><th>Tipo</th><th>Unidad</th><th>Acción</th>
                 </tr>
             </thead>
             <tbody>
@@ -74,7 +73,9 @@
                             )">
                             <i class="fa-solid fa-eye"></i>
                         </button>
-                        <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalEditar{{ producto.idProducto }}">
+                        <button class="btn btn-primary btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalEditar{{ producto.idProducto }}">
                             <i class="fa-solid fa-pen"></i>
                         </button>
                         <button class="btn btn-danger btn-sm"
@@ -91,12 +92,142 @@
     </div>
 </div>
 
-
 {% include 'Productos/Modal_agregar.html' %}
 {% for producto in productos %}
     {% include 'Productos/Modal_editar.html' %}
 {% endfor %}
 
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="{% static 'js/productos.js' %}"></script>
+
+<script>
+// ── Clave de sessionStorage ───────────────────────────────────────
+const SK = 'prod_modal_draft';
+
+// ── Guardar borrador en sessionStorage ───────────────────────────
+function guardarBorrador() {
+  const draft = {
+    nombre:   $('[name="nombre"]', '#formAgregarProducto').val(),
+    precio:   $('[name="precio"]', '#formAgregarProducto').val(),
+    stock:    $('[name="stock"]',  '#formAgregarProducto').val(),
+    idMarca:  $('#add_idMarca').val(),
+    idTipo:   $('#add_idTipo').val(),
+    idUnidad: $('#add_idUnidad').val(),
+  };
+  sessionStorage.setItem(SK, JSON.stringify(draft));
+}
+
+// ── Restaurar borrador en el modal ───────────────────────────────
+function restaurarBorrador() {
+  const raw = sessionStorage.getItem(SK);
+  if (!raw) return;
+  try {
+    const d = JSON.parse(raw);
+    $('[name="nombre"]', '#formAgregarProducto').val(d.nombre || '');
+    $('[name="precio"]', '#formAgregarProducto').val(d.precio || '');
+    $('[name="stock"]',  '#formAgregarProducto').val(d.stock  || '');
+    if (d.idMarca)  { $('#add_idMarca').val(d.idMarca).trigger('change'); }
+    if (d.idTipo)   { $('#add_idTipo').val(d.idTipo).trigger('change');   }
+    if (d.idUnidad) { $('#add_idUnidad').val(d.idUnidad).trigger('change'); }
+  } catch(e) {}
+}
+
+// ── Limpiar borrador ─────────────────────────────────────────────
+function limpiarBorrador() {
+  sessionStorage.removeItem(SK);
+}
+
+$(document).ready(function () {
+
+  const s2opts = {
+    theme: 'bootstrap-5',
+    width: '100%',
+    language: {
+      noResults: () => 'No se encontraron resultados',
+      searching: () => 'Buscando...',
+    },
+  };
+
+  // ── Inicializar Select2 en el modal Agregar ───────────────────
+  function initSelect2Agregar() {
+    $('#add_idMarca, #add_idTipo, #add_idUnidad').each(function () {
+      if (!$(this).hasClass('select2-hidden-accessible')) {
+        $(this).select2({
+          ...s2opts,
+          dropdownParent: $('#modalAgregar'),
+          placeholder: $(this).find('option:first').text(),
+        });
+      }
+    });
+  }
+
+  $('#modalAgregar').on('shown.bs.modal', function () {
+    initSelect2Agregar();
+    // Restaurar si venía de "Gestionar Marcas/Tipos/Unidades"
+    restaurarBorrador();
+  });
+
+  // Guardar al hacer clic en los links "Gestionar..."
+  $(document).on('click', 'a[href*="marcas"], a[href*="tipos"], a[href*="unidades"]', function () {
+    guardarBorrador();
+  });
+
+  // Limpiar borrador cuando el form se envía con éxito (submit)
+  $('#formAgregarProducto').on('submit', function () {
+    limpiarBorrador();
+  });
+
+  $('#modalAgregar').on('hidden.bs.modal', function () {
+    // Solo limpiar campos si cierra con Cancelar (no si hay error activo)
+    if (!{{ abrir_modal_agregar|yesno:"true,false" }}) {
+      limpiarBorrador();
+      $('#add_idMarca, #add_idTipo, #add_idUnidad').each(function () {
+        if ($(this).hasClass('select2-hidden-accessible')) {
+          $(this).val('').trigger('change');
+        }
+      });
+      $('#formAgregarProducto')[0].reset();
+    }
+  });
+
+  // ── Inicializar Select2 en modales Editar ─────────────────────
+  $('[id^="modalEditar"]').each(function () {
+    const $modal = $(this);
+    const pid    = $modal.attr('id').replace('modalEditar', '');
+
+    $modal.on('shown.bs.modal', function () {
+      $modal.find('.select2-editar-' + pid).each(function () {
+        if (!$(this).hasClass('select2-hidden-accessible')) {
+          $(this).select2({
+            ...s2opts,
+            dropdownParent: $modal,
+            placeholder: $(this).find('option:first').text(),
+          });
+        }
+      });
+    });
+  });
+
+  // ── Auto-abrir modal si hubo error de validación ──────────────
+  // Auto-abrir si hubo error de validacion Django
+  {% if abrir_modal_agregar %}
+    const $modalError = new bootstrap.Modal(document.getElementById('modalAgregar'));
+    $modalError.show();
+
+  // Auto-abrir si hay borrador guardado (volvio de Gestionar Marcas/Tipos/Unidades)
+  {% else %}
+    if (sessionStorage.getItem('prod_modal_draft')) {
+      setTimeout(function () {
+        const $modalDraft = new bootstrap.Modal(document.getElementById('modalAgregar'));
+        $modalDraft.show();
+        // restaurarBorrador() se llama automaticamente en shown.bs.modal
+      }, 200);
+    }
+  {% endif %}
+
+});
+</script>
 
 {% endblock %}

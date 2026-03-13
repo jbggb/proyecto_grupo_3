@@ -13,7 +13,9 @@ from app.models import Producto, Cliente, Venta, Compra, Proveedor
 @method_decorator(admin_login_required, name='dispatch')
 class ReportesView(View):
     def get(self, request):
-        hoy = timezone.now()
+        # ── Fecha en UTC (las fechas en DB están guardadas en UTC) ──
+        hoy        = timezone.now()
+        mes_inicio = hoy.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
 
         # ── KPIs ──
         total_productos   = Producto.objects.count()
@@ -21,7 +23,7 @@ class ReportesView(View):
         total_clientes    = Cliente.objects.count()
         total_proveedores = Proveedor.objects.count()
         total_compras     = Compra.objects.count()
-        ventas_mes        = Venta.objects.filter(fecha__year=hoy.year, fecha__month=hoy.month)
+        ventas_mes        = Venta.objects.filter(fecha__gte=mes_inicio, fecha__lte=hoy)
         total_ventas_mes  = ventas_mes.aggregate(t=Sum('total'))['t'] or 0
         transacciones_mes = ventas_mes.count()
         ingreso_total     = Venta.objects.aggregate(t=Sum('total'))['t'] or 0
@@ -31,7 +33,7 @@ class ReportesView(View):
         max_stock = max((p.stock for p in productos), default=1) or 1
         productos_data = []
         for p in productos:
-            if p.stock == 0:   estado, label = 'out', 'Sin stock'
+            if p.stock == 0:    estado, label = 'out', 'Sin stock'
             elif p.stock <= 10: estado, label = 'low', 'Bajo'
             else:               estado, label = 'ok',  'Normal'
             productos_data.append({
@@ -40,9 +42,8 @@ class ReportesView(View):
                 'estado': estado, 'label': label,
             })
 
-        # Gráfica productos: stock por producto (barras)
         graf_productos_labels  = [p['nombre'] for p in productos_data]
-        graf_productos_stock   = [p['stock'] for p in productos_data]
+        graf_productos_stock   = [p['stock']  for p in productos_data]
         graf_productos_colores = [
             '#ef4444' if p['estado'] == 'out' else
             '#f59e0b' if p['estado'] == 'low' else '#22c55e'
@@ -58,14 +59,11 @@ class ReportesView(View):
                 'telefono': c.telefono, 'total_compras': float(tc), 'estado': c.estado,
             })
 
-        # Gráfica clientes: top 8 por total compras (barras horizontales)
-        top_clientes = sorted(clientes_data, key=lambda x: x['total_compras'], reverse=True)[:8]
-        graf_clientes_labels = [c['nombre'] for c in top_clientes]
+        top_clientes          = sorted(clientes_data, key=lambda x: x['total_compras'], reverse=True)[:8]
+        graf_clientes_labels  = [c['nombre'] for c in top_clientes]
         graf_clientes_valores = [c['total_compras'] for c in top_clientes]
-
-        # Gráfica clientes: activos vs inactivos (dona)
-        clientes_activos   = sum(1 for c in clientes_data if c['estado'] == 'activo')
-        clientes_inactivos = len(clientes_data) - clientes_activos
+        clientes_activos      = sum(1 for c in clientes_data if c['estado'] == 'activo')
+        clientes_inactivos    = len(clientes_data) - clientes_activos
 
         # ── VENTAS ──
         ventas_data = []
@@ -78,58 +76,51 @@ class ReportesView(View):
                 'total': float(v.total), 'fecha': v.fecha, 'estado': v.estado,
             })
 
-        # Gráfica ventas: por día (línea)
         ventas_por_dia = (
             Venta.objects
             .annotate(dia=TruncDate('fecha'))
             .values('dia').annotate(total_dia=Sum('total'))
             .order_by('dia')
         )[:14]
-        graf_ventas_labels  = [str(v['dia']) for v in ventas_por_dia]
-        graf_ventas_valores = [float(v['total_dia']) for v in ventas_por_dia]
-
-        # Gráfica ventas: Completadas vs Pendientes (dona)
-        ventas_completadas = Venta.objects.filter(estado='Completada').count()
-        ventas_pendientes  = Venta.objects.filter(estado='Pendiente').count()
+        graf_ventas_labels    = [str(v['dia']) for v in ventas_por_dia]
+        graf_ventas_valores   = [float(v['total_dia']) for v in ventas_por_dia]
+        ventas_completadas    = Venta.objects.filter(estado='Completada').count()
+        ventas_pendientes     = Venta.objects.filter(estado='Pendiente').count()
 
         # ── PROVEEDORES ──
         proveedores_data = []
         for p in Proveedor.objects.all():
-            nc = Compra.objects.filter(Proveedor=p).count()
+            nc = Compra.objects.filter(Proveedor_id=p.id).count()
             proveedores_data.append({
                 'id': p.id, 'nombre': p.nombre, 'telefono': p.telefono,
                 'email': p.email, 'envio': p.envio,
                 'num_compras': nc, 'fecha': p.fechaRegistro,
             })
 
-        # Gráfica proveedores: compras por proveedor (barras)
-        graf_proveedores_labels  = [p['nombre'] for p in proveedores_data]
+        graf_proveedores_labels  = [p['nombre']     for p in proveedores_data]
         graf_proveedores_valores = [p['num_compras'] for p in proveedores_data]
 
         # ── COMPRAS ──
         compras_data = []
-        for c in Compra.objects.select_related('Producto', 'Proveedor', 'Administrador').order_by('-fecha')[:50]:
+        for c in Compra.objects.select_related('Producto', 'Proveedor', 'Administrador').order_by('-fechaCompra')[:50]:
             compras_data.append({
-                'id': c.id,
-                'producto': c.Producto.nombre if c.Producto else '-',
-                'proveedor': c.Proveedor.nombre if c.Proveedor else '-',
-                'admin': c.Administrador.nombre if c.Administrador else '-',
-                'fecha': str(c.fecha), 'estado': c.estado,
+                'id':        c.idCompra,
+                'producto':  c.Producto.nombre      if c.Producto      else '-',
+                'proveedor': c.Proveedor.nombre     if c.Proveedor     else '-',
+                'admin':     c.Administrador.nombre if c.Administrador else '-',
+                'fecha':     str(c.fechaCompra),
+                'estado':    c.estado,
             })
 
-        # Gráfica compras: por fecha (línea)
         compras_por_dia = (
             Compra.objects
-            .values('fecha').annotate(total_dia=Count('id'))
-            .order_by('fecha')
+            .values('fechaCompra').annotate(total_dia=Count('idCompra'))
+            .order_by('fechaCompra')
         )[:14]
-        graf_compras_labels  = [str(c['fecha']) for c in compras_por_dia]
-        graf_compras_valores = [c['total_dia'] for c in compras_por_dia]
-
-        # Gráfica compras: Completadas vs Pendientes (dona)
-        compras_completadas = Compra.objects.filter(estado=True).count()
-        compras_pendientes  = Compra.objects.filter(estado=False).count()
-        
+        graf_compras_labels  = [str(c['fechaCompra']) for c in compras_por_dia]
+        graf_compras_valores = [c['total_dia']        for c in compras_por_dia]
+        compras_completadas  = Compra.objects.filter(estado='Completada').count()
+        compras_pendientes   = Compra.objects.filter(estado='Pendiente').count()
 
         # ── TODO ──
         productos_mini   = productos_data[:5]
@@ -146,59 +137,64 @@ class ReportesView(View):
                 'descripcion': desc, 'valor': float(v.total),
                 'fecha': v.fecha, 'estado': v.estado,
             })
-        for c in Compra.objects.select_related('Producto', 'Proveedor').order_by('-fecha')[:50]:
+        for c in Compra.objects.select_related('Producto', 'Proveedor').order_by('-fechaCompra')[:50]:
             todas.append({
-                'id': f"C{str(c.id).zfill(3)}", 'modulo': 'Compra', 'tipo': 'compra',
+                'id': f"C{str(c.idCompra).zfill(3)}", 'modulo': 'Compra', 'tipo': 'compra',
                 'descripcion': f"{c.Producto.nombre if c.Producto else '-'} — {c.Proveedor.nombre if c.Proveedor else '-'}",
-                'valor': None, 'fecha': c.fecha, 'estado': c.estado,
+                'valor': None, 'fecha': c.fechaCompra, 'estado': c.estado,
             })
         todas.sort(key=lambda x: str(x['fecha']), reverse=True)
 
-        # Gráfica todo: ventas vs compras por mes (barras agrupadas)
-        graf_todo_labels  = graf_ventas_labels
-        graf_todo_ventas  = graf_ventas_valores
-        graf_todo_compras = graf_compras_valores[:len(graf_ventas_labels)]
+        # ── TODO: unir fechas de ventas y compras en un eje común ──
+        todas_fechas = sorted(set(graf_ventas_labels) | set(graf_compras_labels))
+
+        ventas_por_fecha  = dict(zip(graf_ventas_labels,  graf_ventas_valores))
+        compras_por_fecha = dict(zip(graf_compras_labels, graf_compras_valores))
+
+        graf_todo_labels  = todas_fechas
+        graf_todo_ventas  = [ventas_por_fecha.get(f, 0)  for f in todas_fechas]
+        graf_todo_compras = [compras_por_fecha.get(f, 0) for f in todas_fechas]
 
         alertas_stock = [p for p in productos_data if p['estado'] in ('low', 'out')]
 
         context = {
             # KPIs
-            'total_productos': total_productos, 'stock_bajo': stock_bajo,
-            'total_clientes': total_clientes, 'total_proveedores': total_proveedores,
-            'total_compras': total_compras,
+            'total_productos':  total_productos,  'stock_bajo':        stock_bajo,
+            'total_clientes':   total_clientes,   'total_proveedores': total_proveedores,
+            'total_compras':    total_compras,
             'total_ventas_mes': total_ventas_mes, 'transacciones_mes': transacciones_mes,
-            'ingreso_total': ingreso_total,
+            'ingreso_total':    ingreso_total,
             # Tablas
-            'productos_data': productos_data, 'clientes_data': clientes_data,
-            'ventas_data': ventas_data, 'proveedores_data': proveedores_data,
-            'compras_data': compras_data,
+            'productos_data':   productos_data,   'clientes_data':    clientes_data,
+            'ventas_data':      ventas_data,       'proveedores_data': proveedores_data,
+            'compras_data':     compras_data,
             # Mini
-            'productos_mini': productos_mini, 'clientes_mini': clientes_mini,
-            'ventas_mini': ventas_mini, 'proveedores_mini': proveedores_mini,
-            'todas': todas,
+            'productos_mini':   productos_mini,   'clientes_mini':    clientes_mini,
+            'ventas_mini':      ventas_mini,       'proveedores_mini': proveedores_mini,
+            'todas':            todas,
             # Alertas
             'alertas_stock': alertas_stock,
             # Gráficas
-            'graf_productos_labels':   graf_productos_labels,
-            'graf_productos_stock':    graf_productos_stock,
-            'graf_productos_colores':  graf_productos_colores,
-            'graf_clientes_labels':    graf_clientes_labels,
-            'graf_clientes_valores':   graf_clientes_valores,
-            'clientes_activos':        clientes_activos,
-            'clientes_inactivos':      clientes_inactivos,
-            'graf_ventas_labels':      graf_ventas_labels,
-            'graf_ventas_valores':     graf_ventas_valores,
-            'ventas_completadas':      ventas_completadas,
-            'ventas_pendientes':       ventas_pendientes,
-            'graf_proveedores_labels': graf_proveedores_labels,
-            'graf_proveedores_valores':graf_proveedores_valores,
-            'graf_compras_labels':     graf_compras_labels,
-            'graf_compras_valores':    graf_compras_valores,
-            'compras_completadas':     compras_completadas,
-            'compras_pendientes':      compras_pendientes,
-            'graf_todo_labels':        graf_todo_labels,
-            'graf_todo_ventas':        graf_todo_ventas,
-            'graf_todo_compras':       graf_todo_compras,
+            'graf_productos_labels':    graf_productos_labels,
+            'graf_productos_stock':     graf_productos_stock,
+            'graf_productos_colores':   graf_productos_colores,
+            'graf_clientes_labels':     graf_clientes_labels,
+            'graf_clientes_valores':    graf_clientes_valores,
+            'clientes_activos':         clientes_activos,
+            'clientes_inactivos':       clientes_inactivos,
+            'graf_ventas_labels':       graf_ventas_labels,
+            'graf_ventas_valores':      graf_ventas_valores,
+            'ventas_completadas':       ventas_completadas,
+            'ventas_pendientes':        ventas_pendientes,
+            'graf_proveedores_labels':  graf_proveedores_labels,
+            'graf_proveedores_valores': graf_proveedores_valores,
+            'graf_compras_labels':      graf_compras_labels,
+            'graf_compras_valores':     graf_compras_valores,
+            'compras_completadas':      compras_completadas,
+            'compras_pendientes':       compras_pendientes,
+            'graf_todo_labels':         graf_todo_labels,
+            'graf_todo_ventas':         graf_todo_ventas,
+            'graf_todo_compras':        graf_todo_compras,
         }
         return render(request, 'Reportes/reportes.html', context)
 
@@ -206,8 +202,11 @@ class ReportesView(View):
 @method_decorator(admin_login_required, name='dispatch')
 class ReportesDataView(View):
     def get(self, request):
-        hoy = timezone.now()
-        ventas_mes        = Venta.objects.filter(fecha__year=hoy.year, fecha__month=hoy.month)
+        # ── Fecha en UTC (las fechas en DB están guardadas en UTC) ──
+        hoy        = timezone.now()
+        mes_inicio = hoy.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        ventas_mes        = Venta.objects.filter(fecha__gte=mes_inicio, fecha__lte=hoy)
         total_ventas_mes  = float(ventas_mes.aggregate(t=Sum('total'))['t'] or 0)
         transacciones_mes = ventas_mes.count()
         ingreso_total     = float(Venta.objects.aggregate(t=Sum('total'))['t'] or 0)
@@ -226,13 +225,13 @@ class ReportesDataView(View):
         ]
 
         return JsonResponse({
-            'total_ventas_mes': total_ventas_mes,
+            'total_ventas_mes':  total_ventas_mes,
             'transacciones_mes': transacciones_mes,
-            'ingreso_total': ingreso_total,
-            'stock_bajo': stock_bajo,
-            'grafica_labels': grafica_labels,
-            'grafica_valores': grafica_valores,
-            'alertas': alertas,
+            'ingreso_total':     ingreso_total,
+            'stock_bajo':        stock_bajo,
+            'grafica_labels':    grafica_labels,
+            'grafica_valores':   grafica_valores,
+            'alertas':           alertas,
         })
 
 
