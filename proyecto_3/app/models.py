@@ -164,6 +164,7 @@ class Compra(models.Model):
     # BD: columna 'id', estado tinyint(1) boolean, FK con nombres Administrador_id, Producto_id, Proveedor_id
     fecha = models.DateField(default=datetime.now)
     estado = models.BooleanField(default=False)
+    valor = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # ← NUEVO
     Administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE)
     Producto = models.ForeignKey(Producto, on_delete=models.SET_NULL, null=True)
     Proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE)
@@ -176,8 +177,6 @@ class Compra(models.Model):
         verbose_name = "compra"
         verbose_name_plural = "compras"
         ordering = ['-fecha']
-
-
 class Pedidos(models.Model):
     id_administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE)
     id_cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)

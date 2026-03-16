@@ -73,21 +73,42 @@ class ComprasView(View):
 class CrearCompraView(View):
     def post(self, request):
         try:
-            fecha_str = request.POST.get('fecha', '').strip()
-            estado_str = request.POST.get('estado', 'False').strip()
-            producto_id = request.POST.get('producto_id', '').strip()
+            fecha_str    = request.POST.get('fecha', '').strip()
+            estado_str   = request.POST.get('estado', 'False').strip()
+            producto_id  = request.POST.get('producto_id', '').strip()
             proveedor_id = request.POST.get('proveedor_id', '').strip()
-            if not fecha_str or not producto_id or not proveedor_id:
-                messages.error(request, 'Fecha, producto y proveedor son obligatorios.')
+            valor_str    = request.POST.get('valor', '').strip()          # ← NUEVO
+
+            if not fecha_str or not producto_id or not proveedor_id or not valor_str:
+                messages.error(request, 'Fecha, producto, proveedor y valor son obligatorios.')
                 return redirect('compras')
+
+            try:
+                valor = float(valor_str)
+                if valor < 0:
+                    raise ValueError
+            except ValueError:
+                messages.error(request, 'El valor debe ser un número positivo.')
+                return redirect('compras')
+
             fecha, error = _validar_fecha_nueva(fecha_str)
             if error:
-                messages.error(request, error); return redirect('compras')
+                messages.error(request, error)
+                return redirect('compras')
+
             admin = _get_or_create_admin()
             if not admin:
-                messages.error(request, 'No hay administradores registrados.'); return redirect('compras')
-            Compra.objects.create(fecha=fecha, estado=_str_a_bool(estado_str),
-                                  Administrador=admin, Producto_id=int(producto_id), Proveedor_id=int(proveedor_id))
+                messages.error(request, 'No hay administradores registrados.')
+                return redirect('compras')
+
+            Compra.objects.create(
+                fecha=fecha,
+                estado=_str_a_bool(estado_str),
+                valor=valor,                                               # ← NUEVO
+                Administrador=admin,
+                Producto_id=int(producto_id),
+                Proveedor_id=int(proveedor_id),
+            )
             messages.success(request, 'Compra registrada exitosamente.')
         except Exception as e:
             messages.error(request, f'Error al crear la compra: {str(e)}')
@@ -99,32 +120,51 @@ class EditarCompraView(View):
     def post(self, request, id):
         compra = get_object_or_404(Compra, id=id)
 
-        # Bloquear edición si está Completada
         if compra.estado:
             messages.error(request, 'No se puede editar una compra completada.')
             return redirect('compras')
 
         try:
-            fecha_str = request.POST.get('fecha', '').strip()
-            estado_str = request.POST.get('estado', 'False').strip()
-            producto_id = request.POST.get('producto_id', '').strip()
+            fecha_str    = request.POST.get('fecha', '').strip()
+            estado_str   = request.POST.get('estado', 'False').strip()
+            producto_id  = request.POST.get('producto_id', '').strip()
             proveedor_id = request.POST.get('proveedor_id', '').strip()
-            if not fecha_str or not producto_id or not proveedor_id:
-                messages.error(request, 'Fecha, producto y proveedor son obligatorios.')
+            valor_str    = request.POST.get('valor', '').strip()          # ← NUEVO
+
+            if not fecha_str or not producto_id or not proveedor_id or not valor_str:
+                messages.error(request, 'Fecha, producto, proveedor y valor son obligatorios.')
                 return redirect('compras')
+
+            try:
+                valor = float(valor_str)
+                if valor < 0:
+                    raise ValueError
+            except ValueError:
+                messages.error(request, 'El valor debe ser un número positivo.')
+                return redirect('compras')
+
             fecha, error = _validar_fecha_editar(fecha_str)
             if error:
-                messages.error(request, error); return redirect('compras')
+                messages.error(request, error)
+                return redirect('compras')
+
             admin = _get_or_create_admin()
             if not admin:
-                messages.error(request, 'No hay administradores registrados.'); return redirect('compras')
-            compra.fecha = fecha; compra.estado = _str_a_bool(estado_str)
-            compra.Administrador = admin; compra.Producto_id = int(producto_id); compra.Proveedor_id = int(proveedor_id)
+                messages.error(request, 'No hay administradores registrados.')
+                return redirect('compras')
+
+            compra.fecha        = fecha
+            compra.estado       = _str_a_bool(estado_str)
+            compra.valor        = valor                                    # ← NUEVO
+            compra.Administrador = admin
+            compra.Producto_id  = int(producto_id)
+            compra.Proveedor_id = int(proveedor_id)
             compra.save()
             messages.success(request, 'Compra actualizada exitosamente.')
         except Exception as e:
             messages.error(request, f'Error al actualizar: {str(e)}')
         return redirect('compras')
+
 
 @method_decorator(admin_login_required, name='dispatch')
 class EliminarCompraView(View):
@@ -141,11 +181,18 @@ class EliminarCompraView(View):
 @method_decorator(admin_login_required, name='dispatch')
 class ComprasJsonView(View):
     def get(self, request):
-        lista = [{'id': c.id, 'fecha': str(c.fecha), 'estado': 'Completada' if c.estado else 'Pendiente',
-                  'administrador': c.Administrador.nombre if c.Administrador else '',
-                  'producto': c.Producto.nombre if c.Producto else '',
-                  'proveedor': c.Proveedor.nombre if c.Proveedor else ''}
-                 for c in Compra.objects.select_related('Administrador', 'Producto', 'Proveedor').order_by('-fecha')]
+        lista = [
+            {
+                'id':             c.id,
+                'fecha':          str(c.fecha),
+                'estado':         'Completada' if c.estado else 'Pendiente',
+                'valor':          float(c.valor),                          # ← NUEVO
+                'administrador':  c.Administrador.nombre if c.Administrador else '',
+                'producto':       c.Producto.nombre if c.Producto else '',
+                'proveedor':      c.Proveedor.nombre if c.Proveedor else '',
+            }
+            for c in Compra.objects.select_related('Administrador', 'Producto', 'Proveedor').order_by('-fecha')
+        ]
         return JsonResponse({'compras': lista})
 
 
