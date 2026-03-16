@@ -56,6 +56,10 @@ DATABASES = {
         'PASSWORD': 'aprendermysql123',
         'HOST': 'localhost',
         'PORT': '3306',
+        'OPTIONS': {
+            # Le dice a MySQL que interprete las fechas en hora de Bogotá
+            'init_command': "SET time_zone = '-05:00'",
+        },
     }
 }
 

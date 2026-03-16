@@ -73,7 +73,7 @@ function verProducto(id, nombre, precio, stock, marca, tipo, unidad) {
     });
 }
 
-// Eliminar producto con SweetAlert
+// Eliminar producto con SweetAlert — usa POST para evitar Method Not Allowed
 function eliminarProducto(url, nombre) {
     Swal.fire({
         title: '¿Eliminar producto?',
@@ -86,7 +86,18 @@ function eliminarProducto(url, nombre) {
         cancelButtonText: 'Cancelar'
     }).then(function(result) {
         if (result.isConfirmed) {
-            window.location.href = url;
+            var form = document.createElement('form');
+            form.method = 'POST';
+            form.action = url;
+            var csrf = document.createElement('input');
+            csrf.type  = 'hidden';
+            csrf.name  = 'csrfmiddlewaretoken';
+            csrf.value = document.cookie.split('; ')
+                .find(row => row.startsWith('csrftoken='))
+                .split('=')[1];
+            form.appendChild(csrf);
+            document.body.appendChild(form);
+            form.submit();
         }
     });
 }

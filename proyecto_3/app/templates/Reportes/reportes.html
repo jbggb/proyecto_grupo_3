@@ -3,104 +3,91 @@
 
 {% block content %}
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/reporte.css' %}">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-<style>
-*, *::before, *::after { box-sizing: border-box; }
-.rep-wrap { font-family: 'DM Sans', sans-serif; color: #1e293b; }
-.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: 14px; margin-bottom: 24px; }
-.kpi-card { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:18px 16px; box-shadow:0 2px 8px rgba(0,0,0,.05); transition:transform .15s,box-shadow .15s; }
-.kpi-card:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,.09); }
-.kpi-label { font-size:.72rem; font-weight:600; text-transform:uppercase; letter-spacing:.07em; color:#64748b; margin-bottom:6px; }
-.kpi-value { font-size:1.55rem; font-weight:700; color:#0f172a; line-height:1.1; }
-.kpi-sub   { font-size:.75rem; color:#94a3b8; margin-top:4px; }
-/* Alertas */
-.alertas-wrap { margin-bottom:20px; }
-.alerta-header { display:flex; align-items:center; gap:8px; font-size:.8rem; font-weight:700; text-transform:uppercase; color:#92400e; background:#fef3c7; border:1px solid #fde68a; border-radius:10px 10px 0 0; padding:10px 16px; }
-.alertas-list { background:#fffbeb; border:1px solid #fde68a; border-top:none; border-radius:0 0 10px 10px; padding:10px 16px; display:flex; flex-wrap:wrap; gap:8px; }
-.alerta-item { display:flex; align-items:center; gap:6px; padding:5px 12px; border-radius:99px; font-size:.78rem; font-weight:600; }
-.alerta-low { background:#fef9c3; color:#92400e; border:1px solid #fde68a; }
-.alerta-out { background:#fee2e2; color:#991b1b; border:1px solid #fca5a5; }
-.alerta-dot { width:7px; height:7px; border-radius:50%; display:inline-block; }
-.dot-low { background:#f59e0b; } .dot-out { background:#ef4444; }
-/* Tabs */
-.tabs-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:14px; box-shadow:0 2px 10px rgba(0,0,0,.05); overflow:hidden; }
-.tabs-header { display:flex; gap:2px; padding:10px 14px 0; background:#f8fafc; border-bottom:1px solid #e2e8f0; overflow-x:auto; }
-.tab-btn { display:flex; align-items:center; gap:6px; padding:9px 16px; border:none; border-radius:8px 8px 0 0; background:transparent; color:#64748b; font-size:.84rem; font-weight:500; cursor:pointer; white-space:nowrap; transition:background .15s,color .15s; }
-.tab-btn:hover { background:#e2e8f0; color:#1e293b; }
-.tab-btn.active { background:#fff; color:#2563eb; border:1px solid #e2e8f0; border-bottom:1px solid #fff; margin-bottom:-1px; font-weight:600; }
-.tab-panel { display:none; padding:20px; }
-.tab-panel.active { display:block; }
-/* Gráficas dentro de tabs */
-.chart-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin-bottom:20px; }
-.chart-card { background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:16px; }
-.chart-card-title { font-size:.78rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#475569; margin-bottom:12px; display:flex; align-items:center; gap:6px; }
-.chart-card-title i { color:#2563eb; }
-.live-dot { display:inline-block; width:7px; height:7px; background:#22c55e; border-radius:50%; margin-right:4px; animation:pulse 1.5s infinite; }
-@keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.5;transform:scale(1.3)} }
-/* Tabla */
-.table-header-bar { font-size:.75rem; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:#475569; padding-bottom:10px; border-bottom:2px solid #e2e8f0; margin-bottom:14px; }
-.table-wrap { overflow-x:auto; }
-.table-wrap table { width:100%; border-collapse:collapse; font-size:.865rem; }
-.table-wrap thead tr { background:#f1f5f9; }
-.table-wrap th { padding:10px 14px; text-align:left; font-size:.72rem; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#475569; white-space:nowrap; }
-.table-wrap td { padding:10px 14px; border-bottom:1px solid #f1f5f9; color:#334155; vertical-align:middle; }
-.table-wrap tbody tr:hover { background:#f8fafc; }
-.table-wrap tbody tr:last-child td { border-bottom:none; }
-.price { font-weight:600; color:#0f766e; }
-.stock-bar-wrap { display:flex; align-items:center; gap:8px; }
-.stock-bar { flex:1; height:6px; background:#e2e8f0; border-radius:99px; overflow:hidden; min-width:60px; }
-.stock-fill { height:100%; border-radius:99px; }
-.fill-ok { background:#22c55e; } .fill-low { background:#f59e0b; } .fill-out { background:#ef4444; }
-.stock-num { font-size:.75rem; color:#64748b; min-width:32px; text-align:right; }
-.badge { display:inline-block; padding:3px 9px; border-radius:99px; font-size:.7rem; font-weight:600; white-space:nowrap; }
-.badge-ok { background:#dcfce7;color:#166534; } .badge-low { background:#fef9c3;color:#92400e; }
-.badge-out { background:#fee2e2;color:#991b1b; } .badge-paid { background:#dcfce7;color:#166534; }
-.badge-pend { background:#fef9c3;color:#92400e; } .badge-venta { background:#dbeafe;color:#1d4ed8; }
-.badge-compra { background:#f3e8ff;color:#6b21a8; } .badge-activo { background:#dcfce7;color:#166534; }
-.badge-inactivo { background:#fee2e2;color:#991b1b; }
-/* Todo */
-.todo-top { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; margin-bottom:22px; }
-.mini-col { background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px; }
-.mini-col-head { display:flex; align-items:center; gap:7px; font-size:.75rem; font-weight:700; text-transform:uppercase; color:#475569; margin-bottom:10px; padding-bottom:8px; border-bottom:1px solid #e2e8f0; }
-.mini-col-head i { color:#2563eb; }
-.mini-row { display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px solid #f1f5f9; font-size:.81rem; }
-.mini-row:last-child { border-bottom:none; }
-.mini-row-name { color:#334155; font-weight:500; }
-.mini-row-val { font-size:.77rem; font-weight:600; color:#64748b; }
-.val-ok { color:#16a34a; } .val-low { color:#d97706; } .val-out { color:#dc2626; }
-.todo-full-label { font-size:.75rem; font-weight:700; text-transform:uppercase; color:#475569; padding-bottom:10px; border-bottom:2px solid #e2e8f0; margin-bottom:14px; }
-</style>
-
 <div class="rep-wrap">
-  <h1 class="mb-3 fw-bold"><i class="fa-solid fa-chart-line me-2"></i>Sistema de Reportes</h1>
 
-  <!-- ALERTAS -->
-  {% if alertas_stock %}
-  <div class="alertas-wrap">
-    <div class="alerta-header"><i class="fa-solid fa-triangle-exclamation"></i> Alertas de Stock ({{ alertas_stock|length }})</div>
-    <div class="alertas-list" id="alertas-container">
-      {% for a in alertas_stock %}
-      <div class="alerta-item alerta-{{ a.estado }}">
-        <span class="alerta-dot dot-{{ a.estado }}"></span>
-        {{ a.nombre }} — {% if a.estado == 'out' %}Sin stock{% else %}Stock: {{ a.stock }}{% endif %}
-      </div>
-      {% endfor %}
+  <!-- Header -->
+  <div class="rep-header">
+    <div class="rep-header-icon"><i class="fa-solid fa-chart-line"></i></div>
+    <div>
+      <h1>Sistema de Reportes</h1>
+      <p>Dashboard · Inventario · Análisis</p>
     </div>
+    <div class="live-badge"><span class="live-dot"></span> En vivo · 30s</div>
+  </div>
+
+  <!-- Alertas -->
+  {% if alertas_stock %}
+  <div class="alert-banner" id="alertas-container">
+    <div class="alert-banner-left">
+      <div class="alert-banner-icon">
+        <i class="fa-solid fa-circle-exclamation"></i>
+      </div>
+      <div class="alert-banner-body">
+        <div class="alert-banner-title">
+          ¡Acción requerida! —
+          {% with out=alertas_stock|length %}
+            {{ out }} producto{{ out|pluralize }} con problemas de inventario
+          {% endwith %}
+        </div>
+        <div class="alert-banner-sub">Revisa y reabastece los siguientes productos para evitar interrupciones en las ventas.</div>
+        <div class="alert-tags">
+          {% for a in alertas_stock %}
+          <span class="alert-tag alert-tag-{{ a.estado }}">
+            <span class="alert-tag-dot dot-{{ a.estado }}"></span>
+            {{ a.nombre }}
+            <span class="alert-tag-label">{% if a.estado == 'out' %}Sin stock{% else %}{{ a.stock }} uds{% endif %}</span>
+          </span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+    <button class="alert-banner-close" onclick="this.closest('.alert-banner').style.display='none'" title="Cerrar">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
   </div>
   {% endif %}
 
   <!-- KPIs -->
   <div class="kpi-grid">
-    <div class="kpi-card"><div class="kpi-label">Productos</div><div class="kpi-value">{{ total_productos }}</div><div class="kpi-sub" id="kpi-stock-bajo">{{ stock_bajo }} con stock bajo</div></div>
-    <div class="kpi-card"><div class="kpi-label">Clientes</div><div class="kpi-value">{{ total_clientes }}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Proveedores</div><div class="kpi-value">{{ total_proveedores }}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Compras</div><div class="kpi-value">{{ total_compras }}</div></div>
-    <div class="kpi-card"><div class="kpi-label">Ventas del Mes</div><div class="kpi-value" id="kpi-ventas-mes">$ {{ total_ventas_mes|floatformat:0 }}</div><div class="kpi-sub" id="kpi-transacciones">{{ transacciones_mes }} transacciones</div></div>
-    <div class="kpi-card"><div class="kpi-label">Ingreso Total</div><div class="kpi-value" id="kpi-ingreso-total">$ {{ ingreso_total|floatformat:0 }}</div><div class="kpi-sub">Acumulado total</div></div>
+    <div class="kpi-card">
+      <div class="kpi-icon ki-blue"><i class="fa-solid fa-box"></i></div>
+      <div class="kpi-label">Productos</div>
+      <div class="kpi-value">{{ total_productos }}</div>
+      <div class="kpi-sub" id="kpi-stock-bajo">{{ stock_bajo }} con stock bajo</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon ki-green"><i class="fa-solid fa-users"></i></div>
+      <div class="kpi-label">Clientes</div>
+      <div class="kpi-value">{{ total_clientes }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon ki-purple"><i class="fa-solid fa-truck"></i></div>
+      <div class="kpi-label">Proveedores</div>
+      <div class="kpi-value">{{ total_proveedores }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon ki-cyan"><i class="fa-solid fa-bag-shopping"></i></div>
+      <div class="kpi-label">Compras</div>
+      <div class="kpi-value">{{ total_compras }}</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon ki-yellow"><i class="fa-solid fa-cart-shopping"></i></div>
+      <div class="kpi-label">Ventas del Mes</div>
+      <div class="kpi-value" id="kpi-ventas-mes">$ {{ total_ventas_mes|floatformat:0 }}</div>
+      <div class="kpi-sub" id="kpi-transacciones">{{ transacciones_mes }} transacciones</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-icon ki-green"><i class="fa-solid fa-circle-dollar-to-slot"></i></div>
+      <div class="kpi-label">Ingreso Total</div>
+      <div class="kpi-value" id="kpi-ingreso-total">$ {{ ingreso_total|floatformat:0 }}</div>
+      <div class="kpi-sub">Acumulado total</div>
+    </div>
   </div>
 
-  <!-- TABS -->
+  <!-- Tabs -->
   <div class="tabs-wrap">
     <div class="tabs-header">
       <button class="tab-btn" onclick="switchTab('productos',this)"><i class="fa-solid fa-box"></i> Productos</button>
@@ -111,349 +98,151 @@
       <button class="tab-btn active" onclick="switchTab('todo',this)"><i class="fa-solid fa-table-cells"></i> Todo</button>
     </div>
 
-    <!-- ─── PRODUCTOS ─── -->
+    <!-- PRODUCTOS -->
     <div id="panel-productos" class="tab-panel">
       <div class="chart-row">
-        <div class="chart-card">
-          <div class="chart-card-title"><i class="fa-solid fa-chart-bar"></i> Stock por producto</div>
-          <canvas id="chartProductosStock" height="160"></canvas>
-        </div>
-        <div class="chart-card">
-          <div class="chart-card-title"><i class="fa-solid fa-chart-pie"></i> Estado del inventario</div>
-          <canvas id="chartProductosEstado" height="160"></canvas>
-        </div>
+        <div class="chart-card"><div class="chart-card-title"><i class="fa-solid fa-chart-bar"></i> Stock por producto</div><canvas id="chartProductosStock" height="160"></canvas></div>
+        <div class="chart-card"><div class="chart-card-title"><i class="fa-solid fa-chart-pie"></i> Estado del inventario</div><canvas id="chartProductosEstado" height="160"></canvas></div>
       </div>
-      <div class="table-header-bar">Productos registrados</div>
-      <div class="table-wrap">
-        <table><thead><tr><th>ID</th><th>Nombre</th><th>Precio</th><th>Stock</th><th>Disponibilidad</th><th>Estado</th></tr></thead>
-          <tbody>
-            {% for p in productos_data %}
-            <tr>
-              <td>{{ p.id }}</td><td>{{ p.nombre }}</td>
-              <td class="price">$ {{ p.precio|floatformat:0 }}</td><td>{{ p.stock }}</td>
-              <td><div class="stock-bar-wrap"><div class="stock-bar"><div class="stock-fill fill-{{ p.estado }}" style="width:{{ p.pct }}%"></div></div><span class="stock-num">{{ p.pct }}%</span></div></td>
-              <td>{% if p.estado == 'ok' %}<span class="badge badge-ok">Normal</span>{% elif p.estado == 'low' %}<span class="badge badge-low">Bajo</span>{% else %}<span class="badge badge-out">Sin stock</span>{% endif %}</td>
-            </tr>
-            {% empty %}<tr><td colspan="6" class="text-center text-muted py-3">No hay productos</td></tr>{% endfor %}
-          </tbody>
-        </table>
-      </div>
+      <div class="section-label">Productos registrados</div>
+      <div class="table-wrap"><table><thead><tr><th>ID</th><th>Nombre</th><th>Precio</th><th>Stock</th><th>Disponibilidad</th><th>Estado</th></tr></thead><tbody>
+        {% for p in productos_data %}
+        <tr><td>#{{ p.id }}</td><td>{{ p.nombre }}</td><td class="price">$ {{ p.precio|floatformat:0 }}</td><td>{{ p.stock }}</td>
+        <td><div class="sbar"><div class="sbar-track"><div class="sbar-fill sf-{{ p.estado }}" style="width:{{ p.pct }}%"></div></div><span class="sbar-pct">{{ p.pct }}%</span></div></td>
+        <td>{% if p.estado == 'ok' %}<span class="badge badge-ok">Normal</span>{% elif p.estado == 'low' %}<span class="badge badge-low">Bajo</span>{% else %}<span class="badge badge-out">Sin stock</span>{% endif %}</td></tr>
+        {% empty %}<tr><td colspan="6" style="text-align:center;padding:24px;color:#94a3b8">Sin datos</td></tr>{% endfor %}
+      </tbody></table></div>
     </div>
 
-    <!-- ─── CLIENTES ─── -->
+    <!-- CLIENTES -->
     <div id="panel-clientes" class="tab-panel">
       <div class="chart-row">
-        <div class="chart-card">
-          <div class="chart-card-title"><i class="fa-solid fa-chart-bar"></i> Top clientes por compras</div>
-          <canvas id="chartClientesTop" height="160"></canvas>
-        </div>
-        <div class="chart-card">
-          <div class="chart-card-title"><i class="fa-solid fa-chart-pie"></i> Activos vs Inactivos</div>
-          <canvas id="chartClientesEstado" height="160"></canvas>
-        </div>
+        <div class="chart-card"><div class="chart-card-title"><i class="fa-solid fa-chart-bar"></i> Top clientes por compras</div><canvas id="chartClientesTop" height="160"></canvas></div>
+        <div class="chart-card"><div class="chart-card-title"><i class="fa-solid fa-chart-pie"></i> Activos vs Inactivos</div><canvas id="chartClientesEstado" height="160"></canvas></div>
       </div>
-      <div class="table-header-bar">Clientes registrados</div>
-      <div class="table-wrap">
-        <table><thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Total Compras</th><th>Estado</th></tr></thead>
-          <tbody>
-            {% for c in clientes_data %}
-            <tr>
-              <td>{{ c.id }}</td><td>{{ c.nombre }}</td><td>{{ c.email }}</td><td>{{ c.telefono }}</td>
-              <td class="price">$ {{ c.total_compras|floatformat:0 }}</td>
-              <td>{% if c.estado == 'activo' %}<span class="badge badge-activo">Activo</span>{% else %}<span class="badge badge-inactivo">Inactivo</span>{% endif %}</td>
-            </tr>
-            {% empty %}<tr><td colspan="6" class="text-center text-muted py-3">No hay clientes</td></tr>{% endfor %}
-          </tbody>
-        </table>
-      </div>
+      <div class="section-label">Clientes registrados</div>
+      <div class="table-wrap"><table><thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Total Compras</th><th>Estado</th></tr></thead><tbody>
+        {% for c in clientes_data %}
+        <tr><td>#{{ c.id }}</td><td>{{ c.nombre }}</td><td>{{ c.email }}</td><td>{{ c.telefono }}</td>
+        <td class="price">$ {{ c.total_compras|floatformat:0 }}</td>
+        <td>{% if c.estado == 'activo' %}<span class="badge badge-activo">Activo</span>{% else %}<span class="badge badge-inactivo">Inactivo</span>{% endif %}</td></tr>
+        {% empty %}<tr><td colspan="6" style="text-align:center;padding:24px;color:#94a3b8">Sin datos</td></tr>{% endfor %}
+      </tbody></table></div>
     </div>
 
-    <!-- ─── VENTAS ─── -->
+    <!-- VENTAS -->
     <div id="panel-ventas" class="tab-panel">
       <div class="chart-row">
-        <div class="chart-card">
-          <div class="chart-card-title"><i class="fa-solid fa-chart-line"></i> <span class="live-dot"></span>Ventas por día (tiempo real)</div>
-          <canvas id="chartVentasDia" height="160"></canvas>
-        </div>
-        <div class="chart-card">
-          <div class="chart-card-title"><i class="fa-solid fa-chart-pie"></i> Estado de ventas</div>
-          <canvas id="chartVentasEstado" height="160"></canvas>
-        </div>
+        <div class="chart-card"><div class="chart-card-title"><i class="fa-solid fa-chart-line"></i> <span class="live-dot" style="margin-right:4px"></span>Ventas por día</div><canvas id="chartVentasDia" height="160"></canvas></div>
+        <div class="chart-card"><div class="chart-card-title"><i class="fa-solid fa-chart-pie"></i> Estado de ventas</div><canvas id="chartVentasEstado" height="160"></canvas></div>
       </div>
-      <div class="table-header-bar">Ventas registradas</div>
-      <div class="table-wrap">
-        <table><thead><tr><th>ID</th><th>Cliente</th><th>Producto</th><th>Cantidad</th><th>Total</th><th>Fecha</th><th>Estado</th></tr></thead>
-          <tbody>
-            {% for v in ventas_data %}
-            <tr>
-              <td>V{{ v.id|stringformat:"03d" }}</td><td>{{ v.cliente }}</td><td>{{ v.producto }}</td><td>{{ v.cantidad }}</td>
-              <td class="price">$ {{ v.total|floatformat:0 }}</td><td>{{ v.fecha|date:"Y-m-d" }}</td>
-              <td>{% if v.estado == 'Completada' %}<span class="badge badge-paid">Completada</span>{% else %}<span class="badge badge-pend">Pendiente</span>{% endif %}</td>
-            </tr>
-            {% empty %}<tr><td colspan="7" class="text-center text-muted py-3">No hay ventas</td></tr>{% endfor %}
-          </tbody>
-        </table>
-      </div>
+      <div class="section-label">Ventas registradas</div>
+      <div class="table-wrap"><table><thead><tr><th>ID</th><th>Cliente</th><th>Producto</th><th>Cant.</th><th>Total</th><th>Fecha</th><th>Estado</th></tr></thead><tbody>
+        {% for v in ventas_data %}
+        <tr><td>V{{ v.id|stringformat:"03d" }}</td><td>{{ v.cliente }}</td><td>{{ v.producto }}</td><td>{{ v.cantidad }}</td>
+        <td class="price">$ {{ v.total|floatformat:0 }}</td><td>{{ v.fecha|date:"Y-m-d" }}</td>
+        <td>{% if v.estado == 'Completada' %}<span class="badge badge-paid">Completada</span>{% else %}<span class="badge badge-pend">Pendiente</span>{% endif %}</td></tr>
+        {% empty %}<tr><td colspan="7" style="text-align:center;padding:24px;color:#94a3b8">Sin datos</td></tr>{% endfor %}
+      </tbody></table></div>
     </div>
 
-    <!-- ─── PROVEEDORES ─── -->
+    <!-- PROVEEDORES -->
     <div id="panel-proveedores" class="tab-panel">
       <div class="chart-row">
-        <div class="chart-card" style="grid-column:1/-1">
-          <div class="chart-card-title"><i class="fa-solid fa-chart-bar"></i> Compras por proveedor</div>
-          <canvas id="chartProveedores" height="100"></canvas>
-        </div>
+        <div class="chart-card" style="grid-column:1/-1"><div class="chart-card-title"><i class="fa-solid fa-chart-bar"></i> Compras por proveedor</div><canvas id="chartProveedores" height="90"></canvas></div>
       </div>
-      <div class="table-header-bar">Proveedores registrados</div>
-      <div class="table-wrap">
-        <table><thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Días Envío</th><th>Compras</th><th>Registro</th></tr></thead>
-          <tbody>
-            {% for p in proveedores_data %}
-            <tr>
-              <td>{{ p.id }}</td><td>{{ p.nombre }}</td><td>{{ p.email }}</td>
-              <td>{{ p.telefono }}</td><td>{{ p.envio }} días</td>
-              <td><span class="badge badge-compra">{{ p.num_compras }}</span></td><td>{{ p.fecha }}</td>
-            </tr>
-            {% empty %}<tr><td colspan="7" class="text-center text-muted py-3">No hay proveedores</td></tr>{% endfor %}
-          </tbody>
-        </table>
-      </div>
+      <div class="section-label">Proveedores registrados</div>
+      <div class="table-wrap"><table><thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Días Envío</th><th>Compras</th><th>Registro</th></tr></thead><tbody>
+        {% for p in proveedores_data %}
+        <tr><td>#{{ p.id }}</td><td>{{ p.nombre }}</td><td>{{ p.email }}</td><td>{{ p.telefono }}</td>
+        <td>{{ p.envio }} días</td><td><span class="badge badge-compra">{{ p.num_compras }}</span></td><td>{{ p.fecha }}</td></tr>
+        {% empty %}<tr><td colspan="7" style="text-align:center;padding:24px;color:#94a3b8">Sin datos</td></tr>{% endfor %}
+      </tbody></table></div>
     </div>
 
-    <!-- ─── COMPRAS ─── -->
+    <!-- COMPRAS -->
     <div id="panel-compras" class="tab-panel">
       <div class="chart-row">
-        <div class="chart-card">
-          <div class="chart-card-title"><i class="fa-solid fa-chart-line"></i> Compras por día</div>
-          <canvas id="chartComprasDia" height="160"></canvas>
-        </div>
-        <div class="chart-card">
-          <div class="chart-card-title"><i class="fa-solid fa-chart-pie"></i> Estado de compras</div>
-          <canvas id="chartComprasEstado" height="160"></canvas>
-        </div>
+        <div class="chart-card"><div class="chart-card-title"><i class="fa-solid fa-chart-line"></i> Compras por día</div><canvas id="chartComprasDia" height="160"></canvas></div>
+        <div class="chart-card"><div class="chart-card-title"><i class="fa-solid fa-chart-pie"></i> Estado de compras</div><canvas id="chartComprasEstado" height="160"></canvas></div>
       </div>
-      <div class="table-header-bar">Compras registradas</div>
-      <div class="table-wrap">
-        <table><thead><tr><th>ID</th><th>Producto</th><th>Proveedor</th><th>Administrador</th><th>Fecha</th><th>Estado</th></tr></thead>
-          <tbody>
-            {% for c in compras_data %}
-            <tr>
-              <td>C{{ c.id|stringformat:"03d" }}</td><td>{{ c.producto }}</td><td>{{ c.proveedor }}</td><td>{{ c.admin }}</td><td>{{ c.fecha }}</td>
-              <td>{% if c.estado == 'Completada' or c.estado == True %}<span class="badge badge-paid">Completada</span>{% else %}<span class="badge badge-pend">Pendiente</span>{% endif %}</td>
-            </tr>
-            {% empty %}<tr><td colspan="6" class="text-center text-muted py-3">No hay compras</td></tr>{% endfor %}
-          </tbody>
-        </table>
-      </div>
+      <div class="section-label">Compras registradas</div>
+      <div class="table-wrap"><table><thead><tr><th>ID</th><th>Producto</th><th>Proveedor</th><th>Administrador</th><th>Fecha</th><th>Estado</th></tr></thead><tbody>
+        {% for c in compras_data %}
+        <tr><td>C{{ c.id|stringformat:"03d" }}</td><td>{{ c.producto }}</td><td>{{ c.proveedor }}</td><td>{{ c.admin }}</td>
+        <td>{{ c.fecha }}</td>
+        <td>{% if c.estado == 'Completada' %}<span class="badge badge-paid">Completada</span>{% else %}<span class="badge badge-pend">Pendiente</span>{% endif %}</td></tr>
+        {% empty %}<tr><td colspan="6" style="text-align:center;padding:24px;color:#94a3b8">Sin datos</td></tr>{% endfor %}
+      </tbody></table></div>
     </div>
 
-    <!-- ─── TODO ─── -->
+    <!-- TODO -->
     <div id="panel-todo" class="tab-panel active">
       <div class="chart-row">
         <div class="chart-card" style="grid-column:1/-1">
-          <div class="chart-card-title"><i class="fa-solid fa-chart-bar"></i> <span class="live-dot"></span>Ventas vs Compras por período</div>
+          <div class="chart-card-title"><i class="fa-solid fa-chart-bar"></i> <span class="live-dot" style="margin-right:4px"></span>Ventas vs Compras por período</div>
           <canvas id="chartTodo" height="90"></canvas>
         </div>
       </div>
-      <div class="table-header-bar">Resumen general</div>
-      <div class="todo-top">
-        <div class="mini-col">
-          <div class="mini-col-head"><i class="fa-solid fa-box"></i> Productos</div>
-          {% for p in productos_mini %}<div class="mini-row"><span class="mini-row-name">{{ p.nombre }}</span><span class="mini-row-val val-{{ p.estado }}">{% if p.estado == 'out' %}Sin stock{% else %}Stock: {{ p.stock }}{% endif %}</span></div>{% endfor %}
+      <div class="todo-grid">
+        <div class="mc"><div class="mc-head"><i class="fa-solid fa-box"></i> Productos</div>
+          {% for p in productos_mini %}<div class="mc-row"><span class="mc-name">{{ p.nombre }}</span><span class="mc-val {% if p.estado == 'ok' %}mv-ok{% elif p.estado == 'low' %}mv-low{% else %}mv-out{% endif %}">{% if p.estado == 'out' %}Sin stock{% else %}{{ p.stock }} uds{% endif %}</span></div>{% endfor %}
         </div>
-        <div class="mini-col">
-          <div class="mini-col-head"><i class="fa-solid fa-users"></i> Clientes</div>
-          {% for c in clientes_mini %}<div class="mini-row"><span class="mini-row-name">{{ c.nombre }}</span><span class="mini-row-val val-ok">$ {{ c.total_compras|floatformat:0 }}</span></div>{% endfor %}
+        <div class="mc"><div class="mc-head"><i class="fa-solid fa-users"></i> Clientes</div>
+          {% for c in clientes_mini %}<div class="mc-row"><span class="mc-name">{{ c.nombre }}</span><span class="mc-val mv-ok">$ {{ c.total_compras|floatformat:0 }}</span></div>{% endfor %}
         </div>
-        <div class="mini-col">
-          <div class="mini-col-head"><i class="fa-solid fa-cart-shopping"></i> Ventas recientes</div>
-          {% for v in ventas_mini %}<div class="mini-row"><span class="mini-row-name">V{{ v.id|stringformat:"03d" }} · {{ v.producto }}</span><span class="mini-row-val {% if v.estado == 'Completada' %}val-ok{% else %}val-low{% endif %}">{% if v.estado == 'Completada' %}$ {{ v.total|floatformat:0 }}{% else %}{{ v.estado }}{% endif %}</span></div>{% endfor %}
+        <div class="mc"><div class="mc-head"><i class="fa-solid fa-cart-shopping"></i> Ventas recientes</div>
+          {% for v in ventas_mini %}<div class="mc-row"><span class="mc-name">V{{ v.id|stringformat:"03d" }} · {{ v.producto }}</span><span class="mc-val {% if v.estado == 'Completada' %}mv-ok{% else %}mv-low{% endif %}">{% if v.estado == 'Completada' %}$ {{ v.total|floatformat:0 }}{% else %}Pendiente{% endif %}</span></div>{% endfor %}
         </div>
-        <div class="mini-col">
-          <div class="mini-col-head"><i class="fa-solid fa-truck"></i> Proveedores</div>
-          {% for p in proveedores_mini %}<div class="mini-row"><span class="mini-row-name">{{ p.nombre }}</span><span class="mini-row-val">{{ p.num_compras }} compras</span></div>{% endfor %}
+        <div class="mc"><div class="mc-head"><i class="fa-solid fa-truck"></i> Proveedores</div>
+          {% for p in proveedores_mini %}<div class="mc-row"><span class="mc-name">{{ p.nombre }}</span><span class="mc-val mv-def">{{ p.num_compras }} compras</span></div>{% endfor %}
         </div>
       </div>
-      <div class="todo-full-label">Todas las transacciones</div>
-      <div class="table-wrap">
-        <table><thead><tr><th>ID</th><th>Módulo</th><th>Descripción</th><th>Valor</th><th>Fecha</th><th>Estado</th></tr></thead>
-          <tbody>
-            {% for t in todas %}
-            <tr>
-              <td>{{ t.id }}</td>
-              <td>{% if t.tipo == 'venta' %}<span class="badge badge-venta">Venta</span>{% else %}<span class="badge badge-compra">Compra</span>{% endif %}</td>
-              <td>{{ t.descripcion }}</td>
-              <td class="price">{% if t.valor %}$ {{ t.valor|floatformat:0 }}{% else %}-{% endif %}</td>
-              <td>{{ t.fecha }}</td>
-              <td>{% if t.estado == 'Completada' or t.estado == True %}<span class="badge badge-paid">Completada</span>{% else %}<span class="badge badge-pend">Pendiente</span>{% endif %}</td>
-            </tr>
-            {% empty %}<tr><td colspan="6" class="text-center text-muted py-3">No hay transacciones</td></tr>{% endfor %}
-          </tbody>
-        </table>
-      </div>
+      <div class="table-header-bar">Todas las transacciones</div>
+      <div class="table-wrap"><table><thead><tr><th>ID</th><th>Módulo</th><th>Descripción</th><th>Valor</th><th>Fecha</th><th>Estado</th></tr></thead><tbody>
+        {% for t in todas %}
+        <tr><td>{{ t.id }}</td>
+        <td>{% if t.tipo == 'venta' %}<span class="badge badge-venta">Venta</span>{% else %}<span class="badge badge-compra">Compra</span>{% endif %}</td>
+        <td>{{ t.descripcion }}</td>
+        <td class="price">{% if t.valor %}$ {{ t.valor|floatformat:0 }}{% else %}—{% endif %}</td>
+        <td>{{ t.fecha }}</td>
+        <td>{% if t.estado == 'Completada' or t.estado == True %}<span class="badge badge-paid">Completada</span>{% else %}<span class="badge badge-pend">Pendiente</span>{% endif %}</td></tr>
+        {% empty %}<tr><td colspan="6" style="text-align:center;padding:24px;color:#94a3b8">Sin datos</td></tr>{% endfor %}
+      </tbody></table></div>
     </div>
+
   </div>
 </div>
 
+<!-- Datos del contexto Django para el JS externo -->
 <script>
-function switchTab(id, btn) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('panel-' + id).classList.add('active');
-  btn.classList.add('active');
-}
-
-const COLORES = ['#2563eb','#22c55e','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#ec4899','#f97316'];
-
-// ── PRODUCTOS: stock por producto (barras) ──
-new Chart(document.getElementById('chartProductosStock'), {
-  type: 'bar',
-  data: {
-    labels: {{ graf_productos_labels|safe }},
-    datasets: [{ label: 'Stock', data: {{ graf_productos_stock|safe }}, backgroundColor: {{ graf_productos_colores|safe }}, borderRadius: 6 }]
-  },
-  options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true}} }
-});
-
-// ── PRODUCTOS: estado del inventario (dona) ──
-const stockOk  = {{ productos_data|length }} - {{ stock_bajo }};
-const stockLow = {% with low=0 %}{% for p in productos_data %}{% if p.estado == 'low' %}{% with low=low|add:1 %}{% endwith %}{% endif %}{% endfor %}{{ alertas_stock|length }}{% endwith %};
-new Chart(document.getElementById('chartProductosEstado'), {
-  type: 'doughnut',
-  data: {
-    labels: ['Normal', 'Stock bajo', 'Sin stock'],
-    datasets: [{ data: [
+  window.CHART_DATA = {
+    graf_productos_labels:    {{ graf_productos_labels|safe }},
+    graf_productos_stock:     {{ graf_productos_stock|safe }},
+    productos_estado: [
       {{ productos_data|length }} - {{ alertas_stock|length }},
-      {% with c=0 %}{% for p in alertas_stock %}{% if p.estado == 'low' %}1{% endif %}{% endfor %}{% endwith %} + 0,
-      {% with c=0 %}{% for p in alertas_stock %}{% if p.estado == 'out' %}1{% endif %}{% endfor %}{% endwith %} + 0
-    ], backgroundColor: ['#22c55e','#f59e0b','#ef4444'], borderWidth:0 }]
-  },
-  options: { responsive:true, plugins:{ legend:{ position:'bottom', labels:{ font:{ size:11 } } } } }
-});
-
-// ── CLIENTES: top por compras (barras horizontales) ──
-new Chart(document.getElementById('chartClientesTop'), {
-  type: 'bar',
-  data: {
-    labels: {{ graf_clientes_labels|safe }},
-    datasets: [{ label: 'Total ($)', data: {{ graf_clientes_valores|safe }}, backgroundColor: '#2563eb', borderRadius: 6 }]
-  },
-  options: {
-    indexAxis: 'y', responsive:true,
-    plugins:{ legend:{display:false} },
-    scales:{ x:{ beginAtZero:true, ticks:{ callback: v => '$ ' + v.toLocaleString('es-CO') } } }
-  }
-});
-
-// ── CLIENTES: activos vs inactivos (dona) ──
-new Chart(document.getElementById('chartClientesEstado'), {
-  type: 'doughnut',
-  data: {
-    labels: ['Activos', 'Inactivos'],
-    datasets: [{ data: [{{ clientes_activos }}, {{ clientes_inactivos }}], backgroundColor:['#22c55e','#ef4444'], borderWidth:0 }]
-  },
-  options: { responsive:true, plugins:{ legend:{ position:'bottom', labels:{ font:{ size:11 } } } } }
-});
-
-// ── VENTAS: por día (línea, tiempo real) ──
-const ventasChart = new Chart(document.getElementById('chartVentasDia'), {
-  type: 'line',
-  data: {
-    labels: {{ graf_ventas_labels|safe }},
-    datasets: [{ label: 'Ventas del día', data: {{ graf_ventas_valores|safe }},
-      borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,0.08)',
-      borderWidth:2.5, pointBackgroundColor:'#2563eb', pointRadius:4, tension:0.4, fill:true }]
-  },
-  options: {
-    responsive:true, plugins:{legend:{display:false}},
-    scales:{ y:{ beginAtZero:true, ticks:{ callback: v => '$ ' + v.toLocaleString('es-CO') } } }
-  }
-});
-
-// ── VENTAS: estado (dona) ──
-new Chart(document.getElementById('chartVentasEstado'), {
-  type: 'doughnut',
-  data: {
-    labels: ['Completadas', 'Pendientes'],
-    datasets: [{ data: [{{ ventas_completadas }}, {{ ventas_pendientes }}], backgroundColor:['#22c55e','#f59e0b'], borderWidth:0 }]
-  },
-  options: { responsive:true, plugins:{ legend:{ position:'bottom', labels:{ font:{ size:11 } } } } }
-});
-
-// ── PROVEEDORES: compras por proveedor (barras) ──
-new Chart(document.getElementById('chartProveedores'), {
-  type: 'bar',
-  data: {
-    labels: {{ graf_proveedores_labels|safe }},
-    datasets: [{ label: 'Compras', data: {{ graf_proveedores_valores|safe }},
-      backgroundColor: COLORES.slice(0, {{ graf_proveedores_labels|length }}), borderRadius: 6 }]
-  },
-  options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{stepSize:1}}} }
-});
-
-// ── COMPRAS: por día (línea) ──
-new Chart(document.getElementById('chartComprasDia'), {
-  type: 'line',
-  data: {
-    labels: {{ graf_compras_labels|safe }},
-    datasets: [{ label: 'Compras del día', data: {{ graf_compras_valores|safe }},
-      borderColor:'#8b5cf6', backgroundColor:'rgba(139,92,246,0.08)',
-      borderWidth:2.5, pointBackgroundColor:'#8b5cf6', pointRadius:4, tension:0.4, fill:true }]
-  },
-  options: { responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{stepSize:1}}} }
-});
-
-// ── COMPRAS: estado (dona) ──
-new Chart(document.getElementById('chartComprasEstado'), {
-  type: 'doughnut',
-  data: {
-    labels: ['Completadas', 'Pendientes'],
-    datasets: [{ data: [{{ compras_completadas }}, {{ compras_pendientes }}], backgroundColor:['#22c55e','#f59e0b'], borderWidth:0 }]
-  },
-  options: { responsive:true, plugins:{ legend:{ position:'bottom', labels:{ font:{ size:11 } } } } }
-});
-
-// ── TODO: ventas vs compras (barras agrupadas) ──
-const todoChart = new Chart(document.getElementById('chartTodo'), {
-  type: 'bar',
-  data: {
-    labels: {{ graf_todo_labels|safe }},
-    datasets: [
-      { label: 'Ventas ($)', data: {{ graf_todo_ventas|safe }}, backgroundColor:'rgba(37,99,235,0.8)', borderRadius:4 },
-      { label: 'Compras (cant.)', data: {{ graf_todo_compras|safe }}, backgroundColor:'rgba(139,92,246,0.8)', borderRadius:4 }
-    ]
-  },
-  options: {
-    responsive:true,
-    plugins:{ legend:{ position:'bottom', labels:{ font:{ size:11 } } } },
-    scales:{ y:{ beginAtZero:true } }
-  }
-});
-
-// ── TIEMPO REAL cada 30s ──
-function actualizarDatos() {
-  fetch('/reportes/data/')
-    .then(r => r.json())
-    .then(data => {
-      document.getElementById('kpi-ventas-mes').textContent    = '$ ' + Math.round(data.total_ventas_mes).toLocaleString('es-CO');
-      document.getElementById('kpi-transacciones').textContent  = data.transacciones_mes + ' transacciones';
-      document.getElementById('kpi-ingreso-total').textContent  = '$ ' + Math.round(data.ingreso_total).toLocaleString('es-CO');
-      document.getElementById('kpi-stock-bajo').textContent     = data.stock_bajo + ' con stock bajo';
-      ventasChart.data.labels = data.grafica_labels;
-      ventasChart.data.datasets[0].data = data.grafica_valores;
-      ventasChart.update('active');
-      todoChart.data.labels = data.grafica_labels;
-      todoChart.data.datasets[0].data = data.grafica_valores;
-      todoChart.update('active');
-      const container = document.getElementById('alertas-container');
-      if (container && data.alertas.length > 0) {
-        container.innerHTML = data.alertas.map(a =>
-          `<div class="alerta-item alerta-${a.estado}"><span class="alerta-dot dot-${a.estado}"></span>${a.nombre} — ${a.estado === 'out' ? 'Sin stock' : 'Stock: ' + a.stock}</div>`
-        ).join('');
-      }
-    })
-    .catch(err => console.warn('Error al actualizar:', err));
-}
-setInterval(actualizarDatos, 30000);
+      {% with c=0 %}{% for p in alertas_stock %}{% if p.estado == 'low' %}1+{% endif %}{% endfor %}0{% endwith %},
+      {% with c=0 %}{% for p in alertas_stock %}{% if p.estado == 'out' %}1+{% endif %}{% endfor %}0{% endwith %}
+    ],
+    graf_clientes_labels:     {{ graf_clientes_labels|safe }},
+    graf_clientes_valores:    {{ graf_clientes_valores|safe }},
+    clientes_activos:         {{ clientes_activos }},
+    clientes_inactivos:       {{ clientes_inactivos }},
+    graf_ventas_labels:       {{ graf_ventas_labels|safe }},
+    graf_ventas_valores:      {{ graf_ventas_valores|safe }},
+    ventas_completadas:       {{ ventas_completadas }},
+    ventas_pendientes:        {{ ventas_pendientes }},
+    graf_proveedores_labels:  {{ graf_proveedores_labels|safe }},
+    graf_proveedores_valores: {{ graf_proveedores_valores|safe }},
+    graf_compras_labels:      {{ graf_compras_labels|safe }},
+    graf_compras_valores:     {{ graf_compras_valores|safe }},
+    compras_completadas:      {{ compras_completadas }},
+    compras_pendientes:       {{ compras_pendientes }},
+    graf_todo_labels:         {{ graf_todo_labels|safe }},
+    graf_todo_ventas:         {{ graf_todo_ventas|safe }},
+    graf_todo_compras:        {{ graf_todo_compras|safe }},
+  };
 </script>
+<script src="{% static 'js/reporte.js' %}"></script>
+
 {% endblock %}
