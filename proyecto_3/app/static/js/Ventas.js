@@ -52,18 +52,14 @@ document.addEventListener('DOMContentLoaded', function () {
         input.oninput = function () { validarCliente(this, feedback, contador); };
     });
 
-    // ── Fix 1: adjuntar submit al form aquí, dentro del DOMContentLoaded ──
     var formCrear = document.getElementById('formCrearVenta');
     if (formCrear) {
-        formCrear.removeAttribute('onsubmit'); // quitar el onsubmit inline
+        formCrear.removeAttribute('onsubmit');
         formCrear.addEventListener('submit', function (e) {
-            if (!validarFormVenta()) {
-                e.preventDefault();
-            }
+            if (!validarFormVenta()) { e.preventDefault(); }
         });
     }
 
-    // ── Fix 2: validar formularios de editar ──
     document.querySelectorAll('[id^="formEditarVenta"]').forEach(function (form) {
         form.addEventListener('submit', function (e) {
             var cliente   = form.querySelector('input[name="cliente"]');
@@ -71,10 +67,8 @@ document.addEventListener('DOMContentLoaded', function () {
             var feedbackC = form.querySelector('.feedback-editar');
             var feedbackE = form.querySelector('.feedback-estado-editar');
             var valido    = true;
-
             if (feedbackC) feedbackC.textContent = '';
             if (feedbackE) feedbackE.textContent = '';
-
             if (!cliente.value.trim()) {
                 if (feedbackC) feedbackC.textContent = 'El nombre del cliente es obligatorio';
                 valido = false;
@@ -82,26 +76,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (feedbackC) feedbackC.textContent = 'El nombre debe tener al menos 3 caracteres';
                 valido = false;
             }
-
             if (!estado.value) {
                 if (feedbackE) feedbackE.textContent = 'Debes seleccionar un estado';
                 valido = false;
             }
-
             if (!valido) e.preventDefault();
         });
     });
-
-    // ── Fix 3: mostrar mensajes Django dentro del modal si venía de crear/editar ──
-    var mensajes = document.querySelectorAll('.django-message');
-    if (mensajes.length > 0) {
-        var contenedor = document.getElementById('mensajesModal');
-        if (contenedor) {
-            mensajes.forEach(function (m) {
-                contenedor.appendChild(m.cloneNode(true));
-            });
-        }
-    }
 });
 
 
@@ -122,16 +103,16 @@ function validarCliente(input, feedbackEl, contadorEl) {
 
 function agregarProducto(id, nombre, precio, stock) {
     id = String(id);
-    var stockNum  = parseInt(stock) || 999;
-    var existente = null;
+    var stockNum = parseInt(stock) || 999;
     for (var i = 0; i < carrito.length; i++) {
-        if (carrito[i].id === id) { existente = carrito[i]; break; }
+        if (carrito[i].id === id) {
+            var alerta = document.getElementById('alertaProductoDuplicado');
+            if (alerta) { alerta.classList.remove('d-none'); setTimeout(function () { alerta.classList.add('d-none'); }, 2500); }
+            return;
+        }
     }
-    if (existente) {
-        if (existente.cantidad < stockNum) existente.cantidad++;
-    } else {
-        carrito.push({ id: id, nombre: nombre, precio: parseFloat(precio), cantidad: 1, stock: stockNum });
-    }
+    var precioNum = parseFloat(String(precio).replace(',', '.')) || 0;
+    carrito.push({ id: id, nombre: nombre, precio: precioNum, cantidad: 1, stock: stockNum });
     var alerta = document.getElementById('alertaCarritoVacio');
     if (alerta) alerta.classList.add('d-none');
     renderCarrito();
@@ -226,7 +207,6 @@ function renderCarrito() {
 function validarFormVenta() {
     var valido = true;
 
-    // Validar carrito
     if (carrito.length === 0) {
         var alerta   = document.getElementById('alertaCarritoVacio');
         var msgVacio = document.getElementById('msgCarritoVacio');
@@ -236,7 +216,6 @@ function validarFormVenta() {
         valido = false;
     }
 
-    // Validar cliente
     var clienteInput = document.getElementById('inputClienteCrear');
     var feedbackC    = document.getElementById('feedbackCliente');
     var cliente      = clienteInput ? clienteInput.value.trim() : '';
@@ -250,7 +229,6 @@ function validarFormVenta() {
         if (feedbackC) feedbackC.textContent = '';
     }
 
-    // Validar estado
     var estadoSelect = document.getElementById('selectEstado');
     var feedbackE    = document.getElementById('feedbackEstado');
     var estado       = estadoSelect ? estadoSelect.value : '';

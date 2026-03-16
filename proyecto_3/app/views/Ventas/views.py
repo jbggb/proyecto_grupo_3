@@ -137,8 +137,45 @@ class EditarVentaView(View):
         if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$', cliente_nombre):
             messages.error(request, 'El nombre solo puede contener letras y espacios.'); return redirect('ventas')
 
+        # Recibir productos del carrito de edición
+        ids        = request.POST.getlist('producto_id[]')
+        nombres    = request.POST.getlist('producto_nombre[]')
+        precios    = request.POST.getlist('producto_precio[]')
+        cantidades = request.POST.getlist('producto_cantidad[]')
+
+        if not ids:
+            messages.error(request, 'Debe agregar al menos un producto.'); return redirect('ventas')
+
         try:
-            venta.cliente = cliente_nombre; venta.estado = estado; venta.save()
+            # Validar productos
+            for i in range(len(ids)):
+                if not cantidades[i].isdigit() or int(cantidades[i]) < 1:
+                    messages.error(request, 'Las cantidades deben ser números enteros mayores a 0.'); return redirect('ventas')
+                try:
+                    if float(precios[i]) <= 0:
+                        messages.error(request, 'Los precios deben ser mayores a 0.'); return redirect('ventas')
+                except ValueError:
+                    messages.error(request, 'Los precios deben ser números válidos.'); return redirect('ventas')
+
+            # Calcular nuevo total
+            total = sum(float(precios[i]) * int(cantidades[i]) for i in range(len(ids)))
+
+            # Actualizar venta
+            venta.cliente = cliente_nombre
+            venta.estado = estado
+            venta.total = total
+            venta.save()
+
+            # Eliminar detalles antiguos y crear nuevos
+            venta.detalles.all().delete()
+            for i in range(len(ids)):
+                DetalleVenta.objects.create(
+                    venta=venta,
+                    producto_nombre=nombres[i],
+                    precio=float(precios[i]),
+                    cantidad=int(cantidades[i])
+                )
+
             messages.success(request, f'Venta #{venta.id} actualizada exitosamente.')
         except Exception as e:
             messages.error(request, f'Error al actualizar: {str(e)}')
@@ -161,7 +198,6 @@ class EliminarVentaView(View):
         venta_id = venta.id; venta.delete()
         messages.success(request, f'Venta #{venta_id} eliminada exitosamente.')
         return redirect('ventas')
-
 
 @method_decorator(admin_login_required, name='dispatch')
 class EstadisticasVentasView(View):
