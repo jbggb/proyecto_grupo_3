@@ -6,7 +6,7 @@ import re
 
 
 class Administrador(models.Model):
-    idAdministrador = models.AutoField(primary_key=True)
+    idAdministrador = models.AutoField(primary_key=True, db_column='id')
     nombre          = models.CharField(max_length=150)
     usuario         = models.CharField(max_length=50, unique=True)
     contrasena      = models.CharField(max_length=255)
@@ -105,7 +105,7 @@ class Producto(models.Model):
 
 
 class Proveedor(models.Model):
-    # BD: columna 'id' (AutoField estándar), telefono varchar(20)
+    id = models.AutoField(primary_key=True, db_column='id')
     nombre = models.CharField(max_length=150)
     telefono = models.CharField(max_length=20)
     email = models.EmailField(max_length=100)
@@ -161,12 +161,12 @@ class DetalleVenta(models.Model):
 
 
 class Compra(models.Model):
-    idCompra = models.AutoField(primary_key=True)
-    fechaCompra = models.DateField(default=datetime.now)
+    idCompra = models.AutoField(primary_key=True, db_column='id')
+    fechaCompra = models.DateField(default=datetime.now, db_column='fecha')
     estado = models.CharField(max_length=50, default='Pendiente')
-    Administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE, db_column='idAdministrador')
-    Producto = models.ForeignKey(Producto, on_delete=models.SET_NULL, null=True, db_column='idProducto')
-    Proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE, db_column='idProveedor')
+    Administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE, db_column='Administrador_id')
+    Producto = models.ForeignKey(Producto, on_delete=models.SET_NULL, null=True, db_column='Producto_id')
+    Proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE, db_column='Proveedor_id')
 
     def __str__(self):
         return f"Compra #{self.idCompra}"

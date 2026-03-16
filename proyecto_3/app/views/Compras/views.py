@@ -88,11 +88,12 @@ class CrearCompraView(View):
                 messages.error(request, error)
                 return redirect('compras')
 
-            admin = _get_or_create_admin()
+            admin = _get_admin_de_sesion(request)
             if not admin:
                 messages.error(request, 'No hay administradores registrados.')
                 return redirect('compras')
-
+            
+            
             Compra.objects.create(
                 fechaCompra=fecha,
                 estado=estado_str,
@@ -125,7 +126,7 @@ class EditarCompraView(View):
                 messages.error(request, error)
                 return redirect('compras')
 
-            admin = _get_or_create_admin()
+            admin = _get_admin_de_sesion(request)
             if not admin:
                 messages.error(request, 'No hay administradores registrados.')
                 return redirect('compras')

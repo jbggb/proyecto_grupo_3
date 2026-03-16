@@ -73,6 +73,7 @@ class CrearProductoView(View):
             return error('El stock debe ser un número entre 0 y 1.000.')
 
         try:
+            precio_val = float(precio)
             Producto.objects.create(
                 nombre=nombre, precio=precio_val, stock=int(stock),
                 idMarca=get_object_or_404(Marca, idMarca=idMarca),

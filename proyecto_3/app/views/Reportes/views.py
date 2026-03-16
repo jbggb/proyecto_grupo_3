@@ -90,7 +90,7 @@ class ReportesView(View):
         # ── PROVEEDORES ──
         proveedores_data = []
         for p in Proveedor.objects.all():
-            nc = Compra.objects.filter(Proveedor_id=p.id).count()
+            nc = Compra.objects.filter(Proveedor=p).count()
             proveedores_data.append({
                 'id': p.id, 'nombre': p.nombre, 'telefono': p.telefono,
                 'email': p.email, 'envio': p.envio,
@@ -114,7 +114,7 @@ class ReportesView(View):
 
         compras_por_dia = (
             Compra.objects
-            .values('fechaCompra').annotate(total_dia=Count('idCompra'))
+            .values('fechaCompra').annotate(total_dia=Count('pk'))
             .order_by('fechaCompra')
         )[:14]
         graf_compras_labels  = [str(c['fechaCompra']) for c in compras_por_dia]
