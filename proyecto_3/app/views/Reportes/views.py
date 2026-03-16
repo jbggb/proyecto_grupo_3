@@ -4,7 +4,6 @@ from django.views import View
 from django.utils.decorators import method_decorator
 from django.utils import timezone
 from django.db.models import Sum, Count
-from django.db.models.functions import TruncDate
 from django.http import JsonResponse
 from app.decorators import admin_login_required
 from app.models import Producto, Cliente, Venta, Compra, Proveedor
@@ -76,14 +75,18 @@ class ReportesView(View):
                 'total': float(v.total), 'fecha': v.fecha, 'estado': v.estado,
             })
 
-        ventas_por_dia = (
-            Venta.objects
-            .annotate(dia=TruncDate('fecha'))
-            .values('dia').annotate(total_dia=Sum('total'))
-            .order_by('dia')
-        )[:14]
-        graf_ventas_labels    = [str(v['dia']) for v in ventas_por_dia]
-        graf_ventas_valores   = [float(v['total_dia']) for v in ventas_por_dia]
+        from django.db import connection
+        with connection.cursor() as cur:
+            cur.execute("""
+                SELECT DATE(fecha), SUM(total)
+                FROM venta
+                GROUP BY DATE(fecha)
+                ORDER BY DATE(fecha)
+                LIMIT 14
+            """)
+            _ventas_dia = cur.fetchall()
+        graf_ventas_labels  = [str(r[0]) for r in _ventas_dia]
+        graf_ventas_valores = [float(r[1]) for r in _ventas_dia]
         ventas_completadas    = Venta.objects.filter(estado='Completada').count()
         ventas_pendientes     = Venta.objects.filter(estado='Pendiente').count()
 
@@ -112,13 +115,17 @@ class ReportesView(View):
                 'estado':    c.estado,
             })
 
-        compras_por_dia = (
-            Compra.objects
-            .values('fechaCompra').annotate(total_dia=Count('idCompra'))
-            .order_by('fechaCompra')
-        )[:14]
-        graf_compras_labels  = [str(c['fechaCompra']) for c in compras_por_dia]
-        graf_compras_valores = [c['total_dia']        for c in compras_por_dia]
+        with connection.cursor() as cur:
+            cur.execute("""
+                SELECT fechaCompra, COUNT(idCompra)
+                FROM compra
+                GROUP BY fechaCompra
+                ORDER BY fechaCompra
+                LIMIT 14
+            """)
+            _compras_dia = cur.fetchall()
+        graf_compras_labels  = [str(r[0]) for r in _compras_dia]
+        graf_compras_valores = [int(r[1])  for r in _compras_dia]
         compras_completadas  = Compra.objects.filter(estado='Completada').count()
         compras_pendientes   = Compra.objects.filter(estado='Pendiente').count()
 
@@ -212,12 +219,18 @@ class ReportesDataView(View):
         ingreso_total     = float(Venta.objects.aggregate(t=Sum('total'))['t'] or 0)
         stock_bajo        = Producto.objects.filter(stock__lte=10).count()
 
-        ventas_por_dia = (
-            Venta.objects.annotate(dia=TruncDate('fecha'))
-            .values('dia').annotate(total_dia=Sum('total')).order_by('dia')
-        )[:14]
-        grafica_labels  = [str(v['dia']) for v in ventas_por_dia]
-        grafica_valores = [float(v['total_dia']) for v in ventas_por_dia]
+        from django.db import connection
+        with connection.cursor() as cur:
+            cur.execute("""
+                SELECT DATE(fecha), SUM(total)
+                FROM venta
+                GROUP BY DATE(fecha)
+                ORDER BY DATE(fecha)
+                LIMIT 14
+            """)
+            _v = cur.fetchall()
+        grafica_labels  = [str(r[0]) for r in _v]
+        grafica_valores = [float(r[1]) for r in _v]
 
         alertas = [
             {'nombre': p.nombre, 'stock': p.stock, 'estado': 'out' if p.stock == 0 else 'low'}
