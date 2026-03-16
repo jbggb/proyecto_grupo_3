@@ -3,7 +3,6 @@
 
 {% block content %}
 
-
 <link rel="stylesheet" href="{% static 'css/reporte_1.css' %}">
 
 <div class="d-flex justify-content-between align-items-center mb-4">
@@ -13,25 +12,42 @@
     </button>
 </div>
 
-<!-- Búsqueda -->
+<!-- Búsqueda y Filtros -->
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
-        <form method="get" class="row">
-            <div class="col-md-6">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label">Buscar por nombre</label>
                 <input type="text" name="busqueda" class="form-control"
-                       placeholder="Buscar por nombre..." value="{{ busqueda }}">
+                       placeholder="Buscar proveedor..." value="{{ busqueda }}">
             </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-primary">
+            <div class="col-md-4">
+                <label class="form-label">Filtrar por días de envío</label>
+                <select name="envio" class="form-select">
+                    <option value="">Todos</option>
+                    <option value="rapido" {% if envio_filtro == 'rapido' %}selected{% endif %}>
+                        🟢 Rápido (1 – 7 días)
+                    </option>
+                    <option value="normal" {% if envio_filtro == 'normal' %}selected{% endif %}>
+                        🟡 Normal (8 – 15 días)
+                    </option>
+                    <option value="lento" {% if envio_filtro == 'lento' %}selected{% endif %}>
+                        🔴 Lento (más de 15 días)
+                    </option>
+                </select>
+            </div>
+            <div class="col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">
                     <i class="fa-solid fa-search me-1"></i> Buscar
                 </button>
-                {% if busqueda %}
-                    <a href="{% url 'proveedores' %}" class="btn btn-secondary ms-2">Limpiar</a>
+                {% if busqueda or envio_filtro %}
+                    <a href="{% url 'proveedores' %}" class="btn btn-secondary w-100">Limpiar</a>
                 {% endif %}
             </div>
         </form>
     </div>
 </div>
+
 <!-- Botones de exportar -->
 <div class="contenedor-exportar">
     <a href="{% url 'exportar_proveedores_pdf' %}" class="btn-pdf">
@@ -42,7 +58,6 @@
     </a>
 </div>
 
-<!-- Tabla -->
 <!-- Tabla -->
 <div class="card border-0 shadow-sm">
     <div class="card-header bg-dark text-white">
@@ -68,18 +83,40 @@
                     <td><strong>{{ p.nombre }}</strong></td>
                     <td>{{ p.telefono }}</td>
                     <td>{{ p.email }}</td>
-                    <td>{{ p.envio }}</td>
+                    <td>
+                        {% if p.envio <= 7 %}
+                            <span class="badge bg-success">{{ p.envio }} días</span>
+                        {% elif p.envio <= 15 %}
+                            <span class="badge bg-warning text-dark">{{ p.envio }} días</span>
+                        {% else %}
+                            <span class="badge bg-danger">{{ p.envio }} días</span>
+                        {% endif %}
+                    </td>
                     <td>{{ p.fechaRegistro }}</td>
                     <td>
+                        <!-- Ver detalles -->
+                        <button class="btn btn-info btn-sm me-1"
+                            onclick="verProveedor(
+                                '{{ p.id }}',
+                                '{{ p.nombre|escapejs }}',
+                                '{{ p.telefono|escapejs }}',
+                                '{{ p.email|escapejs }}',
+                                '{{ p.envio }}',
+                                '{{ p.fechaRegistro }}'
+                            )">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+                        <!-- Editar -->
                         <button class="btn btn-primary btn-sm me-1"
                                 onclick="abrirEditar({{ p.id }}, '{{ p.nombre|escapejs }}', '{{ p.telefono|escapejs }}', '{{ p.email|escapejs }}', {{ p.envio }})">
                             <i class="fa-solid fa-pen"></i>
                         </button>
+                        <!-- Eliminar -->
                         <form method="post" action="{% url 'eliminar_proveedor' p.id %}" id="formEliminar{{ p.id }}" style="display:none;">
                             {% csrf_token %}
                         </form>
                         <button class="btn btn-danger btn-sm"
-                                onclick="confirmarEliminar('{{ p.nombre|escapejs }}', document.getElementById('formEliminar{{ p.id }}'))">
+                                onclick="confirmarEliminar({{ p.id }}, '{{ p.nombre|escapejs }}')">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </td>
@@ -91,6 +128,31 @@
                 {% endfor %}
             </tbody>
         </table>
+    </div>
+</div>
+
+<!-- Modal: Ver Detalles -->
+<div class="modal fade" id="modalVerProveedor" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-info text-white">
+                <h5 class="modal-title"><i class="fa-solid fa-eye me-1"></i> Detalle del Proveedor</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <table class="table table-bordered mb-0">
+                    <tr><th>ID</th><td id="ver_id"></td></tr>
+                    <tr><th>Nombre</th><td id="ver_nombre"></td></tr>
+                    <tr><th>Teléfono</th><td id="ver_telefono"></td></tr>
+                    <tr><th>Email</th><td id="ver_email"></td></tr>
+                    <tr><th>Días de envío</th><td id="ver_envio"></td></tr>
+                    <tr><th>Fecha Registro</th><td id="ver_fecha"></td></tr>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -116,12 +178,10 @@
                         <input type="text" name="telefono" class="form-control"
                             maxlength="10" pattern="[0-9]+"
                             title="Solo números (entre 7 y 10 dígitos)"
-                            oninput="this.value = this.value.replace(/[^\d]/g, ''); 
+                            oninput="this.value = this.value.replace(/[^\d]/g, '');
                             if(this.value.length === 1 && this.value[0] !== '3') this.value = '';"
                             placeholder="3001234567" required>
                     </div>
-                               
-    
                     <div class="mb-3">
                         <label class="form-label">Email <span class="text-danger">*</span></label>
                         <input type="text" name="email" class="form-control"
@@ -132,9 +192,11 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Días de envío <span class="text-danger">*</span></label>
-                        <!-- ✅ min="1" impide el valor 0 desde el navegador -->
                         <input type="number" name="envio" class="form-control"
-                               min="1" placeholder="Mínimo 1 día" required>
+                               min="1" max="30" placeholder="Mínimo 1, máximo 30 días" required>
+                        <div class="form-text">
+                            🟢 Rápido: 1-7 días &nbsp;|&nbsp; 🟡 Normal: 8-15 días &nbsp;|&nbsp; 🔴 Lento: 16-30 días
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -169,23 +231,22 @@
                         <label class="form-label">Teléfono <span class="text-danger">*</span></label>
                         <input type="text" name="telefono" id="edit_telefono" class="form-control"
                             maxlength="10" pattern="[0-9]+"
-                            title="Solo números (entre 7 y 10 dígitos)"
-                            oninput="this.value = this.value.replace(/[^\d]/g, ''); 
-                            if(this.value.length === 1 && this.value[0] !== '3') this.value = '';"
+                            oninput="this.value = this.value.replace(/[^\d]/g, '');"
                             placeholder="3001234567" required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Email <span class="text-danger">*</span></label>
                         <input type="text" name="email" id="edit_email" class="form-control"
                                pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
-                               title="Ingrese un email válido (ejemplo: proveedor@empresa.com)"
                                required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Días de envío <span class="text-danger">*</span></label>
-                        <!-- ✅ min="1" impide el valor 0 -->
                         <input type="number" name="envio" id="edit_envio" class="form-control"
-                               min="1" required>
+                               min="1" max="30" required>
+                        <div class="form-text">
+                            🟢 Rápido: 1-7 días &nbsp;|&nbsp; 🟡 Normal: 8-15 días &nbsp;|&nbsp; 🔴 Lento: 16-30 días
+                        </div>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -199,32 +260,17 @@
     </div>
 </div>
 
-<!-- Modal: Confirmar eliminación -->
-<div class="modal fade" id="modalEliminar" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title">Confirmar eliminación</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <p>¿Estás seguro de eliminar al proveedor <strong id="eliminar_nombre"></strong>?</p>
-                <p class="text-muted small">Esta acción no se puede deshacer.</p>
-            </div>
-            <form method="post" id="formEliminar">
-                {% csrf_token %}
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fa-solid fa-trash me-1"></i> Sí, eliminar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
 <script>
+function verProveedor(id, nombre, telefono, email, envio, fecha) {
+    document.getElementById('ver_id').textContent = id;
+    document.getElementById('ver_nombre').textContent = nombre;
+    document.getElementById('ver_telefono').textContent = telefono;
+    document.getElementById('ver_email').textContent = email;
+    document.getElementById('ver_envio').textContent = envio + ' días';
+    document.getElementById('ver_fecha').textContent = fecha;
+    new bootstrap.Modal(document.getElementById('modalVerProveedor')).show();
+}
+
 function abrirEditar(id, nombre, telefono, email, envio) {
     document.getElementById('edit_nombre').value = nombre;
     document.getElementById('edit_telefono').value = telefono;
@@ -235,9 +281,20 @@ function abrirEditar(id, nombre, telefono, email, envio) {
 }
 
 function confirmarEliminar(id, nombre) {
-    document.getElementById('eliminar_nombre').textContent = nombre;
-    document.getElementById('formEliminar').action = '/proveedores/eliminar/' + id + '/';
-    new bootstrap.Modal(document.getElementById('modalEliminar')).show();
+    Swal.fire({
+        icon: 'warning',
+        title: '¿Eliminar proveedor?',
+        text: '¿Estás seguro de eliminar a "' + nombre + '"? Esta acción no se puede deshacer.',
+        showCancelButton: true,
+        confirmButtonText: 'Sí, eliminar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#dc3545',
+        cancelButtonColor: '#6c757d',
+    }).then((result) => {
+        if (result.isConfirmed) {
+            document.getElementById('formEliminar' + id).submit();
+        }
+    });
 }
 </script>
 

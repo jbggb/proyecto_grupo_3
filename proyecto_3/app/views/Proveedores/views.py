@@ -47,6 +47,8 @@ def _validar_proveedor(nombre, telefono, email, envio, proveedor_id=None):
         errores.append('Los días de envío solo pueden contener números enteros.')
     elif int(envio) < 1:
         errores.append('Los días de envío deben ser al menos 1.')
+    elif int(envio) > 30:
+        errores.append('Los días de envío no pueden superar 30 días.')
 
     return errores
 
@@ -56,9 +58,23 @@ class ProveedoresView(View):
     def get(self, request):
         lista = Proveedor.objects.all()
         busqueda = request.GET.get('busqueda', '').strip()
+        envio_filtro = request.GET.get('envio', '').strip()
+
         if busqueda:
             lista = lista.filter(nombre__icontains=busqueda)
-        return render(request, 'Proveedores/proveedores.html', {'proveedores': lista, 'busqueda': busqueda})
+
+        if envio_filtro == 'rapido':
+            lista = lista.filter(envio__lte=7)
+        elif envio_filtro == 'normal':
+            lista = lista.filter(envio__gte=8, envio__lte=15)
+        elif envio_filtro == 'lento':
+            lista = lista.filter(envio__gt=15)
+
+        return render(request, 'proveedores/proveedores.html', {
+            'proveedores': lista,
+            'busqueda': busqueda,
+            'envio_filtro': envio_filtro,
+        })
 
 
 @method_decorator(admin_login_required, name='dispatch')

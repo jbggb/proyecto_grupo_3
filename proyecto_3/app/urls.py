@@ -12,6 +12,7 @@ from app.views.Administradores import views as admin_views
 from app.views.Marcas import views as marcas_views
 from app.views.Tipo_producto import views as tipos_views
 from app.views.Unidades import views as unidades_views
+from app.views import backup as backup_views
 
 urlpatterns = [
     # Inicio
@@ -88,4 +89,8 @@ urlpatterns = [
     # Reportes
     path('reportes/', reportes_views.reportes, name='reportes'),
     path('reportes/data/', reportes_views.reportes_data, name='reportes_data'),
+    
+   # Backup y Restauración
+path('backup/', backup_views.backup, name='backup'),
+path('backup/restaurar/', backup_views.restaurar_datos, name='restaurar_datos'),
 ]
