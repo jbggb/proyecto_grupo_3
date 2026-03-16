@@ -71,14 +71,33 @@
                 </td>
                 <td>
                     <div class="btn-group">
-                        <button class="btn btn-sm btn-warning"
+                        <!-- Botón Ver (siempre visible) -->
+                        <button class="btn btn-sm btn-info"
                                 data-bs-toggle="modal"
-                                data-bs-target="#modalEditarCompra{{ compra.idCompra }}">
+                                data-bs-target="#modalVerCompra{{ compra.idCompra }}"
+                                title="Ver">
+                            <i class="fa-solid fa-eye"></i>
+                        </button>
+
+                        <!-- Botón Editar (bloqueado si está Completada) -->
+                        <button class="btn btn-sm btn-warning"
+                                {% if compra.estado %}
+                                    disabled
+                                    style="background-color: #6c757d; border-color: #6c757d;"
+                                    title="No se puede editar una compra completada"
+                                {% else %}
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalEditarCompra{{ compra.idCompra }}"
+                                    title="Editar"
+                                {% endif %}>
                             <i class="fa-solid fa-edit"></i>
                         </button>
+
+                        <!-- Botón Eliminar -->
                         <button class="btn btn-sm btn-danger"
                                 data-bs-toggle="modal"
-                                data-bs-target="#modalEliminarCompra{{ compra.idCompra }}">
+                                data-bs-target="#modalEliminarCompra{{ compra.idCompra }}"
+                                title="Eliminar">
                             <i class="fa-solid fa-trash"></i>
                         </button>
                     </div>
@@ -133,6 +152,9 @@
                                 <option value="{{ proveedor.id }}">{{ proveedor.nombre }}</option>
                             {% endfor %}
                         </select>
+                        <a href="{% url 'proveedores' %}" class="text-success" style="font-size: 13px;">
+                            <i class="fa-solid fa-plus"></i> Gestionar Proveedores
+                        </a>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -146,8 +168,37 @@
     </div>
 </div>
 
-<!-- Modales Editar y Eliminar por compra -->
+<!-- Modales Editar, Eliminar y Ver por compra -->
 {% for compra in compras %}
+
+<!-- Modal Ver -->
+<div class="modal fade" id="modalVerCompra{{ compra.idCompra }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="fa-solid fa-eye me-2"></i>Información de la Compra</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p><strong>ID:</strong> {{ compra.idCompra }}</p>
+                <p><strong>Proveedor:</strong> {{ compra.Proveedor.nombre }}</p>
+                <p><strong>Producto:</strong> {{ compra.Producto.nombre }}</p>
+                <p><strong>Administrador:</strong> {{ compra.Administrador.nombre }}</p>
+                <p><strong>Fecha:</strong> {{ compra.fecha|date:"d/m/Y" }}</p>
+                <p><strong>Estado:</strong>
+                    {% if compra.estado %}
+                        <span class="badge badge-success">Completada</span>
+                    {% else %}
+                        <span class="badge badge-warning">Pendiente</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Modal Editar -->
 <div class="modal fade" id="modalEditarCompra{{ compra.idCompra }}" tabindex="-1">
@@ -207,7 +258,7 @@
 </div>
 
 <!-- Modal Eliminar -->
-<div class="modal fade" id="modalEliminarCompra{{ compra.id }}" tabindex="-1">
+<div class="modal fade" id="modalEliminarCompra{{ compra.idCompra }}" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
@@ -217,7 +268,7 @@
             <form method="POST" action="{% url 'modal_eliminar_compra' compra.id %}">
                 {% csrf_token %}
                 <div class="modal-body">
-                    <p>¿Está seguro de eliminar la compra <strong>#{{ compra.id }}</strong>?</p>
+                    <p>¿Está seguro de eliminar la compra <strong>#{{ compra.idCompra }}</strong>?</p>
                     <p>
                         Proveedor: <strong>{{ compra.Proveedor.nombre }}</strong> —
                         Producto: <strong>{{ compra.Producto.nombre }}</strong>
