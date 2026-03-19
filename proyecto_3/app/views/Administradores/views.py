@@ -34,7 +34,7 @@ class EliminarAdminView(View):
         admin_sesion_id = request.session.get('admin_id')
 
         # Protección: no permitir eliminar el admin actualmente logueado
-        if admin_sesion_id == id:
+        if str(admin_sesion_id) == str(id):
             messages.error(request, 'No puedes eliminar tu propia cuenta mientras tienes sesión activa.')
             return redirect('inicio')
 

@@ -2,73 +2,11 @@ from django.shortcuts import render
 from django.views.generic import View
 from django.views import View as DjangoView
 from django.http import HttpResponse
-from app.models import *
+from app.models import Proveedor, Producto, Cliente, Venta, Compra
 from app.utils import exportar_pdf, exportar_excel
 from datetime import datetime
 
 # ====== VISTAS PARA EXPORTAR REPORTES ======
-
-class ExportarCategoriasPDF(DjangoView):
-    """
-    VISTA PARA EXPORTAR CATEGORIAS A PDF
-    Obtiene todas las categorías y las exporta en formato PDF
-    """
-    
-    def get(self, request):
-        # Obtener todas las categorias 
-        usuario = Usuario.objects.all()
-        
-        # Definir las columnas que se muestran en el reporte
-        columnas = ['ID', 'Nombre', 'email']
-        
-        # Preparar los datos en formato de tuplas
-        datos = [
-            (us.id, us.nombre, us.email)
-            for us in usuario
-        ]
-        
-        # Generar nombre del archivo con timestamp
-        nombre_archivo = f'Reporte_Categorias_{datetime.now().strftime("%d_%m_%Y")}'
-        
-        # Llamar funcion de exportacion a PDF
-        return exportar_pdf(
-            titulo='REPORTE DE CATEGORIAS',
-            columnas=columnas,
-            datos=datos,
-            nombre_archivo=nombre_archivo,
-            
-        )
-
-
-class ExportarCategoriasExcel(DjangoView):
-    """
-    VISTA PARA EXPORTAR CATEGORIAS A EXCEL
-    Obtiene todas las categorias y las exporta en formato Excel
-    """
-    
-    def get(self, request):
-        # Obtener todas las categorias 
-        usuario = Usuario.objects.all()
-        
-        # Definir las columnas que se mostraran en el reporte
-        columnas = ['ID', 'Nombre', 'Descripcion']
-        
-        # Preparar los datos en  tuplas
-        datos = [
-            (cat.id, cat.nombre, cat.descripcion)
-            for cat in usuario
-        ]
-        
-        # Generar nombre del archivo con timestamp
-        nombre_archivo = f'Reporte_Categorias_{datetime.now().strftime("%d_%m_%Y")}'
-        
-        # Llamar funcion de exportacion a Excel
-        return exportar_excel(
-            titulo='REPORTE DE CATEGORIAS',
-            columnas=columnas,
-            datos=datos,
-            nombre_archivo=nombre_archivo
-        )
 class ExportarProveedoresPDF(DjangoView):
     def get(self, request):
         
@@ -188,24 +126,17 @@ class ExportarVentasExcel(DjangoView):
 # ====== COMPRAS ======
 class ExportarComprasPDF(DjangoView):
     def get(self, request):
-        compras = Compra.objects.all()
+        compras = Compra.objects.select_related('Producto', 'Proveedor').all()
         columnas = ['ID', 'Fecha', 'Producto', 'Proveedor', 'Estado']
-        datos = [(c.id, c.fecha, c.Producto.nombre, c.Proveedor.nombre, 'Completada' if c.estado else 'Pendiente') for c in compras]
-        return exportar_pdf(
-            titulo='REPORTE DE COMPRAS',
-            columnas=columnas,
-            datos=datos,
-            nombre_archivo=f'Reporte_Compras_{datetime.now().strftime("%d_%m_%Y")}',
-        )
+        datos = [(c.idCompra, c.fechaCompra, c.Producto.nombre if c.Producto else '-', c.Proveedor.nombre if c.Proveedor else '-', c.estado) for c in compras]
+        return exportar_pdf(titulo='REPORTE DE COMPRAS', columnas=columnas, datos=datos,
+            nombre_archivo=f'Reporte_Compras_{datetime.now().strftime("%d_%m_%Y")}')
 
 class ExportarComprasExcel(DjangoView):
     def get(self, request):
-        compras = Compra.objects.all()
+        compras = Compra.objects.select_related('Producto', 'Proveedor').all()
         columnas = ['ID', 'Fecha', 'Producto', 'Proveedor', 'Estado']
-        datos = [(c.id, c.fecha, c.Producto.nombre, c.Proveedor.nombre, 'Completada' if c.estado else 'Pendiente') for c in compras]
-        return exportar_excel(
-            titulo='REPORTE DE COMPRAS',
-            columnas=columnas,
-            datos=datos,
-            nombre_archivo=f'Reporte_Compras_{datetime.now().strftime("%d_%m_%Y")}',
-        )
+        datos = [(c.idCompra, c.fechaCompra, c.Producto.nombre if c.Producto else '-', c.Proveedor.nombre if c.Proveedor else '-', c.estado) for c in compras]
+        return exportar_excel(titulo='REPORTE DE COMPRAS', columnas=columnas, datos=datos,
+            nombre_archivo=f'Reporte_Compras_{datetime.now().strftime("%d_%m_%Y")}')
+        

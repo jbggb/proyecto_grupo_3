@@ -1,8 +1,5 @@
 from django.db import models
 from datetime import datetime
-from decimal import Decimal
-from django.core.exceptions import ValidationError
-import re
 
 
 class Administrador(models.Model):

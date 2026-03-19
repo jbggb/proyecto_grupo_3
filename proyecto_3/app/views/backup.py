@@ -9,6 +9,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
+from app.decorators import admin_login_required
 
 # ========== OBTENER DATOS DE LA BD ==========
 def obtener_credenciales_mysql():
@@ -49,6 +50,7 @@ def probar_conexion_mysql():
         return False
 
 # ========== VISTA PARA MOSTRAR OPCIONES DE RESPALDO ==========
+@admin_login_required
 @require_http_methods(["GET", "POST"])
 def backup(request):
     """Muestra el menu de opciones para respaldo y restauracion"""
@@ -74,7 +76,8 @@ def backup(request):
     return render(request, 'backup/menu.html', context)
 
 # ========== VISTA PARA RESTAURAR DATOS ==========
-@require_http_methods(["POST"])
+@admin_login_required
+@require_http_methods(["GET", "POST"])
 def restaurar_datos(request):
     """Restaura datos desde un archivo SQL"""
     if 'archivo' not in request.FILES:

@@ -1,16 +1,16 @@
-"""Decoradores personalizados para autenticación con tabla Administrador"""
-from functools import wraps
+from functools import wraps         
 from django.shortcuts import redirect
 
-
 def admin_login_required(view_func):
-    """
-    Reemplaza @admin_login_required para verificar la sesión del Administrador
-    en vez del sistema auth de Django.
-    """
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
         if not request.session.get('admin_id'):
+            return redirect('login')
+        from app.models import Administrador
+        try:
+            Administrador.objects.get(idAdministrador=request.session['admin_id'])  # ← cambiar id por idAdministrador
+        except Administrador.DoesNotExist:
+            request.session.flush()
             return redirect('login')
         return view_func(request, *args, **kwargs)
     return wrapper
