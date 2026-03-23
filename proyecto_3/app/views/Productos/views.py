@@ -18,7 +18,7 @@ def _contexto_productos(query='', form_data=None):
         'marcas':    Marca.objects.all(),
         'tipos':     TipoProductos.objects.all(),
         'unidades':  unidad_medida.objects.all(),
-        'form_data': form_data or {},   # ← datos a re-inyectar en el modal
+        'form_data': form_data or {},
     }
 
 
@@ -32,7 +32,6 @@ class ProductosView(View):
 @method_decorator(admin_login_required, name='dispatch')
 class CrearProductoView(View):
     def post(self, request):
-        # Capturar datos del POST para poder re-mostrarlos si hay error
         form_data = {
             'nombre':   request.POST.get('nombre', '').strip(),
             'precio':   request.POST.get('precio', '').strip(),
@@ -45,7 +44,7 @@ class CrearProductoView(View):
         def error(msg):
             messages.error(request, msg)
             ctx = _contexto_productos(form_data=form_data)
-            ctx['abrir_modal_agregar'] = True   # señal para el template
+            ctx['abrir_modal_agregar'] = True
             return render(request, 'Productos/productos.html', ctx)
 
         nombre   = form_data['nombre']
@@ -67,15 +66,24 @@ class CrearProductoView(View):
             return error(f'"{nombre}" ya existe como Unidad de medida.')
         if Producto.objects.filter(nombre__iexact=nombre, idMarca=idMarca, idTipo=idTipo).exists():
             return error(f'Ya existe un producto "{nombre}" con esa marca y tipo.')
-        if not precio.isdigit() or int(precio) < 1 or int(precio) > 800000:
+
+        # ─── CORRECCIÓN: usar float en lugar de isdigit para aceptar decimales ───
+        try:
+            precio_val = float(precio.replace(',', '.'))
+            if precio_val < 1 or precio_val > 800000:
+                raise ValueError
+        except ValueError:
             return error('El precio debe ser un número entre 1 y 800.000.')
+        # ─────────────────────────────────────────────────────────────────────────
+
         if not stock.isdigit() or int(stock) < 0 or int(stock) > 1000:
             return error('El stock debe ser un número entre 0 y 1.000.')
 
         try:
-            precio_val = float(precio)
             Producto.objects.create(
-                nombre=nombre, precio=precio_val, stock=int(stock),
+                nombre=nombre,
+                precio=precio_val,
+                stock=int(stock),
                 idMarca=get_object_or_404(Marca, idMarca=idMarca),
                 idTipo=get_object_or_404(TipoProductos, idTipo=idTipo),
                 idUnidad=get_object_or_404(unidad_medida, idUnidad=idUnidad),
@@ -98,28 +106,40 @@ class EditarProductoView(View):
         idTipo   = request.POST.get('idTipo')
         idUnidad = request.POST.get('idUnidad')
 
+        if not nombre:
+            messages.error(request, 'El nombre es obligatorio.')
+            return redirect('productos')
         if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$', nombre):
-            messages.error(request, 'El nombre solo puede contener letras y espacios.'); return redirect('productos')
+            messages.error(request, 'El nombre solo puede contener letras y espacios.')
+            return redirect('productos')
         if Marca.objects.filter(nombreMarca__iexact=nombre).exists():
-            messages.error(request, f'"{nombre}" ya existe como Marca.'); return redirect('productos')
+            messages.error(request, f'"{nombre}" ya existe como Marca.')
+            return redirect('productos')
         if TipoProductos.objects.filter(nombre_tipo__iexact=nombre).exists():
-            messages.error(request, f'"{nombre}" ya existe como Tipo de producto.'); return redirect('productos')
+            messages.error(request, f'"{nombre}" ya existe como Tipo de producto.')
+            return redirect('productos')
         if unidad_medida.objects.filter(nombre_unidad__iexact=nombre).exists():
-            messages.error(request, f'"{nombre}" ya existe como Unidad de medida.'); return redirect('productos')
+            messages.error(request, f'"{nombre}" ya existe como Unidad de medida.')
+            return redirect('productos')
         if Producto.objects.filter(nombre__iexact=nombre, idMarca=idMarca, idTipo=idTipo).exclude(idProducto=id).exists():
-            messages.error(request, f'Ya existe un producto "{nombre}" con esa marca y tipo.'); return redirect('productos')
+            messages.error(request, f'Ya existe un producto "{nombre}" con esa marca y tipo.')
+            return redirect('productos')
+
         try:
-            precio_val = float(precio)
+            precio_val = float(precio.replace(',', '.'))
         except ValueError:
-            messages.error(request, 'El precio debe ser un número válido.'); return redirect('productos')
+            messages.error(request, 'El precio debe ser un número válido.')
+            return redirect('productos')
         if precio_val < 1 or precio_val > 800000:
-            messages.error(request, 'El precio debe ser un número entre 1 y 800.000.'); return redirect('productos')
+            messages.error(request, 'El precio debe ser un número entre 1 y 800.000.')
+            return redirect('productos')
         if not stock.isdigit() or int(stock) < 0 or int(stock) > 1000:
-            messages.error(request, 'El stock debe ser un número entre 0 y 1.000.'); return redirect('productos')
+            messages.error(request, 'El stock debe ser un número entre 0 y 1.000.')
+            return redirect('productos')
 
         producto.nombre   = nombre
-        producto.precio   = precio
-        producto.stock    = stock
+        producto.precio   = precio_val
+        producto.stock    = int(stock)
         producto.idMarca  = get_object_or_404(Marca, idMarca=idMarca)
         producto.idTipo   = get_object_or_404(TipoProductos, idTipo=idTipo)
         producto.idUnidad = get_object_or_404(unidad_medida, idUnidad=idUnidad)

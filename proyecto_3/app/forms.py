@@ -24,7 +24,7 @@ class AdministradorRegistroForm(forms.ModelForm):
     )
 
     class Meta:
-        model = Administrador
+        model  = Administrador
         fields = ['nombre', 'usuario', 'email', 'contrasena']
         widgets = {
             'nombre': forms.TextInput(attrs={
@@ -44,9 +44,9 @@ class AdministradorRegistroForm(forms.ModelForm):
             }),
         }
         labels = {
-            'nombre': 'Nombre Completo',
+            'nombre':  'Nombre Completo',
             'usuario': 'Usuario',
-            'email': 'Correo Electrónico',
+            'email':   'Correo Electrónico',
         }
 
     def clean_nombre(self):
@@ -67,7 +67,6 @@ class AdministradorRegistroForm(forms.ModelForm):
             raise ValidationError('El usuario debe tener al menos 3 caracteres.')
         if not re.match(r'^[a-zA-Z0-9_]+$', usuario):
             raise ValidationError('El usuario solo puede contener letras, números y guión bajo (_).')
-        # ✅ CORREGIDO: excluir el registro actual al editar (self.instance.pk existe si es edición)
         qs = Administrador.objects.filter(usuario=usuario)
         if self.instance and self.instance.pk:
             qs = qs.exclude(pk=self.instance.pk)
@@ -80,16 +79,18 @@ class AdministradorRegistroForm(forms.ModelForm):
         if not email:
             raise ValidationError('El correo electrónico es obligatorio.')
 
+        # Validar formato general de email
         patron = r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$'
         if not re.match(patron, email):
             raise ValidationError('Ingrese un correo electrónico válido.')
 
-        dominios_permitidos = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com', 'sena.edu.co']
-        dominio = email.split('@')[1]
-        if dominio not in dominios_permitidos:
-            raise ValidationError(f"Solo se permiten correos de: {', '.join(dominios_permitidos)}")
+        # ─── CORRECCIÓN: se eliminó la lista blanca de dominios ──────────────
+        # La versión anterior solo aceptaba gmail, hotmail, outlook, yahoo y
+        # sena.edu.co. Eso impedía registrarse a cualquier persona con un
+        # correo institucional, universitario o corporativo diferente.
+        # Ahora se acepta cualquier dominio con formato válido.
+        # ─────────────────────────────────────────────────────────────────────
 
-        # ✅ CORREGIDO: excluir el registro actual al editar
         qs = Administrador.objects.filter(email=email)
         if self.instance and self.instance.pk:
             qs = qs.exclude(pk=self.instance.pk)
@@ -128,9 +129,9 @@ class AdministradorRegistroForm(forms.ModelForm):
 
 class ventaForm(forms.Form):
     cliente = forms.CharField(max_length=100)
-    estado = forms.ChoiceField(choices=[
+    estado  = forms.ChoiceField(choices=[
         ('Completada', 'Completada'),
-        ('Pendiente', 'Pendiente'),
+        ('Pendiente',  'Pendiente'),
     ])
 
     def clean_cliente(self):

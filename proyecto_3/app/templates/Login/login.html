@@ -4,281 +4,347 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Iniciar Sesión - Inventario Grupo 3</title>
-    <link href="{% static 'css/l.css' %}" rel="stylesheet">
-    <link href="{% static 'css/lo.css' %}" rel="stylesheet">
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <title>El Despecho — Panel Administrativo</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --rojo:      #9b1c1c;
+            --rojo-mid:  #b91c1c;
+            --rojo-light:#dc2626;
+            --dorado:    #f59e0b;
+            --texto:     #1a1a1a;
+            --gris:      #6b7280;
+        }
 
         body {
+            font-family: 'DM Sans', sans-serif;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: linear-gradient(135deg, #1a2a6c 0%, #3a3f8f 50%, #764ba2 100%);
+            padding: 24px 16px;
+            background: linear-gradient(150deg, #3c3b38 0%, #1b1d1b 45%, #161615 100%);
             position: relative;
             overflow: hidden;
-            font-family: 'Segoe UI', system-ui, sans-serif;
         }
 
-        /* Burbujas decorativas */
+        /* Puntos de fondo */
         body::before {
             content: '';
-            position: absolute;
-            width: 500px; height: 500px;
-            border-radius: 50%;
-            background: rgba(255,255,255,.06);
-            top: -150px; right: -100px;
+            position: fixed; inset: 0;
+            background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px);
+            background-size: 28px 28px;
+            pointer-events: none;
         }
-        body::after {
-            content: '';
-            position: absolute;
-            width: 350px; height: 350px;
+
+        /* Círculos decorativos */
+        .deco-1 {
+            position: fixed;
+            top: -120px; right: -120px;
+            width: 420px; height: 420px;
             border-radius: 50%;
             background: rgba(255,255,255,.04);
-            bottom: -100px; left: -80px;
+            pointer-events: none;
+        }
+        .deco-2 {
+            position: fixed;
+            bottom: -80px; left: -80px;
+            width: 300px; height: 300px;
+            border-radius: 50%;
+            background: rgba(255,255,255,.03);
+            pointer-events: none;
         }
 
-        .login-wrapper {
-            width: 100%;
-            max-width: 420px;
-            padding: 20px;
+        /* Tarjeta principal */
+        .card {
             position: relative;
             z-index: 1;
+            width: 100%;
+            max-width: 440px;
+            background: #fff;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 32px 80px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.2);
         }
 
-        /* Logo / título */
-        .login-brand {
+        /* Cabecera de la tarjeta */
+        .card-header {
+            background: linear-gradient(145deg, #7f1d1d, #9b1c1c);
+            padding: 32px 36px 28px;
             text-align: center;
-            margin-bottom: 28px;
+            position: relative;
+            overflow: hidden;
         }
-        .login-brand-icon {
-            width: 64px; height: 64px;
-            background: rgba(255,255,255,.15);
-            border-radius: 16px;
-            display: inline-flex;
+
+        .card-header::after {
+            content: '';
+            position: absolute;
+            bottom: -30px; left: 50%;
+            transform: translateX(-50%);
+            width: 120px; height: 60px;
+            background: #fff;
+            border-radius: 50% 50% 0 0;
+        }
+
+        .logo-wrap {
+            width: 80px; height: 80px;
+            border-radius: 18px;
+            background: rgba(255,255,255,.12);
+            border: 2px solid rgba(255,255,255,.2);
+            display: flex;
             align-items: center;
             justify-content: center;
-            margin-bottom: 14px;
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,.2);
-        }
-        .login-brand-icon i {
-            font-size: 28px;
-            color: #fff;
-        }
-        .login-brand h1 {
-            color: #fff;
-            font-size: 1.4rem;
-            font-weight: 700;
-            letter-spacing: -.02em;
-        }
-        .login-brand p {
-            color: rgba(255,255,255,.65);
-            font-size: .85rem;
-            margin-top: 4px;
+            margin: 0 auto 16px;
+            overflow: hidden;
         }
 
-        /* Card */
-        .login-card {
-            background: #fff;
-            border-radius: 20px;
-            padding: 36px;
-            box-shadow: 0 24px 64px rgba(0,0,0,.25), 0 8px 24px rgba(0,0,0,.15);
+        .logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+
+        .card-title {
+            font-family: 'Fraunces', Georgia, serif;
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1.1;
+            margin-bottom: 4px;
         }
 
-        .login-card h2 {
-            font-size: 1.2rem;
-            font-weight: 700;
-            color: #1e293b;
+        .card-title span { color: var(--dorado); font-style: italic; }
+
+        .card-sub {
+            font-size: .78rem;
+            color: rgba(255,255,255,.6);
+            letter-spacing: .04em;
+        }
+
+        /* Cuerpo del formulario */
+        .card-body {
+            padding: 36px 36px 32px;
+        }
+
+        .form-eyebrow {
+            font-size: .7rem;
+            font-weight: 600;
+            color: var(--rojo-mid);
+            text-transform: uppercase;
+            letter-spacing: .1em;
             margin-bottom: 6px;
         }
-        .login-card p.subtitle {
-            font-size: .875rem;
-            color: #64748b;
-            margin-bottom: 28px;
+
+        .form-title {
+            font-family: 'Fraunces', Georgia, serif;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--texto);
+            margin-bottom: 24px;
         }
 
         /* Alertas */
-        .alert-list { margin-bottom: 20px; }
+        .alerts { margin-bottom: 16px; }
         .alert-item {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 12px 14px;
+            gap: 9px;
+            padding: 10px 13px;
             border-radius: 10px;
-            font-size: .875rem;
+            font-size: .83rem;
             font-weight: 500;
             margin-bottom: 8px;
         }
-        .alert-item.error { background: #fee2e2; color: #991b1b; border: 1px solid #fecaca; }
-        .alert-item.success { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
+        .alert-item.error   { background:#fee2e2; color:#1b4399; border:1px solid #fecaca; }
+        .alert-item.success { background:#dcfce7; color:#166534; border:1px solid #bbf7d0; }
 
         /* Inputs */
-        .form-group { margin-bottom: 20px; }
-        .form-group label {
+        .form-group { margin-bottom: 16px; }
+
+        .form-label {
             display: block;
-            font-size: .8rem;
+            font-size: .7rem;
             font-weight: 600;
-            color: #475569;
-            margin-bottom: 7px;
+            color: #4b5563;
             text-transform: uppercase;
-            letter-spacing: .04em;
+            letter-spacing: .07em;
+            margin-bottom: 6px;
         }
-        .input-wrap {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        .input-wrap .input-icon {
-            position: absolute;
-            left: 14px;
-            color: #94a3b8;
-            font-size: .9rem;
+
+        .input-wrap { position: relative; display: flex; align-items: center; }
+
+        .input-icon {
+            position: absolute; left: 13px;
+            color: #9ca3af; font-size: .85rem;
             pointer-events: none;
         }
+
         .input-wrap input {
             width: 100%;
-            padding: 12px 14px 12px 40px;
-            border: 1.5px solid #e2e8f0;
-            border-radius: 10px;
+            padding: 12px 14px 12px 38px;
+            border: 1.5px solid #e5e7eb;
+            border-radius: 11px;
             font-size: .9rem;
-            color: #1e293b;
-            background: #f8fafc;
+            font-family: 'DM Sans', sans-serif;
+            color: var(--texto);
+            background: #f9fafb;
             transition: border-color .15s, box-shadow .15s, background .15s;
             outline: none;
         }
+
         .input-wrap input:focus {
-            border-color: #667eea;
+            border-color: var(--rojo-mid);
             background: #fff;
-            box-shadow: 0 0 0 3px rgba(102,126,234,.12);
+            box-shadow: 0 0 0 3px rgba(185,28,28,.1);
         }
-        .input-wrap .toggle-pass {
-            position: absolute;
-            right: 14px;
-            color: #94a3b8;
-            cursor: pointer;
-            font-size: .9rem;
-            transition: color .15s;
+
+        .input-wrap input::placeholder { color: #d1d5db; }
+
+        .toggle-pass {
+            position: absolute; right: 13px;
+            color: #9ca3af; cursor: pointer;
+            font-size: .85rem; transition: color .15s;
         }
-        .input-wrap .toggle-pass:hover { color: #667eea; }
+        .toggle-pass:hover { color: var(--rojo-mid); }
 
         /* Botón */
         .btn-login {
             width: 100%;
             padding: 13px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: var(--rojo);
             color: #fff;
             border: none;
-            border-radius: 10px;
-            font-size: .95rem;
-            font-weight: 700;
+            border-radius: 11px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .92rem;
+            font-weight: 600;
             cursor: pointer;
-            letter-spacing: .01em;
-            transition: transform .15s, box-shadow .15s;
             margin-top: 8px;
+            transition: background .2s, transform .15s, box-shadow .2s;
+            letter-spacing: .01em;
         }
         .btn-login:hover {
+            background: var(--rojo-mid);
             transform: translateY(-1px);
-            box-shadow: 0 8px 24px rgba(102,126,234,.45);
+            box-shadow: 0 6px 20px rgba(155,28,28,.4);
         }
-        .btn-login:active { transform: translateY(0); }
+        .btn-login:active { transform: translateY(0); box-shadow: none; }
 
-        /* Footer */
-        .login-footer {
+        /* Pie */
+        .card-footer {
+            padding: 16px 36px 24px;
             text-align: center;
-            margin-top: 22px;
-            font-size: .875rem;
-            color: #64748b;
+            border-top: 1px solid #f3f4f6;
         }
-        .login-footer a {
-            color: #667eea;
-            font-weight: 600;
-            text-decoration: none;
+
+        .secure-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: .76rem;
+            color: var(--gris);
         }
-        .login-footer a:hover { text-decoration: underline; }
+        .secure-badge i { color: var(--rojo-light); font-size: .8rem; }
+
+        /* Animación */
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(.96) translateY(16px); }
+            to   { opacity: 1; transform: scale(1)   translateY(0); }
+        }
+        .card { animation: popIn .5s cubic-bezier(.34,1.56,.64,1) both; }
 
         @media (max-width: 480px) {
-            .login-card { padding: 24px; }
-            .login-wrapper { padding: 16px; }
+            .card-header  { padding: 24px 24px 22px; }
+            .card-body    { padding: 28px 24px 24px; }
+            .card-footer  { padding: 14px 24px 20px; }
         }
     </style>
 </head>
 <body>
-    <div class="login-wrapper">
-        <!-- Brand -->
-        <div class="login-brand">
-            <div class="login-brand-icon">
-                <i class="fa-solid fa-shop"></i>
-            </div>
-            <h1>Sistema de Inventario</h1>
-            <p>Grupo 3 · Gestión Empresarial</p>
+
+<div class="deco-1"></div>
+<div class="deco-2"></div>
+
+<div class="card">
+
+    <!-- Cabecera -->
+    <div class="card-header">
+        <div class="logo-wrap">
+            <img src="{% static 'img/logo.png' %}" alt="Logo Tienda El Despecho">
         </div>
-
-        <!-- Card -->
-        <div class="login-card">
-            <h2>Bienvenido de nuevo</h2>
-            <p class="subtitle">Ingresa tus credenciales para continuar</p>
-
-            <!-- Mensajes Django -->
-            {% if messages %}
-            <div class="alert-list">
-                {% for message in messages %}
-                <div class="alert-item {% if message.tags == 'error' %}error{% else %}success{% endif %}">
-                    <i class="fa-solid {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
-                    {{ message }}
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            <form method="POST">
-                {% csrf_token %}
-
-                <div class="form-group">
-                    <label>Usuario</label>
-                    <div class="input-wrap">
-                        <i class="input-icon fa-solid fa-user"></i>
-                        <input type="text" name="username" placeholder="Ingresa tu usuario" required autofocus>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label>Contraseña</label>
-                    <div class="input-wrap">
-                        <i class="input-icon fa-solid fa-lock"></i>
-                        <input type="password" name="password" id="passwordInput" placeholder="Ingresa tu contraseña" required>
-                        <span class="toggle-pass" onclick="togglePassword()">
-                            <i class="fa-solid fa-eye" id="eyeIcon"></i>
-                        </span>
-                    </div>
-                </div>
-
-                <button type="submit" class="btn-login">
-                    <i class="fa-solid fa-right-to-bracket me-2"></i> Iniciar Sesión
-                </button>
-            </form>
-
-            <div class="login-footer">
-                ¿No tienes cuenta?
-                <a href="{% url 'registro_administrador' %}">Regístrate aquí</a>
-            </div>
-        </div>
+        <div class="card-title">Tienda <span>El Despecho</span></div>
+        <div class="card-sub">Panel Administrativo · Gestión de Inventario</div>
     </div>
 
-    <script>
-        function togglePassword() {
-            const input = document.getElementById('passwordInput');
-            const icon = document.getElementById('eyeIcon');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.replace('fa-eye', 'fa-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.replace('fa-eye-slash', 'fa-eye');
-            }
-        }
-    </script>
+    <!-- Formulario -->
+    <div class="card-body">
+        <div class="form-eyebrow">Acceso seguro</div>
+        <div class="form-title">Bienvenido de nuevo</div>
+
+        {% if messages %}
+        <div class="alerts">
+            {% for message in messages %}
+            <div class="alert-item {% if message.tags == 'error' %}error{% else %}success{% endif %}">
+                <i class="fa-solid {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+                {{ message }}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="POST" action="{% url 'login' %}">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label">Usuario</label>
+                <div class="input-wrap">
+                    <i class="input-icon fa-solid fa-user"></i>
+                    <input type="text" name="username" placeholder="Ingresa tu usuario"
+                           required autofocus autocomplete="username">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Contraseña</label>
+                <div class="input-wrap">
+                    <i class="input-icon fa-solid fa-lock"></i>
+                    <input type="password" name="password" id="passwordInput"
+                           placeholder="Ingresa tu contraseña" required autocomplete="current-password">
+                    <span class="toggle-pass" onclick="togglePass()">
+                        <i class="fa-solid fa-eye" id="eyeIcon"></i>
+                    </span>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-login">
+                <i class="fa-solid fa-right-to-bracket" style="margin-right:8px"></i>
+                Ingresar al panel
+            </button>
+        </form>
+    </div>
+
+    <!-- Pie -->
+    <div class="card-footer">
+        <span class="secure-badge">
+            <i class="fa-solid fa-shield-halved"></i>
+            Solo para personal autorizado · Grupo 3
+        </span>
+    </div>
+
+</div>
+
+<script>
+function togglePass() {
+    const input = document.getElementById('passwordInput');
+    const icon  = document.getElementById('eyeIcon');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+</script>
 </body>
 </html>

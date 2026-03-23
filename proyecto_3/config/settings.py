@@ -1,15 +1,26 @@
 from pathlib import Path
+import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-gz$1v1x-_euas8t6k79&+u^#&5plztdj*ibh3vuu5lv=2w&p@%'
+# ─────────────────────────────────────────────────────────────────
+# SEGURIDAD — nunca pongas la clave real aquí directamente.
+# En tu PC de desarrollo funciona con el valor por defecto.
+# En producción setea la variable de entorno DJANGO_SECRET_KEY.
+# ─────────────────────────────────────────────────────────────────
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-gz$1v1x-_euas8t6k79&+u^#&5plztdj*ibh3vuu5lv=2w&p@%'
+)
 
-DEBUG = True
+# En producción cambiar a False y configurar ALLOWED_HOSTS correctamente
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'app',
+    'usuarios',                          # app del instructor
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -34,7 +45,10 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'app' / 'templates'],
+        'DIRS': [
+            BASE_DIR / 'app' / 'templates',
+            BASE_DIR / 'usuarios' / 'templates',
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -51,13 +65,17 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'proyecto',
-        'USER': 'root',
-        'PASSWORD': '12345678',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME': os.environ.get('DB_NAME', 'proyecto'),
+        'USER': os.environ.get('DB_USER', 'root'),
+        # ─────────────────────────────────────────────────────────
+        # La contraseña NUNCA debe estar en texto plano en el código.
+        # Localmente puede quedar en la variable de entorno o en un
+        # archivo .env que NO se suba a Git (.gitignore).
+        # ─────────────────────────────────────────────────────────
+        'PASSWORD': os.environ.get('DB_PASSWORD', '12345678'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '3306'),
         'OPTIONS': {
-            # Le dice a MySQL que interprete las fechas en hora de Bogotá
             'init_command': "SET time_zone = '-05:00'",
         },
     }
@@ -83,7 +101,6 @@ STATICFILES_DIRS = [BASE_DIR / 'app' / 'static']
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# ===== LOGIN CONFIG =====
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/login/'

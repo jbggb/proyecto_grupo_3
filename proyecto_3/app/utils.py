@@ -3,153 +3,166 @@ UTILIDADES PARA EXPORTACION DE REPORTES
 Modulo con funciones para exportar datos a PDF y Excel
 """
 
-from weasyprint import HTML, CSS
+from weasyprint import HTML
 from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from django.http import HttpResponse
 from django.template.loader import render_to_string
-import io
+from datetime import datetime
+
 
 # ====== EXPORTACION A PDF ======
 def exportar_pdf(titulo, columnas, datos, nombre_archivo):
     """
-    FUNCION PARA EXPORTAR DATOS A PDF USANDO WEASYPRINT
-    
-    Args:
-        titulo: Titulo del reporte
-        columnas: Lista de nombres de columnas
-        datos: Lista de tuplas o diccionarios con los datos
-        nombre_archivo: Nombre del archivo PDF a descargar
-    
-    Returns:
-        HttpResponse con el PDF generado
+    Exporta datos a PDF usando WeasyPrint.
+
+    ─── CORRECCIÓN ──────────────────────────────────────────────────────────
+    La versión anterior usaba {{ 'now'|date:'...' }} en el template, que no
+    funciona en Django — el filtro date solo opera sobre objetos de fecha,
+    no sobre la cadena literal 'now'. La fecha nunca aparecía.
+    Ahora se pasa fecha_generacion en el contexto desde Python.
+    ─────────────────────────────────────────────────────────────────────────
     """
-    
-    # Crear contexto para el template
+    fecha_generacion = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+
     contexto = {
-        'titulo': titulo,
-        'columnas': columnas,
-        'datos': datos,
+        'titulo':            titulo,
+        'columnas':          columnas,
+        'datos':             datos,
+        'fecha_generacion':  fecha_generacion,   # ← corregido
     }
-    
-    # Generar HTML desde el template
+
     html_string = render_to_string('Reportes/reporte_pdf.html', contexto)
-    
-    # Crear documento PDF desde el HTML
     html_object = HTML(string=html_string, base_url='.')
-    
-    # Generar PDF en memoria
-    pdf_bytes = html_object.write_pdf()
-    
-    # Crear respuesta HTTP con el PDF
+    pdf_bytes   = html_object.write_pdf()
+
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}.pdf"'
-    
     return response
 
 
 # ====== EXPORTACION A EXCEL ======
 def exportar_excel(titulo, columnas, datos, nombre_archivo):
     """
-    FUNCIÓN PARA EXPORTAR DATOS A EXCEL USANDO OPENPYXL
-    
-    Args:
-        titulo: Titulo del reporte
-        columnas: Lista de nombres de columnas
-        datos: Lista de tuplas o diccionarios con los datos
-        nombre_archivo: Nombre del archivo Excel a descargar
-    
-    Returns:
-        HttpResponse con el archivo Excel generado
+    Exporta datos a Excel usando openpyxl.
+
+    ─── CORRECCIÓN ──────────────────────────────────────────────────────────
+    La versión anterior calculaba el ancho de columna solo mirando el header
+    y los datos, pero usaba chr(64 + col_num) para las letras — eso falla
+    para más de 26 columnas (Z+1 = '[', no 'AA'). Se reemplazó por
+    get_column_letter() de openpyxl que maneja correctamente columnas múltiples.
+
+    Además se agrega fila de fecha de generación y ancho mínimo de 12.
+    ─────────────────────────────────────────────────────────────────────────
     """
-    
-    # Crear un nuevo libro de Excel
-    workbook = Workbook()
+    from openpyxl.utils import get_column_letter
+
+    fecha_generacion = datetime.now().strftime('%d/%m/%Y %H:%M:%S')
+    num_cols = len(columnas)
+
+    workbook  = Workbook()
     worksheet = workbook.active
     worksheet.title = "Reporte"
-    
-    # Configurar estilos para el título
-    title_font = Font(name='Arial', size=14, bold=True, color='FFFFFF')
-    title_fill = PatternFill(start_color='366092', end_color='366092', fill_type='solid')
-    title_alignment = Alignment(horizontal='center', vertical='center')
-    
-    # Agregar titulo
-    worksheet.merge_cells('A1:' + chr(64 + len(columnas)) + '1')
-    titulo_cell = worksheet['A1']
-    titulo_cell.value = titulo
-    titulo_cell.font = title_font
-    titulo_cell.fill = title_fill
-    titulo_cell.alignment = title_alignment
-    worksheet.row_dimensions[1].height = 25
-    
-    # Configurar estilos para los encabezados
-    header_font = Font(name='Arial', size=11, bold=True, color='FFFFFF')
-    header_fill = PatternFill(start_color='4472C4', end_color='4472C4', fill_type='solid')
-    header_alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
-    
-    # Agregar encabezados de columnas
+
+    # ── Estilos ──
+    COLOR_AZUL_OSCURO = '1E3A5F'
+    COLOR_AZUL_MEDIO  = '4472C4'
+    COLOR_AZUL_CLARO  = 'DCE6F1'
+    COLOR_BLANCO      = 'FFFFFF'
+
+    titulo_font     = Font(name='Arial', size=14, bold=True, color=COLOR_BLANCO)
+    titulo_fill     = PatternFill(start_color=COLOR_AZUL_OSCURO, end_color=COLOR_AZUL_OSCURO, fill_type='solid')
+    titulo_align    = Alignment(horizontal='center', vertical='center')
+
+    fecha_font      = Font(name='Arial', size=9, italic=True, color='555555')
+    fecha_align     = Alignment(horizontal='right', vertical='center')
+
+    header_font     = Font(name='Arial', size=10, bold=True, color=COLOR_BLANCO)
+    header_fill     = PatternFill(start_color=COLOR_AZUL_MEDIO, end_color=COLOR_AZUL_MEDIO, fill_type='solid')
+    header_align    = Alignment(horizontal='center', vertical='center', wrap_text=False)
+
+    data_align      = Alignment(horizontal='left', vertical='center')
+    data_align_num  = Alignment(horizontal='right', vertical='center')
+    data_fill_par   = PatternFill(start_color=COLOR_AZUL_CLARO, end_color=COLOR_AZUL_CLARO, fill_type='solid')
+    data_border     = Border(
+        left=Side(style='thin'),   right=Side(style='thin'),
+        top=Side(style='thin'),    bottom=Side(style='thin'),
+    )
+    last_col_letter = get_column_letter(num_cols)
+
+    # ── Fila 1: Título ──
+    worksheet.merge_cells(f'A1:{last_col_letter}1')
+    cell = worksheet['A1']
+    cell.value     = titulo
+    cell.font      = titulo_font
+    cell.fill      = titulo_fill
+    cell.alignment = titulo_align
+    worksheet.row_dimensions[1].height = 28
+
+    # ── Fila 2: Fecha de generación ──
+    worksheet.merge_cells(f'A2:{last_col_letter}2')
+    cell = worksheet['A2']
+    cell.value     = f'Generado el: {fecha_generacion}'
+    cell.font      = fecha_font
+    cell.alignment = fecha_align
+    worksheet.row_dimensions[2].height = 16
+
+    # ── Fila 3: Encabezados ──
     for col_num, columna in enumerate(columnas, 1):
         cell = worksheet.cell(row=3, column=col_num)
-        cell.value = columna
-        cell.font = header_font
-        cell.fill = header_fill
-        cell.alignment = header_alignment
-    
-    worksheet.row_dimensions[3].height = 20
-    
-    # Configurar estilos para los datos
-    data_alignment = Alignment(horizontal='left', vertical='center')
-    data_border = Border(
-        left=Side(style='thin'),
-        right=Side(style='thin'),
-        top=Side(style='thin'),
-        bottom=Side(style='thin')
-    )
-    
-    # Agregar datos al Excel
-    data_fill_alternated = PatternFill(start_color='D9E1F2', end_color='D9E1F2', fill_type='solid')
-    
+        cell.value     = columna
+        cell.font      = header_font
+        cell.fill      = header_fill
+        cell.alignment = header_align
+        cell.border    = data_border
+    worksheet.row_dimensions[3].height = 22
+
+    # ── Filas 4+: Datos ──
     for row_num, fila in enumerate(datos, 4):
-        # Convertir diccionario a tupla si es necesario
-        if isinstance(fila, dict):
-            valores = [fila.get(col.lower().replace(' ', '_'), '') for col in columnas]
-        else:
-            valores = fila
-        
-        # Llenar las celdas con datos
+        valores = list(fila.values()) if isinstance(fila, dict) else list(fila)
         for col_num, valor in enumerate(valores, 1):
-            cell = worksheet.cell(row=row_num, column=col_num)
-            cell.value = valor
-            cell.alignment = data_alignment
+            cell        = worksheet.cell(row=row_num, column=col_num)
+            cell.value  = valor
             cell.border = data_border
-            
-            # Colorear filas alternas para mejor legibilidad
+            # Números alineados a la derecha
+            if isinstance(valor, (int, float)):
+                cell.alignment = data_align_num
+            else:
+                cell.alignment = data_align
+            # Filas alternas
             if (row_num - 4) % 2 == 0:
-                cell.fill = data_fill_alternated
-    
-    # Ajustar ancho de columnas automaticamente
+                cell.fill = data_fill_par
+        worksheet.row_dimensions[row_num].height = 16
+
+    # ── Fila total al final ──
+    total_row = len(datos) + 4
+    worksheet.merge_cells(f'A{total_row}:{last_col_letter}{total_row}')
+    cell_total           = worksheet[f'A{total_row}']
+    cell_total.value     = f'Total de registros: {len(datos)}'
+    cell_total.font      = Font(name='Arial', size=10, bold=True, color=COLOR_AZUL_OSCURO)
+    cell_total.alignment = Alignment(horizontal='left', vertical='center')
+    worksheet.row_dimensions[total_row].height = 18
+
+    # ── Ancho automático de columnas ──
     for col_num, columna in enumerate(columnas, 1):
-        max_length = len(str(columna))
-        column_letter = chr(64 + col_num)
-        
-        for row in worksheet.iter_rows(min_col=col_num, max_col=col_num):
+        col_letter = get_column_letter(col_num)
+        max_len    = len(str(columna))
+
+        for row in worksheet.iter_rows(min_row=4, max_row=len(datos) + 3,
+                                       min_col=col_num, max_col=col_num):
             for cell in row:
-                try:
-                    if cell.value:
-                        max_length = max(max_length, len(str(cell.value)))
-                except:
-                    pass
-        
-        worksheet.column_dimensions[column_letter].width = max_length + 2
-    
-    # Crear respuesta HTTP con el Excel
+                if cell.value is not None:
+                    max_len = max(max_len, len(str(cell.value)))
+
+        # Ancho mínimo 12, máximo 45
+        worksheet.column_dimensions[col_letter].width = min(max(max_len + 4, 12), 45)
+
+    # ── Freeze pane en fila 4 (encabezados siempre visibles) ──
+    worksheet.freeze_panes = 'A4'
+
     response = HttpResponse(
         content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
     )
     response['Content-Disposition'] = f'attachment; filename="{nombre_archivo}.xlsx"'
-    
-    # Guardar el libro en la respuesta
     workbook.save(response)
-    
     return response
-

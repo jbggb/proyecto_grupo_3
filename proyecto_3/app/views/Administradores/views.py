@@ -27,16 +27,18 @@ class AdminRegistroView(View):
 @method_decorator(admin_login_required, name='dispatch')
 class EliminarAdminView(View):
     """
-    ✅ NUEVO: Eliminación segura de administradores.
+    Eliminación segura de administradores.
     Impide que un admin se elimine a sí mismo.
     """
     def post(self, request, id):
-        admin_sesion_id = request.session.get('admin_id')
-
-        # Protección: no permitir eliminar el admin actualmente logueado
-        if str(admin_sesion_id) == str(id):
-            messages.error(request, 'No puedes eliminar tu propia cuenta mientras tienes sesión activa.')
-            return redirect('inicio')
+        # Evitar que el admin borre su propia cuenta mientras está activo
+        try:
+            admin_propio = Administrador.objects.get(usuario=request.user.username)
+            if admin_propio.pk == id:
+                messages.error(request, 'No puedes eliminar tu propia cuenta mientras tienes sesión activa.')
+                return redirect('inicio')
+        except Administrador.DoesNotExist:
+            pass
 
         admin = get_object_or_404(Administrador, id=id)
         nombre = admin.nombre
@@ -48,5 +50,5 @@ class EliminarAdminView(View):
         return redirect('inicio')
 
 
-admin_registro   = AdminRegistroView.as_view()
-eliminar_admin   = EliminarAdminView.as_view()
+admin_registro = AdminRegistroView.as_view()
+eliminar_admin = EliminarAdminView.as_view()

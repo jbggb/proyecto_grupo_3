@@ -1,4 +1,6 @@
-from django.urls import path
+from django.urls import path, include
+# from django.contrib import admin  # desactivado — proyecto usa su propio sistema de auth
+
 from app.views.Auth import views as auth_views
 from app.views.Index import views as index_views
 from app.views.Productos import views as productos_views
@@ -15,14 +17,14 @@ from app.views.Unidades import views as unidades_views
 from app.views import backup as backup_views
 
 urlpatterns = [
+    # path('admin/', admin.site.urls),  # desactivado
+
     # Inicio
     path('', index_views.index, name='inicio'),
 
     # Auth
     path('login/', auth_views.login_view, name='login'),
     path('logout/', auth_views.logout_view, name='logout'),
-    path('registro/', auth_views.registrar_administrador, name='registro_administrador'),
-
     # Productos
     path('productos/', productos_views.productos, name='productos'),
     path('productos/crear/', productos_views.crear_producto, name='crear_producto'),
@@ -83,14 +85,13 @@ urlpatterns = [
 
     # Administrador
     path('admin/registro/', admin_views.admin_registro, name='admin_registro'),
-    # ✅ NUEVO: ruta para eliminar un administrador de forma segura
     path('admin/eliminar/<int:id>/', admin_views.eliminar_admin, name='eliminar_admin'),
 
     # Reportes
     path('reportes/', reportes_views.reportes, name='reportes'),
     path('reportes/data/', reportes_views.reportes_data, name='reportes_data'),
     
-   # Backup y Restauración
-path('backup/', backup_views.backup, name='backup'),
-path('backup/restaurar/', backup_views.restaurar_datos, name='restaurar_datos'),
+    # Backup y Restauración
+    path('backup/', backup_views.backup, name='backup'),
+    path('backup/restaurar/', backup_views.restaurar_datos, name='restaurar_datos'),
 ]

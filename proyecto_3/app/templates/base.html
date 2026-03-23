@@ -69,17 +69,18 @@
             <i class="fa-solid fa-shop me-2"></i>Sistema de Inventario
         </span>
         <div class="d-flex align-items-center">
-            {% if request.session.admin_id %}
+            {% if request.user.is_authenticated %}
                 <span class="text-light me-3">
-                    <i class="fa-solid fa-user me-1"></i>{{ request.session.admin_usuario }}
+                    <i class="fa-solid fa-user me-1"></i>
+                    {{ request.user.get_full_name|default:request.user.username }}
+                    {% if request.user.is_superuser %}
+                        <span class="badge bg-warning text-dark ms-1" style="font-size:.65rem;">Superadmin</span>
+                    {% endif %}
                 </span>
                 <a href="{% url 'logout' %}" class="btn btn-outline-light">
                     <i class="fa-solid fa-right-from-bracket me-1"></i>Cerrar Sesión
                 </a>
             {% else %}
-                <a href="{% url 'registro_administrador' %}" class="btn btn-outline-light me-2">
-                    <i class="fa-solid fa-user-plus me-1"></i>Registrarse
-                </a>
                 <a href="{% url 'login' %}" class="btn btn-light">
                     <i class="fa-solid fa-right-to-bracket me-1"></i>Iniciar Sesión
                 </a>
@@ -130,6 +131,14 @@
             <i class="fa-solid fa-database"></i>
             <span class="link-text ms-2">Respaldo BD</span>
         </a>
+
+        {% if request.user.is_superuser %}
+        <hr class="border-secondary my-2">
+        <a href="{% url 'usuarios:listar' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none">
+            <i class="fa-solid fa-users-gear"></i>
+            <span class="link-text ms-2">Usuarios</span>
+        </a>
+        {% endif %}
     </aside>
 
     <!-- CONTENIDO -->

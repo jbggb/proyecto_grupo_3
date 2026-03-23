@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+{% block content %}
+
+<div class="section-header">
+    <h1 class="section-title">
+        <i class="fa-solid fa-users"></i> Gestión de Usuarios
+    </h1>
+    <a href="{% url 'usuarios:crear' %}" class="btn btn-primary">
+        <i class="fa-solid fa-user-plus me-1"></i> Nuevo Usuario
+    </a>
+</div>
+
+<div class="table-container">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Usuario</th>
+                <th>Nombre completo</th>
+                <th>Rol</th>
+                <th>Cédula</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in usuarios %}
+            <tr>
+                <td>{{ u.id }}</td>
+                <td>{{ u.username }}</td>
+                <td>{{ u.first_name }} {{ u.last_name }}</td>
+                <td>
+                    {% if u.perfil %}
+                        {{ u.perfil.get_rol_display }}
+                    {% else %}
+                        <span class="text-muted">Sin perfil</span>
+                    {% endif %}
+                </td>
+                <td>{{ u.perfil.cedula|default:"N/A" }}</td>
+                <td>
+                    {% if u.is_active %}
+                        <span class="badge badge-success">Activo</span>
+                    {% else %}
+                        <span class="badge badge-danger">Inactivo</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="btn-group">
+                        <a href="{% url 'usuarios:editar' u.id %}" class="btn btn-sm btn-warning" title="Editar">
+                            <i class="fa-solid fa-edit"></i>
+                        </a>
+                        <form method="post" action="{% url 'usuarios:cambiar_estado' u.id %}" style="display:inline;">
+                            {% csrf_token %}
+                            {% if u.is_active %}
+                                <button type="submit" class="btn btn-sm btn-danger" title="Desactivar">
+                                    <i class="fa-solid fa-user-slash"></i>
+                                </button>
+                            {% else %}
+                                <button type="submit" class="btn btn-sm btn-success" title="Activar">
+                                    <i class="fa-solid fa-user-check"></i>
+                                </button>
+                            {% endif %}
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" class="text-center py-4">No hay usuarios registrados</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}
