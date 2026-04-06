@@ -102,12 +102,12 @@ class ReportesView(View):
 
         # ── COMPRAS ──
         compras_data = []
-        for c in Compra.objects.select_related('Producto', 'Proveedor', 'Administrador').order_by('-fechaCompra')[:50]:
+        for c in Compra.objects.select_related('Producto', 'Proveedor', 'usuario').order_by('-fechaCompra')[:50]:
             compras_data.append({
                 'id':        c.idCompra,
                 'producto':  c.Producto.nombre      if c.Producto      else '-',
                 'proveedor': c.Proveedor.nombre     if c.Proveedor     else '-',
-                'admin':     c.Administrador.nombre if c.Administrador else '-',
+                'admin':     c.usuario.get_full_name() or c.usuario.username if c.usuario else '—' if c.Administrador else '-',
                 'fecha':     str(c.fechaCompra),
                 'estado':    c.estado,
             })

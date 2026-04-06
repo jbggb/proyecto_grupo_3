@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 from datetime import datetime
 
 
@@ -68,8 +69,6 @@ class TipoProductos(models.Model):
         db_table            = "tipoproducto"
 
 
-# NOTA PARA EL INSTRUCTOR: el nombre correcto en PascalCase sería UnidadMedida.
-# Se mantiene así para no romper las migraciones y las vistas que ya lo referencian.
 class unidad_medida(models.Model):
     idUnidad      = models.AutoField(primary_key=True, db_column='idUnidad')
     nombre_unidad = models.CharField(max_length=100, db_column='nombreUnidad')
@@ -125,9 +124,6 @@ class Venta(models.Model):
         ('Completada', 'Completada'),
         ('Pendiente',  'Pendiente'),
     ]
-    # NOTA: idealmente cliente debería ser FK a Cliente para integridad referencial.
-    # Se mantiene como CharField por compatibilidad con la BD actual.
-    # Deuda técnica pendiente: migrar a ForeignKey(Cliente, on_delete=models.PROTECT).
     cliente = models.CharField(max_length=100)
     fecha   = models.DateTimeField(auto_now_add=True)
     total   = models.DecimalField(max_digits=10, decimal_places=2, default=0)
@@ -147,11 +143,7 @@ class DetalleVenta(models.Model):
     venta           = models.ForeignKey(Venta, on_delete=models.CASCADE, related_name='detalles')
     producto_nombre = models.CharField(max_length=255)
     precio          = models.DecimalField(max_digits=10, decimal_places=2)
-
-    # ─── CORRECCIÓN: cantidad no puede ser nula. Un detalle de venta siempre
-    # tiene al menos 1 unidad. Se eliminó null=True y blank=True.
-    # El parche "self.cantidad or 0" en subtotal ya no es necesario.
-    cantidad = models.IntegerField(default=1)
+    cantidad        = models.IntegerField(default=1)
 
     @property
     def subtotal(self):
@@ -175,12 +167,18 @@ class Compra(models.Model):
     cantidad        = models.IntegerField(default=1)
     precio_unitario = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
-    # NOTA: los nombres de FK con mayúscula (Administrador, Producto, Proveedor)
-    # son inconsistentes con la convención de Django (minúscula).
-    # Se mantienen para no romper las migraciones existentes.
-    Administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE,        db_column='Administrador_id')
-    Producto      = models.ForeignKey(Producto,      on_delete=models.SET_NULL, null=True, blank=True, db_column='Producto_id')
-    Proveedor     = models.ForeignKey(Proveedor,     on_delete=models.CASCADE,        db_column='Proveedor_id')
+    # CORRECCIÓN: FK migrada de tabla 'administrador' propia a auth.User
+    usuario   = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='usuario_id',
+        related_name='compras',
+        verbose_name='Usuario',
+    )
+    Producto  = models.ForeignKey(Producto,  on_delete=models.SET_NULL, null=True, blank=True, db_column='Producto_id')
+    Proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE,              db_column='Proveedor_id')
 
     @property
     def total(self):
@@ -195,10 +193,6 @@ class Compra(models.Model):
         verbose_name_plural = "compras"
         ordering            = ['-fechaCompra']
 
-
-# ─── DEUDA TÉCNICA: Pedidos y Reporte están definidos pero no tienen
-# vistas, URLs ni templates implementados. Quedan como funcionalidad
-# planeada para una versión futura del sistema. ────────────────────
 
 class Pedidos(models.Model):
     id_administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE)

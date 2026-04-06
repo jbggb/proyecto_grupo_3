@@ -1,4 +1,4 @@
-"""Vistas para gestión de compras"""
+"""Vistas para gestión de compras — CORREGIDO: usa request.user directamente"""
 from datetime import date, timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -7,7 +7,7 @@ from django.utils.decorators import method_decorator
 from django.db import transaction
 from django.http import JsonResponse
 from app.decorators import admin_login_required
-from ...models import Compra, Proveedor, Producto, Administrador
+from ...models import Compra, Proveedor, Producto
 
 
 # ─────────────────────────────────────────────
@@ -53,26 +53,6 @@ def _validar_fecha_editar(fecha_str):
         return None, 'La fecha no tiene un formato válido.'
 
 
-def _get_admin_de_sesion(request):
-    """
-    Busca el Administrador propio que corresponde al usuario Django logueado.
-
-    ─── CORRECCIÓN ──────────────────────────────────────────────────────────
-    La versión anterior hacía fallback a Administrador.objects.first() cuando
-    no encontraba el usuario en la tabla propia. Eso es inseguro: cualquier
-    usuario autenticado heredaría el primer admin de la tabla y podría crear
-    compras con una identidad que no le pertenece.
-    Ahora retorna None si no hay coincidencia, y la vista rechaza la operación.
-    ─────────────────────────────────────────────────────────────────────────
-    """
-    if not request.user.is_authenticated:
-        return None
-    try:
-        return Administrador.objects.get(usuario=request.user.username)
-    except Administrador.DoesNotExist:
-        return None   # ← ya no hace fallback inseguro
-
-
 def _validar_cantidad_precio(cantidad_str, precio_str):
     """Valida y convierte cantidad y precio. Retorna (cantidad_int, precio_float, error)."""
     if not cantidad_str.isdigit() or int(cantidad_str) < 1:
@@ -95,7 +75,7 @@ class ComprasView(View):
     def get(self, request):
         hoy           = date.today()
         lista_compras = Compra.objects.select_related(
-            'Administrador', 'Producto', 'Proveedor'
+            'usuario', 'Producto', 'Proveedor'
         ).all().order_by('-fechaCompra')
 
         busqueda = request.GET.get('busqueda', '').strip()
@@ -110,12 +90,11 @@ class ComprasView(View):
             lista_compras = lista_compras.filter(estado=estado_filtro)
 
         return render(request, 'Compras/Compras.html', {
-            'compras':         lista_compras,
-            'proveedores':     Proveedor.objects.all(),
-            'productos':       Producto.objects.all(),
-            'administradores': Administrador.objects.all(),
-            'fecha_min':       hoy.strftime('%Y-%m-%d'),
-            'fecha_max':       (hoy + timedelta(days=7)).strftime('%Y-%m-%d'),
+            'compras':     lista_compras,
+            'proveedores': Proveedor.objects.all(),
+            'productos':   Producto.objects.all(),
+            'fecha_min':   hoy.strftime('%Y-%m-%d'),
+            'fecha_max':   (hoy + timedelta(days=7)).strftime('%Y-%m-%d'),
         })
 
 
@@ -143,11 +122,6 @@ class CrearCompraView(View):
             messages.error(request, error)
             return redirect('compras')
 
-        admin = _get_admin_de_sesion(request)
-        if not admin:
-            messages.error(request, 'Tu usuario no tiene un administrador asociado. Contacta al superadmin.')
-            return redirect('compras')
-
         try:
             with transaction.atomic():
                 compra = Compra.objects.create(
@@ -155,11 +129,10 @@ class CrearCompraView(View):
                     estado          = estado_str,
                     cantidad        = cantidad,
                     precio_unitario = precio,
-                    Administrador   = admin,
+                    usuario         = request.user,   # ← CORRECCIÓN: usa auth.User directamente
                     Producto_id     = int(producto_id),
                     Proveedor_id    = int(proveedor_id),
                 )
-                # Solo aumentar stock si la compra ya llegó (Completada)
                 if estado_str == 'Completada':
                     _sumar_stock(int(producto_id), cantidad)
 
@@ -195,11 +168,6 @@ class EditarCompraView(View):
             messages.error(request, error)
             return redirect('compras')
 
-        admin = _get_admin_de_sesion(request)
-        if not admin:
-            messages.error(request, 'Tu usuario no tiene un administrador asociado. Contacta al superadmin.')
-            return redirect('compras')
-
         try:
             with transaction.atomic():
                 estado_anterior   = compra.estado
@@ -207,11 +175,9 @@ class EditarCompraView(View):
                 cantidad_anterior = compra.cantidad
                 producto_nuevo    = int(producto_id)
 
-                # Si antes estaba Completada, revertir el stock que había sumado
                 if estado_anterior == 'Completada' and producto_anterior:
                     _restar_stock(producto_anterior, cantidad_anterior)
 
-                # Si ahora queda Completada, sumar con los nuevos valores
                 if estado_nuevo == 'Completada':
                     _sumar_stock(producto_nuevo, cantidad_nueva)
 
@@ -219,7 +185,7 @@ class EditarCompraView(View):
                 compra.estado          = estado_nuevo
                 compra.cantidad        = cantidad_nueva
                 compra.precio_unitario = precio_nuevo
-                compra.Administrador   = admin
+                compra.usuario         = request.user   # ← CORRECCIÓN
                 compra.Producto_id     = producto_nuevo
                 compra.Proveedor_id    = int(proveedor_id)
                 compra.save()
@@ -236,7 +202,6 @@ class EliminarCompraView(View):
         compra = get_object_or_404(Compra, idCompra=id)
         try:
             with transaction.atomic():
-                # Si estaba Completada, devolver el stock al producto
                 if compra.estado == 'Completada' and compra.Producto_id:
                     _restar_stock(compra.Producto_id, compra.cantidad)
                 compra_id = compra.idCompra
@@ -258,12 +223,12 @@ class ComprasJsonView(View):
                 'cantidad':        c.cantidad,
                 'precio_unitario': float(c.precio_unitario),
                 'total':           float(c.total),
-                'administrador':   c.Administrador.nombre if c.Administrador else '',
-                'producto':        c.Producto.nombre      if c.Producto      else '',
-                'proveedor':       c.Proveedor.nombre     if c.Proveedor     else '',
+                'usuario':         c.usuario.get_full_name() or c.usuario.username if c.usuario else '',
+                'producto':        c.Producto.nombre  if c.Producto  else '',
+                'proveedor':       c.Proveedor.nombre if c.Proveedor else '',
             }
             for c in Compra.objects.select_related(
-                'Administrador', 'Producto', 'Proveedor'
+                'usuario', 'Producto', 'Proveedor'
             ).order_by('-fechaCompra')
         ]
         return JsonResponse({'compras': lista})
