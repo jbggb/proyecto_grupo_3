@@ -15,7 +15,7 @@
   --info: #0ea5e9;
 
   /* Colores de texto */
-  --text-primary: #1e293b;
+  --text-primary: #eff2f6;
   --text-secondary: #475569;
   --text-muted: #64748b;
   --text-light: #94a3b8;
@@ -52,7 +52,7 @@
 
 body {
   font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
-  background: var(--bg-secondary);
+  background: transparent;
   color: var(--text-primary);
 }
 
@@ -733,4 +733,84 @@ body {
   .table { font-size: .75rem; }
   .table th, .table td { padding: 9px 10px; }
   .section-title { font-size: 1.2rem; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   17. DISEÑO DE TRANSPARENCIA Y FONDO
+     (Ajustes para mejorar visibilidad sobre fondos oscuros)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Fondo del contenido principal transparente para ver la imagen */
+#main-content {
+  background: transparent !important;
+}
+
+/* Tarjetas semitransparentes con efecto blur */
+.card {
+  background: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: blur(4px);
+}
+
+/* Tablas, pestañas y barra de filtros semitransparentes */
+.table-wrap, .tabs-wrap, .filter-bar {
+  background: rgba(255, 255, 255, 0.55) !important;
+  backdrop-filter: blur(4px);
+}
+
+/* Sidebar semitransparente oscuro */
+#sidebar {
+  background: rgba(33, 37, 41, 0.75) !important;
+}
+
+/* Navbar semitransparente oscuro */
+.navbar.bg-dark {
+  background: rgba(33, 37, 41, 0.80) !important;
+}
+
+/* Texto de las celdas de tabla en negro */
+.table td {
+  color: #000000 !important;
+}
+
+/* Texto de botones de pestañas en negro */
+.tab-btn {
+  color: #000000 !important;
+}
+
+/* Texto de botones secundarios en negro */
+.btn-secondary {
+  color: #000000 !important;
+}
+
+/* Texto de labels y spans dentro de la barra de filtros en negro */
+.filter-bar label,
+.filter-bar span {
+  color: #000000 !important;
+}
+
+/* Encabezado de tarjetas semitransparente con texto negro */
+.card-header {
+  background: rgba(255, 255, 255, 0.55) !important;
+  color: #000000 !important;
+}
+
+/* Todos los elementos dentro del encabezado de tarjetas en negro */
+.card-header * {
+  color: #000000 !important;
+}
+
+/* Placeholder de inputs en negro */
+.form-control::placeholder {
+  color: #000000 !important;
+  opacity: 1 !important;
+}
+
+/* Texto escrito en inputs en negro */
+.form-control {
+  color: #000000 !important;
+}
+
+/* Texto de selects en negro */
+.form-select {
+  color: #000000 !important;
 }

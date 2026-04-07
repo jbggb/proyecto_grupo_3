@@ -30,7 +30,7 @@
             <option value="Pendiente"  {% if request.GET.estado == "Pendiente"  %}selected{% endif %}>Pendiente</option>
         </select>
         <button type="submit" class="btn btn-primary">
-            <i class="fa-solid fa-filter me-2"></i>Filtrar
+            <i class="fa-solid fa-filter me-2"></i>Buscar
         </button>
         {% if request.GET.busqueda or request.GET.estado %}
         <a href="{% url 'compras' %}" class="btn btn-secondary">
