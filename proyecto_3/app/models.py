@@ -4,6 +4,10 @@ from datetime import datetime
 
 
 class Administrador(models.Model):
+    """
+    Tabla legacy — se mantiene para no romper la BD existente,
+    pero NO se usa en la lógica actual. El sistema usa auth.User.
+    """
     idAdministrador = models.AutoField(primary_key=True, db_column='id')
     nombre          = models.CharField(max_length=150)
     usuario         = models.CharField(max_length=50, unique=True)
@@ -15,9 +19,9 @@ class Administrador(models.Model):
         return self.nombre
 
     class Meta:
-        verbose_name        = "administrador"
-        verbose_name_plural = "administradores"
-        db_table            = "administrador"
+        verbose_name        = 'administrador'
+        verbose_name_plural = 'administradores'
+        db_table            = 'administrador'
 
 
 class Cliente(models.Model):
@@ -37,9 +41,9 @@ class Cliente(models.Model):
         return self.nombre
 
     class Meta:
-        verbose_name        = "cliente"
-        verbose_name_plural = "clientes"
-        db_table            = "cliente"
+        verbose_name        = 'cliente'
+        verbose_name_plural = 'clientes'
+        db_table            = 'cliente'
 
 
 class Marca(models.Model):
@@ -50,9 +54,9 @@ class Marca(models.Model):
         return self.nombreMarca
 
     class Meta:
-        verbose_name        = "marca"
-        verbose_name_plural = "marcas"
-        db_table            = "marca"
+        verbose_name        = 'marca'
+        verbose_name_plural = 'marcas'
+        db_table            = 'marca'
 
 
 class TipoProductos(models.Model):
@@ -64,12 +68,13 @@ class TipoProductos(models.Model):
         return self.nombre_tipo
 
     class Meta:
-        verbose_name        = "tipo_producto"
-        verbose_name_plural = "tipos_productos"
-        db_table            = "tipoproducto"
+        verbose_name        = 'tipo_producto'
+        verbose_name_plural = 'tipos_productos'
+        db_table            = 'tipoproducto'
 
 
-class unidad_medida(models.Model):
+class UnidadMedida(models.Model):
+    """Renombrada a PascalCase. El db_table no cambia, la BD sigue igual."""
     idUnidad      = models.AutoField(primary_key=True, db_column='idUnidad')
     nombre_unidad = models.CharField(max_length=100, db_column='nombreUnidad')
     abreviatura   = models.CharField(max_length=10, db_column='abreviatura', blank=True, default='-')
@@ -78,16 +83,20 @@ class unidad_medida(models.Model):
         return self.nombre_unidad
 
     class Meta:
-        verbose_name        = "unidad_medida"
-        verbose_name_plural = "unidades_medida"
-        db_table            = "unidadmedida"
+        verbose_name        = 'unidad_medida'
+        verbose_name_plural = 'unidades_medida'
+        db_table            = 'unidadmedida'
+
+
+# Alias de compatibilidad para que las vistas/forms existentes no rompan
+unidad_medida = UnidadMedida
 
 
 class Producto(models.Model):
     idProducto = models.AutoField(primary_key=True, db_column='idProducto')
-    idTipo     = models.ForeignKey(TipoProductos, on_delete=models.CASCADE,  db_column='idTipo')
-    idMarca    = models.ForeignKey(Marca,         on_delete=models.CASCADE,  db_column='idMarca')
-    idUnidad   = models.ForeignKey(unidad_medida, on_delete=models.CASCADE,  db_column='idUnidad')
+    idTipo     = models.ForeignKey(TipoProductos, on_delete=models.CASCADE, db_column='idTipo')
+    idMarca    = models.ForeignKey(Marca,         on_delete=models.CASCADE, db_column='idMarca')
+    idUnidad   = models.ForeignKey(UnidadMedida,  on_delete=models.CASCADE, db_column='idUnidad')
     nombre     = models.CharField(max_length=255)
     precio     = models.DecimalField(max_digits=10, decimal_places=2)
     stock      = models.IntegerField(default=0)
@@ -96,9 +105,9 @@ class Producto(models.Model):
         return self.nombre
 
     class Meta:
-        verbose_name        = "producto"
-        verbose_name_plural = "productos"
-        db_table            = "producto"
+        verbose_name        = 'producto'
+        verbose_name_plural = 'productos'
+        db_table            = 'producto'
         unique_together     = [('nombre', 'idMarca', 'idTipo')]
 
 
@@ -114,9 +123,9 @@ class Proveedor(models.Model):
         return self.nombre
 
     class Meta:
-        verbose_name        = "proveedor"
-        verbose_name_plural = "proveedores"
-        db_table            = "proveedor"
+        verbose_name        = 'proveedor'
+        verbose_name_plural = 'proveedores'
+        db_table            = 'proveedor'
 
 
 class Venta(models.Model):
@@ -133,9 +142,9 @@ class Venta(models.Model):
         return f"Venta #{self.id} - {self.cliente}"
 
     class Meta:
-        verbose_name        = "venta"
-        verbose_name_plural = "ventas"
-        db_table            = "venta"
+        verbose_name        = 'venta'
+        verbose_name_plural = 'ventas'
+        db_table            = 'venta'
         ordering            = ['-fecha']
 
 
@@ -153,7 +162,7 @@ class DetalleVenta(models.Model):
         return f"{self.producto_nombre} x{self.cantidad}"
 
     class Meta:
-        db_table = "detalle_venta"
+        db_table = 'detalle_venta'
 
 
 class Compra(models.Model):
@@ -166,9 +175,7 @@ class Compra(models.Model):
     estado          = models.CharField(max_length=50, choices=ESTADO_CHOICES, default='Pendiente')
     cantidad        = models.IntegerField(default=1)
     precio_unitario = models.DecimalField(max_digits=10, decimal_places=2, default=0)
-
-    # CORRECCIÓN: FK migrada de tabla 'administrador' propia a auth.User
-    usuario   = models.ForeignKey(
+    usuario         = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
         null=True,
@@ -188,41 +195,63 @@ class Compra(models.Model):
         return f"Compra #{self.idCompra}"
 
     class Meta:
-        db_table            = "compra"
-        verbose_name        = "compra"
-        verbose_name_plural = "compras"
+        db_table            = 'compra'
+        verbose_name        = 'compra'
+        verbose_name_plural = 'compras'
         ordering            = ['-fechaCompra']
 
 
 class Pedidos(models.Model):
-    id_administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE)
-    id_cliente       = models.ForeignKey(Cliente,       on_delete=models.CASCADE)
-    fecha_pedido     = models.DateField()
-    estado_pedido    = models.CharField(max_length=150)
-    total            = models.DecimalField(max_digits=10, decimal_places=2)
+    """
+    FK migrada de Administrador legacy a auth.User.
+    Requiere nueva migración: makemigrations app.
+    """
+    usuario      = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='usuario_id',
+        verbose_name='Usuario',
+    )
+    id_cliente   = models.ForeignKey(Cliente, on_delete=models.CASCADE)
+    fecha_pedido = models.DateField()
+    estado_pedido = models.CharField(max_length=150)
+    total        = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
         return f"Pedido {self.id}"
 
     class Meta:
-        verbose_name        = "pedido"
-        verbose_name_plural = "pedidos"
-        db_table            = "pedidos"
+        verbose_name        = 'pedido'
+        verbose_name_plural = 'pedidos'
+        db_table            = 'pedidos'
         ordering            = ['-fecha_pedido']
 
 
 class Reporte(models.Model):
-    idCompra        = models.ForeignKey(Compra,   on_delete=models.CASCADE, db_column='idCompra',        null=True, blank=True)
-    idPedido        = models.ForeignKey(Pedidos,  on_delete=models.CASCADE, db_column='idPedido',        null=True, blank=True)
-    idVenta         = models.ForeignKey(Venta,    on_delete=models.CASCADE, db_column='idVenta',         null=True, blank=True)
-    idAdministrador = models.ForeignKey(Administrador, on_delete=models.CASCADE, db_column='idAdministrador')
-    fechaReporte    = models.DateTimeField()
-    descripcion     = models.TextField()
+    """
+    FK migrada de Administrador legacy a auth.User.
+    Requiere nueva migración: makemigrations app.
+    """
+    idCompra  = models.ForeignKey(Compra,  on_delete=models.CASCADE, db_column='idCompra',  null=True, blank=True)
+    idPedido  = models.ForeignKey(Pedidos, on_delete=models.CASCADE, db_column='idPedido',  null=True, blank=True)
+    idVenta   = models.ForeignKey(Venta,   on_delete=models.CASCADE, db_column='idVenta',   null=True, blank=True)
+    usuario   = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='usuario_id',
+        verbose_name='Usuario',
+    )
+    fechaReporte = models.DateTimeField()
+    descripcion  = models.TextField()
 
     def __str__(self):
         return f"Reporte {self.id}"
 
     class Meta:
-        verbose_name        = "reporte"
-        verbose_name_plural = "reportes"
-        db_table            = "reporte"
+        verbose_name        = 'reporte'
+        verbose_name_plural = 'reportes'
+        db_table            = 'reporte'
