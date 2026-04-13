@@ -107,7 +107,7 @@ class ReportesView(View):
                 'id':        c.idCompra,
                 'producto':  c.Producto.nombre      if c.Producto      else '-',
                 'proveedor': c.Proveedor.nombre     if c.Proveedor     else '-',
-                'admin':     c.usuario.get_full_name() or c.usuario.username if c.usuario else '—' if c.Administrador else '-',
+                'admin':     c.usuario.get_full_name() or c.usuario.username if c.usuario else '-',
                 'fecha':     str(c.fechaCompra),
                 'estado':    c.estado,
             })

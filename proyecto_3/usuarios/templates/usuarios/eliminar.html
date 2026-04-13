@@ -1,31 +1,35 @@
-{% extends 'base.html' %}
-{% block content %}
+{% extends 'body.html' %}
 
-<div class="section-header">
-    <h1 class="section-title">
-        <i class="fa-solid fa-user-slash"></i> Desactivar Usuario
-    </h1>
-</div>
-
-<div class="card" style="max-width: 500px;">
-    <div class="card-body p-4">
-        <p>¿Estás seguro de que deseas desactivar al usuario <strong>{{ object.username }}</strong>?</p>
-        <p class="text-muted" style="font-size: .9rem;">
-            <i class="fa-solid fa-circle-info me-1"></i>
-            El usuario no será eliminado — solo se desactivará y no podrá iniciar sesión.
-        </p>
-        <div class="d-flex gap-2 mt-4">
-            <a href="{% url 'usuarios:listar' %}" class="btn btn-secondary">
-                <i class="fa-solid fa-times me-1"></i> Cancelar
+{% block contenido %}
+<form method="post" action=".">
+    <div class="card shadow-sm">
+        <div class="card-header bg-danger text-white">
+            <h3 class="card-title" style="margin: 0;">
+                <i class="fas fa-user-slash"></i> Desactivar Administrador
+            </h3>
+        </div>
+        <div class="card-body">
+            {% csrf_token %}
+            <div class="alert alert-warning mb-0">
+                <h5><i class="fas fa-exclamation-triangle"></i> Confirmación requerida</h5>
+                <p class="mb-0">
+                    ¿Estás seguro de que deseas <strong>desactivar</strong> al usuario
+                    <strong>{{ object.username }}</strong> ({{ object.first_name }} {{ object.last_name }})?
+                </p>
+                <small class="text-muted">
+                    El usuario no podrá iniciar sesión pero sus datos no se eliminan.
+                    Puedes reactivarlo en cualquier momento desde la lista.
+                </small>
+            </div>
+        </div>
+        <div class="card-footer text-end">
+            <a href="{{ listar_url }}" class="btn btn-secondary me-2">
+                <i class="fas fa-times"></i> Cancelar
             </a>
-            <form method="post">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-danger">
-                    <i class="fa-solid fa-user-slash me-1"></i> Sí, desactivar
-                </button>
-            </form>
+            <button type="submit" class="btn btn-danger">
+                <i class="fas fa-user-slash"></i> Sí, desactivar
+            </button>
         </div>
     </div>
-</div>
-
+</form>
 {% endblock %}
