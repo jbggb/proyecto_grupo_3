@@ -67,12 +67,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get('DB_NAME', 'proyecto'),
         'USER': os.environ.get('DB_USER', 'root'),
-        # ─────────────────────────────────────────────────────────
-        # La contraseña NUNCA debe estar en texto plano en el código.
-        # Localmente puede quedar en la variable de entorno o en un
-        # archivo .env que NO se suba a Git (.gitignore).
-        # ─────────────────────────────────────────────────────────
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'F4b14n89'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', '12345678'),
         'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT', '3306'),
         'OPTIONS': {
@@ -98,6 +93,10 @@ THOUSAND_SEPARATOR = '.'
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'app' / 'static']
+
+# ── Archivos subidos por el usuario (fotos de admins, etc.) ──────
+MEDIA_URL  = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

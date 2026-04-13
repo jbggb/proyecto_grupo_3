@@ -20,6 +20,7 @@ class PerfilUsuario(models.Model):
     rol      = models.CharField(max_length=20, choices=ROLES, default='admin', verbose_name='Rol')
     cedula   = models.CharField(max_length=20, unique=True, verbose_name='Cédula')
     telefono = models.CharField(max_length=15, blank=True, null=True, verbose_name='Teléfono')
+    foto     = models.ImageField(upload_to='admins/', blank=True, null=True, verbose_name='Foto de perfil')
 
     def save(self, *args, **kwargs):
         # Sincroniza is_superuser con el rol elegido
