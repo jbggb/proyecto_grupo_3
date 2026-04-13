@@ -30,7 +30,7 @@ class CrearUsuarioView(SuperadminRequiredMixin, View):
 
     def post(self, request):
         user_form   = AdminCrearForm(request.POST)
-        perfil_form = PerfilForm(request.POST)
+        perfil_form = PerfilForm(request.POST, request.FILES)
 
         if user_form.is_valid() and perfil_form.is_valid():
             user = user_form.save(commit=False)
@@ -67,7 +67,7 @@ class EditarUsuarioView(SuperadminRequiredMixin, View):
         perfil  = get_object_or_404(PerfilUsuario, user=usuario)
 
         user_form   = AdminEditarForm(request.POST, instance=usuario)
-        perfil_form = PerfilForm(request.POST, instance=perfil)
+        perfil_form = PerfilForm(request.POST, request.FILES, instance=perfil)
 
         if user_form.is_valid() and perfil_form.is_valid():
             user = user_form.save(commit=False)

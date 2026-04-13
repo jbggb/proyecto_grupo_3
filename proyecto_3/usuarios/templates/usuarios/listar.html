@@ -26,6 +26,7 @@
             <thead>
                 <tr style="background:#1e293b;color:#fff;">
                     <th style="padding:14px 16px;font-size:.75rem;letter-spacing:.06em;font-weight:600;">#</th>
+                    <th style="padding:14px 16px;font-size:.75rem;letter-spacing:.06em;font-weight:600;">FOTO</th>
                     <th style="padding:14px 16px;font-size:.75rem;letter-spacing:.06em;font-weight:600;">USUARIO</th>
                     <th style="padding:14px 16px;font-size:.75rem;letter-spacing:.06em;font-weight:600;">NOMBRE COMPLETO</th>
                     <th style="padding:14px 16px;font-size:.75rem;letter-spacing:.06em;font-weight:600;">ROL</th>
@@ -38,6 +39,19 @@
                 {% for u in usuarios %}
                 <tr>
                     <td class="align-middle ps-3">{{ u.id }}</td>
+                    <td class="align-middle">
+                        {% if u.perfil.foto %}
+                            <img src="{{ u.perfil.foto.url }}"
+                                 alt="Foto {{ u.username }}"
+                                 class="rounded-circle border"
+                                 style="width:40px;height:40px;object-fit:cover;">
+                        {% else %}
+                            <img src="https://ui-avatars.com/api/?name={{ u.first_name|urlencode }}+{{ u.last_name|urlencode }}&background=6c757d&color=fff&size=40"
+                                 alt="Sin foto"
+                                 class="rounded-circle border"
+                                 style="width:40px;height:40px;object-fit:cover;">
+                        {% endif %}
+                    </td>
                     <td class="align-middle fw-semibold">{{ u.username }}</td>
                     <td class="align-middle">
                         {% if u.first_name or u.last_name %}
@@ -120,7 +134,7 @@ $(document).ready(function () {
             url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
         },
         columnDefs: [
-            { orderable: false, targets: [6] }  // columna Acciones no ordenable
+            { orderable: false, targets: [1, 7] }  // Foto y Acciones no ordenables
         ]
     });
 });

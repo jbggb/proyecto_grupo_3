@@ -214,11 +214,12 @@ class AdminEditarForm(forms.ModelForm):
 class PerfilForm(forms.ModelForm):
     class Meta:
         model  = PerfilUsuario
-        fields = ['rol', 'cedula', 'telefono']
+        fields = ['rol', 'cedula', 'telefono', 'foto']
         labels = {
             'rol':      'Rol',
             'cedula':   'Cédula',
             'telefono': 'Teléfono',
+            'foto':     'Foto de perfil',
         }
         widgets = {
             'rol':      forms.Select(attrs={'class': 'form-control'}),
@@ -227,6 +228,10 @@ class PerfilForm(forms.ModelForm):
             }),
             'telefono': forms.TextInput(attrs={
                 'class': 'form-control', 'placeholder': 'Ej: 3001234567',
+            }),
+            'foto':     forms.ClearableFileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*',
             }),
         }
 
@@ -253,3 +258,13 @@ class PerfilForm(forms.ModelForm):
             if len(telefono) < 7 or len(telefono) > 15:
                 raise forms.ValidationError('El teléfono debe tener entre 7 y 15 dígitos.')
         return telefono
+
+    def clean_foto(self):
+        foto = self.cleaned_data.get('foto')
+        if foto and hasattr(foto, 'size'):
+            if foto.size > 2 * 1024 * 1024:  # 2 MB
+                raise forms.ValidationError('La imagen no puede superar 2 MB.')
+            tipo = getattr(foto, 'content_type', '')
+            if tipo and not tipo.startswith('image/'):
+                raise forms.ValidationError('El archivo debe ser una imagen válida.')
+        return foto
