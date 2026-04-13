@@ -18,25 +18,41 @@
 
 <!-- Buscador y filtros -->
 <div class="filter-bar">
-    <form method="GET" class="d-flex gap-3 w-100">
-        <div class="search-box">
+    <form method="GET" class="row g-2 align-items-end w-100">
+        <div class="col-md-3">
+            <label class="form-label mb-1">Buscar</label>
             <input type="text" name="busqueda" class="form-control"
                    placeholder="Buscar por proveedor o producto..."
                    value="{{ request.GET.busqueda }}">
         </div>
-        <select name="estado" class="form-control" style="width: auto;">
-            <option value="">Filtrar por estado</option>
-            <option value="Completada" {% if request.GET.estado == "Completada" %}selected{% endif %}>Completada</option>
-            <option value="Pendiente"  {% if request.GET.estado == "Pendiente"  %}selected{% endif %}>Pendiente</option>
-        </select>
-        <button type="submit" class="btn btn-primary">
-            <i class="fa-solid fa-filter me-2"></i>Buscar
-        </button>
-        {% if request.GET.busqueda or request.GET.estado %}
-        <a href="{% url 'compras' %}" class="btn btn-secondary">
-            <i class="fa-solid fa-times me-2"></i>Limpiar
-        </a>
-        {% endif %}
+        <div class="col-md-2">
+            <label class="form-label mb-1">Filtrar por estado</label>
+            <select name="estado" class="form-select">
+                <option value="">Todos</option>
+                <option value="Completada" {% if request.GET.estado == "Completada" %}selected{% endif %}>Completada</option>
+                <option value="Pendiente"  {% if request.GET.estado == "Pendiente"  %}selected{% endif %}>Pendiente</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <label class="form-label mb-1">Desde</label>
+            <input type="date" name="fecha_desde" class="form-control"
+                   value="{{ request.GET.fecha_desde }}">
+        </div>
+        <div class="col-md-2">
+            <label class="form-label mb-1">Hasta</label>
+            <input type="date" name="fecha_hasta" class="form-control"
+                   value="{{ request.GET.fecha_hasta }}">
+        </div>
+        <div class="col-md-3 d-flex align-items-end gap-2">
+            <button type="submit" class="btn btn-primary flex-fill h-100">
+                <i class="fa-solid fa-filter me-2"></i>Buscar
+            </button>
+            {% if request.GET.busqueda or request.GET.estado or request.GET.fecha_desde or request.GET.fecha_hasta %}
+            <a href="{% url 'compras' %}" class="btn btn-secondary flex-fill h-100">
+                <i class="fa-solid fa-times me-2"></i>Limpiar
+            </a>
+            {% endif %}
+        </div>
     </form>
 </div>
 

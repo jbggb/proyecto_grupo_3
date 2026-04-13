@@ -89,6 +89,23 @@ class ComprasView(View):
         if estado_filtro in ('Completada', 'Pendiente'):
             lista_compras = lista_compras.filter(estado=estado_filtro)
 
+        fecha_desde = request.GET.get('fecha_desde', '').strip()
+        fecha_hasta = request.GET.get('fecha_hasta', '').strip()
+
+        if fecha_desde:
+            try:
+                desde_date = date.fromisoformat(fecha_desde)
+                lista_compras = lista_compras.filter(fechaCompra__gte=desde_date)
+            except ValueError:
+                pass
+
+        if fecha_hasta:
+            try:
+                hasta_date = date.fromisoformat(fecha_hasta)
+                lista_compras = lista_compras.filter(fechaCompra__lte=hasta_date)
+            except ValueError:
+                pass
+
         return render(request, 'Compras/Compras.html', {
             'compras':     lista_compras,
             'proveedores': Proveedor.objects.all(),

@@ -111,42 +111,42 @@
             </button>
         </div>
 
-        <a href="{% url 'inicio' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none">
+        <a href="{% url 'inicio' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'inicio' %} active{% endif %}">
             <i class="fa-solid fa-house"></i>
             <span class="link-text ms-2">Inicio</span>
         </a>
-        <a href="{% url 'productos' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none">
+        <a href="{% url 'productos' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'productos' %} active{% endif %}">
             <i class="fa-solid fa-box"></i>
             <span class="link-text ms-2">Productos</span>
         </a>
-        <a href="{% url 'clientes' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none">
+        <a href="{% url 'clientes' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'clientes' %} active{% endif %}">
             <i class="fa-solid fa-users"></i>
             <span class="link-text ms-2">Clientes</span>
         </a>
-        <a href="{% url 'ventas' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none">
+        <a href="{% url 'ventas' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'ventas' %} active{% endif %}">
             <i class="fa-solid fa-cart-shopping"></i>
             <span class="link-text ms-2">Ventas</span>
         </a>
-        <a href="{% url 'proveedores' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none">
+        <a href="{% url 'proveedores' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'proveedores' %} active{% endif %}">
             <i class="fa-solid fa-truck"></i>
             <span class="link-text ms-2">Proveedores</span>
         </a>
-        <a href="{% url 'compras' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none">
+        <a href="{% url 'compras' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'compras' %} active{% endif %}">
             <i class="fa-solid fa-bag-shopping"></i>
             <span class="link-text ms-2">Compras</span>
         </a>
-        <a href="{% url 'reportes' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none">
+        <a href="{% url 'reportes' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'reportes' %} active{% endif %}">
             <i class="fa-solid fa-chart-line"></i>
             <span class="link-text ms-2">Reportes</span>
         </a>
-        <a href="{% url 'backup' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none">
+        <a href="{% url 'backup' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'backup' %} active{% endif %}">
             <i class="fa-solid fa-database"></i>
             <span class="link-text ms-2">Respaldo BD</span>
         </a>
 
         {% if request.user.is_superuser %}
         <hr class="border-secondary my-2">
-        <a href="{% url 'usuarios:listar' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none">
+        <a href="{% url 'usuarios:listar' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'usuarios:listar' %} active{% endif %}">
             <i class="fa-solid fa-users-gear"></i>
             <span class="link-text ms-2">Usuarios</span>
         </a>

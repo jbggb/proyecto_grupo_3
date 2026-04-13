@@ -1,5 +1,6 @@
 """Vistas para gestión de proveedores"""
 import re
+from datetime import date
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views import View
@@ -59,6 +60,8 @@ class ProveedoresView(View):
         lista = Proveedor.objects.all()
         busqueda = request.GET.get('busqueda', '').strip()
         envio_filtro = request.GET.get('envio', '').strip()
+        fecha_desde = request.GET.get('fecha_desde', '').strip()
+        fecha_hasta = request.GET.get('fecha_hasta', '').strip()
 
         if busqueda:
             lista = lista.filter(nombre__icontains=busqueda)
@@ -69,6 +72,20 @@ class ProveedoresView(View):
             lista = lista.filter(envio__gte=8, envio__lte=15)
         elif envio_filtro == 'lento':
             lista = lista.filter(envio__gt=15)
+
+        if fecha_desde:
+            try:
+                desde_date = date.fromisoformat(fecha_desde)
+                lista = lista.filter(fechaRegistro__gte=desde_date)
+            except ValueError:
+                pass
+
+        if fecha_hasta:
+            try:
+                hasta_date = date.fromisoformat(fecha_hasta)
+                lista = lista.filter(fechaRegistro__lte=hasta_date)
+            except ValueError:
+                pass
 
         return render(request, 'proveedores/proveedores.html', {
             'proveedores': lista,

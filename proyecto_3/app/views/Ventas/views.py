@@ -82,38 +82,30 @@ class VentasView(View):
         total_mes  = Venta.objects.filter(fecha__gte=inicio_mes).aggregate(total=Sum('total'))['total'] or 0
 
         buscar       = request.GET.get('buscar', '').strip()
-        fecha_filtro = request.GET.get('fecha_filtro', '').strip()
+        fecha_desde  = request.GET.get('fecha_desde', '').strip()
+        fecha_hasta  = request.GET.get('fecha_hasta', '').strip()
         lista_ventas = Venta.objects.prefetch_related('detalles').all()
 
         if buscar:
             lista_ventas = lista_ventas.filter(cliente__icontains=buscar)
 
-        if fecha_filtro == 'hoy':
-            lista_ventas = lista_ventas.filter(fecha__range=rango_dia(hoy))
-        elif fecha_filtro == 'ayer':
-            lista_ventas = lista_ventas.filter(fecha__range=rango_dia(hoy - datetime.timedelta(days=1)))
-        elif fecha_filtro == 'semana':
-            inicio = timezone.make_aware(datetime.datetime.combine(hoy - datetime.timedelta(days=hoy.weekday()), datetime.time.min))
-            lista_ventas = lista_ventas.filter(fecha__gte=inicio)
-        elif fecha_filtro == 'semana_pasada':
-            inicio_semana = hoy - datetime.timedelta(days=hoy.weekday())
-            inicio_sp = inicio_semana - datetime.timedelta(days=7)
-            fin_sp    = inicio_semana - datetime.timedelta(days=1)
-            lista_ventas = lista_ventas.filter(fecha__range=(
-                timezone.make_aware(datetime.datetime.combine(inicio_sp, datetime.time.min)),
-                timezone.make_aware(datetime.datetime.combine(fin_sp,    datetime.time.max)),
-            ))
-        elif fecha_filtro == 'mes':
-            lista_ventas = lista_ventas.filter(fecha__gte=timezone.make_aware(datetime.datetime(hoy.year, hoy.month, 1)))
-        elif fecha_filtro == 'mes_pasado':
-            anio, mes = (hoy.year - 1, 12) if hoy.month == 1 else (hoy.year, hoy.month - 1)
-            ultimo_dia = calendar.monthrange(anio, mes)[1]
-            lista_ventas = lista_ventas.filter(fecha__range=(
-                timezone.make_aware(datetime.datetime(anio, mes, 1)),
-                timezone.make_aware(datetime.datetime(anio, mes, ultimo_dia, 23, 59, 59)),
-            ))
-        elif fecha_filtro == 'anio':
-            lista_ventas = lista_ventas.filter(fecha__gte=timezone.make_aware(datetime.datetime(hoy.year, 1, 1)))
+        if fecha_desde:
+            try:
+                desde_date = datetime.datetime.strptime(fecha_desde, '%Y-%m-%d').date()
+                lista_ventas = lista_ventas.filter(
+                    fecha__gte=timezone.make_aware(datetime.datetime.combine(desde_date, datetime.time.min))
+                )
+            except ValueError:
+                pass
+
+        if fecha_hasta:
+            try:
+                hasta_date = datetime.datetime.strptime(fecha_hasta, '%Y-%m-%d').date()
+                lista_ventas = lista_ventas.filter(
+                    fecha__lte=timezone.make_aware(datetime.datetime.combine(hasta_date, datetime.time.max))
+                )
+            except ValueError:
+                pass
 
         return render(request, 'Ventas/Ventas.html', {
             'ventas':       lista_ventas,

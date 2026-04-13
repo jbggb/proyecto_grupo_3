@@ -72,7 +72,7 @@ DATABASES = {
         # Localmente puede quedar en la variable de entorno o en un
         # archivo .env que NO se suba a Git (.gitignore).
         # ─────────────────────────────────────────────────────────
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'F4b14n89'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', 'aprendermysql123'),
         'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT', '3306'),
         'OPTIONS': {

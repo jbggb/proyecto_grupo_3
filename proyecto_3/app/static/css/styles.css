@@ -632,6 +632,22 @@ body {
   gap: 10px;
 }
 
+.section-header {
+  color: #ffffff !important;
+}
+
+.section-title, .section-title i,
+.section-header h1,
+.section-header h2,
+.section-header h3,
+.d-flex.justify-content-between.align-items-center.mb-4 h1,
+.d-flex.justify-content-between.align-items-center.mb-4 h2,
+.d-flex.justify-content-between.align-items-center.mb-4 h3 {
+  color: #ffffff !important;
+}
+
+.section-title i { color: var(--primary); }
+
 .section-title i { color: var(--primary); }
 
 /* ═══════════════════════════════════════════════════════════════════════
@@ -657,6 +673,35 @@ body {
 }
 
 .action-buttons { display: flex; gap: 8px; }
+
+.filter-bar input[type="date"],
+input[type="date"].form-control {
+  text-align: center;
+  cursor: pointer;
+}
+
+.filter-bar input[type="date"],
+input[type="date"].form-control {
+  text-align: center;
+}
+
+.filter-bar input[type="date"]::-webkit-datetime-edit,
+.filter-bar input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+.filter-bar input[type="date"]::-webkit-datetime-edit-month-field,
+.filter-bar input[type="date"]::-webkit-datetime-edit-day-field,
+.filter-bar input[type="date"]::-webkit-datetime-edit-year-field,
+input[type="date"].form-control::-webkit-datetime-edit,
+input[type="date"].form-control::-webkit-datetime-edit-fields-wrapper,
+input[type="date"].form-control::-webkit-datetime-edit-month-field,
+input[type="date"].form-control::-webkit-datetime-edit-day-field,
+input[type="date"].form-control::-webkit-datetime-edit-year-field {
+  text-align: center;
+}
+
+.filter-bar input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="date"].form-control::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
 
 /* ═══════════════════════════════════════════════════════════════════════
    14. ESTADO VACÍO
@@ -702,8 +747,14 @@ body {
 /* Página activa en sidebar */
 #sidebar a.active,
 #sidebar a:focus {
-  background: rgba(102,126,234,.25) !important;
+  background: rgba(102,126,234,.30) !important;
   color: #fff !important;
+  border-left: 4px solid rgba(102,126,234,.85);
+  box-shadow: 0 0 14px rgba(102,126,234,.12);
+}
+
+#sidebar a.active i {
+  color: #e2e8f0 !important;
 }
 
 /* Scrollbar personalizado */
@@ -813,4 +864,47 @@ body {
 /* Texto de selects en negro */
 .form-select {
   color: #000000 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
+   18. TARJETAS DE ÍNDICE (PÁGINA INICIO)
+   ═══════════════════════════════════════════════════════════════════════ */
+
+.index-card {
+  background: rgba(255, 255, 255, 0.95) !important;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-card);
+  padding: 24px;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
+}
+
+.index-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.index-card-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 70px;
+  height: 70px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.index-card-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1f2937 !important;
+  margin: 12px 0 8px;
+  margin-bottom: 8px;
+}
+
+.index-card-text {
+  font-size: 0.95rem;
+  color: #6b7280 !important;
+  margin-bottom: 16px;
+  line-height: 1.4;
 }
