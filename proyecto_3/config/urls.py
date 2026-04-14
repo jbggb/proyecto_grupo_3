@@ -32,6 +32,9 @@ urlpatterns = [
     # ── Auth ───────────────────────────────────────────────────────
     path('login/',  auth_views.login_view,  name='login'),
     path('logout/', auth_views.logout_view, name='logout'),
+    path('login/enviar-codigo/', auth_views.send_recovery_code, name='send_recovery_code'),
+    path('login/confirmar-codigo/', auth_views.validate_recovery_code, name='validate_recovery_code'),
+    path('login/resetear-contrasena/', auth_views.reset_password, name='reset_password'),
 
     # ── Productos ──────────────────────────────────────────────────
     path('productos/',                    productos_views.productos,       name='productos'),
