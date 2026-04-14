@@ -20,7 +20,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'app',
-    'usuarios',                          # app del instructor
+    'usuarios', 
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -52,9 +52,12 @@ TEMPLATES = [
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'app.context_processors.notificaciones',  
+                
             ],
         },
     },
@@ -67,7 +70,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': os.environ.get('DB_NAME', 'proyecto'),
         'USER': os.environ.get('DB_USER', 'root'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'parceroj'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', '12345678'),
         'HOST': os.environ.get('DB_HOST', 'localhost'),
         'PORT': os.environ.get('DB_PORT', '3306'),
         'OPTIONS': {

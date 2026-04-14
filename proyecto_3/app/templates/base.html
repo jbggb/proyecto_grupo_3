@@ -3,6 +3,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inventario - Grupo 3</title>
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/all.min.css' %}">
@@ -59,6 +60,50 @@
             transition: margin-left 0.3s ease;
             flex: 1;
         }
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            font-size: 0.7rem;
+        }
+        .dropdown-notif {
+            min-width: 380px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+        .notification-item {
+            transition: background 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .notification-item:hover {
+            background-color: #f8f9fa;
+        }
+        .notification-error {
+            border-left-color: #dc3545;
+            background-color: #fff5f5;
+        }
+        .notification-warning {
+            border-left-color: #ffc107;
+            background-color: #fffbf0;
+        }
+        .notification-success {
+            border-left-color: #28a745;
+            background-color: #f0fff4;
+        }
+        .notification-info {
+            border-left-color: #17a2b8;
+            background-color: #f0f9ff;
+        }
+        .badge-priority-1 {
+            background-color: #dc3545;
+        }
+        .badge-priority-2 {
+            background-color: #ffc107;
+            color: #000;
+        }
+        .badge-priority-3 {
+            background-color: #17a2b8;
+        }
     </style>
 </head>
 <body>
@@ -81,6 +126,87 @@
             <i class="fa-solid fa-shop me-2"></i>Sistema de Inventario
         </span>
         <div class="d-flex align-items-center">
+            
+            <!-- NOTIFICACIONES DROPDOWN (VERSIÓN COMPLETA) -->
+            {% if request.user.is_authenticated %}
+            <div class="dropdown me-3">
+                <button class="btn btn-outline-light dropdown-toggle position-relative" type="button" data-bs-toggle="dropdown">
+                    <i class="fa-solid fa-bell"></i>
+                    {% if total_notificaciones > 0 %}
+                        <span class="badge bg-danger rounded-pill notification-badge">{{ total_notificaciones }}</span>
+                    {% endif %}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-notif p-0">
+                    {% if total_notificaciones == 0 %}
+                        <li class="text-center py-4">
+                            <i class="fa-solid fa-check-circle text-success fa-3x mb-3"></i>
+                            <p class="mb-0 text-muted">¡Todo en orden!</p>
+                            <small class="text-muted">No hay notificaciones pendientes</small>
+                        </li>
+                    {% else %}
+                        <li class="dropdown-header bg-light py-2">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span><i class="fa-solid fa-bell me-1"></i> Notificaciones ({{ total_notificaciones }})</span>
+                                <button class="btn btn-sm btn-link p-0" id="refreshNotifBtn" title="Actualizar">
+                                    <i class="fa-solid fa-rotate-right"></i>
+                                </button>
+                            </div>
+                        </li>
+                        <li><hr class="dropdown-divider my-0"></li>
+                        
+                        <!-- Mostrar todas las notificaciones -->
+                        {% for notif in notificaciones|slice:":20" %}
+                            <li class="notification-item notification-{{ notif.tipo }} position-relative">
+                                <a class="dropdown-item" href="{{ notif.url }}" style="white-space: normal; padding: 12px 15px;">
+                                    <div class="d-flex">
+                                        <div class="flex-shrink-0 me-3 fs-4">
+                                            {{ notif.icono }}
+                                        </div>
+                                        <div class="flex-grow-1">
+                                            <div class="small mb-1">
+                                                {{ notif.mensaje }}
+                                            </div>
+                                            <div class="d-flex justify-content-between align-items-center mt-1">
+                                                <small class="text-muted">
+                                                    <i class="fa-regular fa-clock me-1"></i>
+                                                    {{ notif.fecha|timesince }} atrás
+                                                </small>
+                                                {% if notif.prioridad == 1 %}
+                                                    <span class="badge badge-priority-1">Crítica</span>
+                                                {% elif notif.prioridad == 2 %}
+                                                    <span class="badge badge-priority-2">Urgente</span>
+                                                {% elif notif.prioridad == 3 %}
+                                                    <span class="badge badge-priority-3">Importante</span>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </li>
+                            {% if not forloop.last %}<li><hr class="dropdown-divider my-0"></li>{% endif %}
+                        {% endfor %}
+                        
+                        {% if notificaciones|length > 20 %}
+                            <li><hr class="dropdown-divider my-0"></li>
+                            <li class="text-center py-2 bg-light">
+                                <a href="#" class="text-decoration-none small text-muted">
+                                    Y {{ notificaciones|length|add:"-20" }} más...
+                                </a>
+                            </li>
+                        {% endif %}
+                        
+                        <li><hr class="dropdown-divider my-0"></li>
+                        <li class="text-center py-2 bg-light">
+                            <a href="{% url 'reportes' %}" class="text-decoration-none small">
+                                <i class="fa-solid fa-chart-line me-1"></i>Ver todos los reportes
+                            </a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% endif %}
+            
+            <!-- Información del usuario -->
             {% if request.user.is_authenticated %}
                 <span class="text-light me-3">
                     <i class="fa-solid fa-user me-1"></i>
@@ -111,49 +237,49 @@
             </button>
         </div>
 
-        <a href="{% url 'inicio' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'inicio' %} active{% endif %}">
+        <a href="{% url 'inicio' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none">
             <i class="fa-solid fa-house"></i>
             <span class="link-text ms-2">Inicio</span>
         </a>
-        <a href="{% url 'productos' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'productos' %} active{% endif %}">
+        <a href="{% url 'productos' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none">
             <i class="fa-solid fa-box"></i>
             <span class="link-text ms-2">Productos</span>
         </a>
-        <a href="{% url 'clientes' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'clientes' %} active{% endif %}">
+        <a href="{% url 'clientes' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none">
             <i class="fa-solid fa-users"></i>
             <span class="link-text ms-2">Clientes</span>
         </a>
-        <a href="{% url 'ventas' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'ventas' %} active{% endif %}">
+        <a href="{% url 'ventas' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none">
             <i class="fa-solid fa-cart-shopping"></i>
             <span class="link-text ms-2">Ventas</span>
         </a>
-        <a href="{% url 'proveedores' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'proveedores' %} active{% endif %}">
+        <a href="{% url 'proveedores' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none">
             <i class="fa-solid fa-truck"></i>
             <span class="link-text ms-2">Proveedores</span>
         </a>
-        <a href="{% url 'compras' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'compras' %} active{% endif %}">
+        <a href="{% url 'compras' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none">
             <i class="fa-solid fa-bag-shopping"></i>
             <span class="link-text ms-2">Compras</span>
         </a>
-        <a href="{% url 'reportes' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'reportes' %} active{% endif %}">
+        <a href="{% url 'reportes' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none">
             <i class="fa-solid fa-chart-line"></i>
             <span class="link-text ms-2">Reportes</span>
         </a>
-        <a href="{% url 'backup' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'backup' %} active{% endif %}">
+        <a href="{% url 'backup' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none">
             <i class="fa-solid fa-database"></i>
             <span class="link-text ms-2">Respaldo BD</span>
         </a>
 
         {% if request.user.is_superuser %}
         <hr class="border-secondary my-2">
-        <a href="{% url 'usuarios:listar' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'usuarios:listar' %} active{% endif %}">
+        <a href="{% url 'usuarios:listar' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none">
             <i class="fa-solid fa-users-gear"></i>
             <span class="link-text ms-2">Usuarios</span>
         </a>
         {% endif %}
     </aside>
 
-    <!-- CONTENIDO -->
+    <!-- CONTENIDO PRINCIPAL -->
     <main id="main-content" class="p-4">
         {% block content %}{% endblock %}
     </main>
@@ -166,18 +292,31 @@
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'js/confirmaciones.js' %}"></script>
 <script>
+    // Toggle del menú lateral
     const toggleBtn = document.getElementById('toggle-btn');
     const sidebar = document.getElementById('sidebar');
 
-    toggleBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('collapsed');
-        const icon = toggleBtn.querySelector('i');
-        if (sidebar.classList.contains('collapsed')) {
-            icon.classList.replace('fa-bars', 'fa-bars-staggered');
-        } else {
-            icon.classList.replace('fa-bars-staggered', 'fa-bars');
-        }
+    if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('collapsed');
+            const icon = toggleBtn.querySelector('i');
+            if (sidebar.classList.contains('collapsed')) {
+                icon.classList.replace('fa-bars', 'fa-bars-staggered');
+            } else {
+                icon.classList.replace('fa-bars-staggered', 'fa-bars');
+            }
+        });
+    }
+
+    // Actualización automática de notificaciones (opcional)
+    document.getElementById('refreshNotifBtn')?.addEventListener('click', function() {
+        location.reload();
     });
+
+    // Actualizar cada 60 segundos
+    setTimeout(function() {
+        location.reload();
+    }, 60000);
 </script>
 
 {% if messages %}
@@ -197,6 +336,8 @@ document.addEventListener('DOMContentLoaded', function() {
             text: msg.texto,
             confirmButtonText: 'OK',
             confirmButtonColor: '#28a745',
+            timer: 3000,
+            timerProgressBar: true
         });
     });
 });

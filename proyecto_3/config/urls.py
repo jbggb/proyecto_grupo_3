@@ -98,6 +98,7 @@ urlpatterns = [
     # ── Backup y Restauración ──────────────────────────────────────
     path('backup/',             backup_views.backup,           name='backup'),
     path('backup/restaurar/',   backup_views.restaurar_datos,  name='restaurar_datos'),
+    
 ]
 
 
