@@ -36,8 +36,14 @@
             border-radius: 6px;
             transition: background 0.2s;
         }
-        #sidebar a:hover {
+        #sidebar a:hover, #sidebar .productos-toggle:hover {
             background-color: rgba(255,255,255,0.1);
+        }
+        .sub-link:hover {
+            background-color: rgba(255,255,255,0.08) !important;
+        }
+        .sub-link.active {
+            background-color: rgba(255,255,255,0.15) !important;
         }
         #sidebar a i {
             min-width: 24px;
@@ -115,10 +121,38 @@
             <i class="fa-solid fa-house"></i>
             <span class="link-text ms-2">Inicio</span>
         </a>
-        <a href="{% url 'productos' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'productos' %} active{% endif %}">
-            <i class="fa-solid fa-box"></i>
-            <span class="link-text ms-2">Productos</span>
-        </a>
+        <!-- Menú desplegable Productos -->
+        <div class="productos-menu mb-2">
+            <button class="productos-toggle d-flex align-items-center text-light text-decoration-none w-100 border-0 bg-transparent p-0"
+                    style="padding: 10px 8px !important; border-radius: 6px; cursor: pointer; transition: background 0.2s;"
+                    onclick="toggleProductosMenu(this)"
+                    title="Productos">
+                <i class="fa-solid fa-box" style="min-width:24px; text-align:center;"></i>
+                <span class="link-text ms-2 d-flex align-items-center justify-content-between w-100">
+                    Productos
+                    <i class="fa-solid fa-chevron-down ms-auto me-1 chevron-icon" style="font-size:.75rem; transition: transform 0.25s;"></i>
+                </span>
+            </button>
+            <div class="productos-submenu ps-3 mt-1"
+                 style="display:{% if request.resolver_match and request.resolver_match.url_name in 'productos,marcas,tipos,unidades' %}block{% else %}none{% endif %}; border-left: 2px solid rgba(255,255,255,0.2);">
+                <a href="{% url 'productos' %}" class="d-flex align-items-center text-light py-1 text-decoration-none sub-link{% if request.resolver_match and request.resolver_match.url_name == 'productos' %} active{% endif %}" style="border-radius:4px; padding: 6px 8px;">
+                    <i class="fa-solid fa-boxes-stacked" style="min-width:20px; text-align:center; font-size:.9rem;"></i>
+                    <span class="link-text ms-2" style="font-size:.9rem;">Productos</span>
+                </a>
+                <a href="{% url 'marcas' %}" class="d-flex align-items-center text-light py-1 text-decoration-none sub-link{% if request.resolver_match and request.resolver_match.url_name == 'marcas' %} active{% endif %}" style="border-radius:4px; padding: 6px 8px;">
+                    <i class="fa-solid fa-tag" style="min-width:20px; text-align:center; font-size:.9rem;"></i>
+                    <span class="link-text ms-2" style="font-size:.9rem;">Marcas</span>
+                </a>
+                <a href="{% url 'unidades' %}" class="d-flex align-items-center text-light py-1 text-decoration-none sub-link{% if request.resolver_match and request.resolver_match.url_name == 'unidades' %} active{% endif %}" style="border-radius:4px; padding: 6px 8px;">
+                    <i class="fa-solid fa-ruler" style="min-width:20px; text-align:center; font-size:.9rem;"></i>
+                    <span class="link-text ms-2" style="font-size:.9rem;">Unidades de Medida</span>
+                </a>
+                <a href="{% url 'tipos' %}" class="d-flex align-items-center text-light py-1 text-decoration-none sub-link{% if request.resolver_match and request.resolver_match.url_name == 'tipos' %} active{% endif %}" style="border-radius:4px; padding: 6px 8px;">
+                    <i class="fa-solid fa-layer-group" style="min-width:20px; text-align:center; font-size:.9rem;"></i>
+                    <span class="link-text ms-2" style="font-size:.9rem;">Tipo de Producto</span>
+                </a>
+            </div>
+        </div>
         <a href="{% url 'clientes' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'clientes' %} active{% endif %}">
             <i class="fa-solid fa-users"></i>
             <span class="link-text ms-2">Clientes</span>
@@ -166,6 +200,22 @@
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'js/confirmaciones.js' %}"></script>
 <script>
+    // Submenu Productos
+    function toggleProductosMenu(btn) {
+        const submenu = btn.closest('.productos-menu').querySelector('.productos-submenu');
+        const chevron = btn.querySelector('.chevron-icon');
+        const isOpen = submenu.style.display !== 'none';
+        submenu.style.display = isOpen ? 'none' : 'block';
+        chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const submenu = document.querySelector('.productos-submenu');
+        const chevron = document.querySelector('.chevron-icon');
+        if (submenu && submenu.style.display !== 'none') {
+            chevron.style.transform = 'rotate(180deg)';
+        }
+    });
+
     const toggleBtn = document.getElementById('toggle-btn');
     const sidebar = document.getElementById('sidebar');
 
