@@ -179,15 +179,22 @@ $(document).ready(function () {
     limpiarBorrador();
   });
 
+  $('#modalAgregar').on('hide.bs.modal', function () {
+    // Destruir Select2 ANTES de que el modal cierre para evitar conflicto con backdrop
+    $('#add_idMarca, #add_idTipo, #add_idUnidad').each(function () {
+      if ($(this).hasClass('select2-hidden-accessible')) {
+        $(this).select2('destroy');
+      }
+    });
+  });
+
   $('#modalAgregar').on('hidden.bs.modal', function () {
-    // Solo limpiar campos si cierra con Cancelar (no si hay error activo)
+    // Limpiar backdrop residual por si Select2 lo dejó colgado
+    $('.modal-backdrop').remove();
+    $('body').removeClass('modal-open').css('overflow', '').css('padding-right', '');
+
     if (!{{ abrir_modal_agregar|yesno:"true,false" }}) {
       limpiarBorrador();
-      $('#add_idMarca, #add_idTipo, #add_idUnidad').each(function () {
-        if ($(this).hasClass('select2-hidden-accessible')) {
-          $(this).val('').trigger('change');
-        }
-      });
       $('#formAgregarProducto')[0].reset();
     }
   });
