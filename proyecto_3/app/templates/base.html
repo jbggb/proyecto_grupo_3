@@ -85,9 +85,6 @@
                 <span class="text-light me-3">
                     <i class="fa-solid fa-user me-1"></i>
                     {{ request.user.get_full_name|default:request.user.username }}
-                    {% if request.user.is_superuser %}
-                        <span class="badge bg-warning text-dark ms-1" style="font-size:.65rem;">Superadmin</span>
-                    {% endif %}
                 </span>
                 <a href="{% url 'logout' %}" class="btn btn-outline-light">
                     <i class="fa-solid fa-right-from-bracket me-1"></i>Cerrar Sesión
