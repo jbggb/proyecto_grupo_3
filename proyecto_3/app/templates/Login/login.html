@@ -230,6 +230,185 @@
         }
         .btn-login:active { transform: translateY(0); box-shadow: none; }
 
+        .recover-row {
+            margin-bottom: 18px;
+            display: grid;
+            gap: 12px;
+        }
+
+        .btn-recover {
+            width: 100%;
+            padding: 12px;
+            background: #f3f4f6;
+            color: var(--texto);
+            border: 1px solid #d1d5db;
+            border-radius: 11px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: .9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s, border-color .2s, transform .15s;
+        }
+        .btn-recover:hover {
+            background: #ffffff;
+            border-color: var(--rojo-mid);
+            transform: translateY(-1px);
+        }
+
+        .help-text {
+            font-size: .82rem;
+            color: #52525b;
+            line-height: 1.4;
+            margin: 0;
+        }
+        .hidden { display: none; }
+        .help-text.hidden { display: none; }
+
+        .recover-link {
+            background: none;
+            border: none;
+            color: var(--rojo);
+            font-weight: 700;
+            cursor: pointer;
+            padding: 0;
+            font-size: .82rem;
+        }
+        .recover-link:hover { text-decoration: underline; }
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s ease;
+        }
+        .modal-overlay.visible {
+            display: flex;
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal {
+            width: min(420px, calc(100% - 32px));
+            background: #fff;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 24px 60px rgba(0,0,0,.35);
+            animation: popIn .2s ease;
+        }
+        .modal-header {
+            padding: 22px 22px 16px;
+            background: linear-gradient(145deg, #7f1d1d, #9b1c1c);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .modal-header h3 {
+            font-size: 1rem;
+            margin: 0;
+        }
+        .modal-close {
+            background: transparent;
+            border: none;
+            color: #f8fafc;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+        .modal-body {
+            padding: 22px;
+            display: grid;
+            gap: 16px;
+        }
+        .modal-body .input-wrap input {
+            background: #f9fafb;
+        }
+        .modal-footer {
+            padding: 18px 22px 22px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+        .modal-button {
+            padding: 12px 18px;
+            border-radius: 11px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background .2s;
+        }
+        .modal-button.primary {
+            background: var(--rojo);
+            color: white;
+        }
+        .modal-button.secondary {
+            background: #f3f4f6;
+            color: var(--texto);
+        }
+
+        .strength-meter {
+            display: grid;
+            gap: 8px;
+        }
+        .strength-meter-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: .82rem;
+            color: #4b5563;
+        }
+        .meter-bar {
+            width: 100%;
+            height: 10px;
+            background: #e5e7eb;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .meter-bar-fill {
+            width: 0%;
+            height: 100%;
+            border-radius: 999px;
+            transition: width .2s ease, background .2s ease;
+        }
+        .meter-weak { background: #ef4444; }
+        .meter-medium { background: #f97316; }
+        .meter-strong { background: #22c55e; }
+
+        .feedback-message {
+            font-size: .82rem;
+            color: #52525b;
+            margin: 0;
+        }
+        .status-message {
+            font-size: .88rem;
+            margin-top: 10px;
+            min-height: 1.3em;
+            color: #374151;
+        }
+
+        .status-message.error {
+            color: #b91c1c;
+        }
+        .status-message.success {
+            color: #16a34a;
+        }
+
+        .success-message {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #bbf7d0;
+            border-radius: 12px;
+            padding: 12px 14px;
+            font-size: .9rem;
+            margin-top: 8px;
+            display: none;
+        }
+
         /* Pie */
         .card-footer {
             padding: 16px 36px 24px;
@@ -316,6 +495,16 @@
                 </div>
             </div>
 
+            <div class="recover-row">
+                <button type="button" class="btn-recover" id="recoverPasswordBtn" onclick="openModal('recoverModal')">
+                    <i class="fa-solid fa-key" style="margin-right: 8px"></i>
+                    Recuperar contraseña
+                </button>
+                <p id="forgotPasswordHint" class="help-text hidden">
+                    ¿Olvidaste la contraseña? Haz click en <button type="button" class="recover-link" id="recoverPasswordLink" onclick="openModal('recoverModal')">recuperar contraseña</button>.
+                </p>
+            </div>
+
             <button type="submit" class="btn-login">
                 <i class="fa-solid fa-right-to-bracket" style="margin-right:8px"></i>
                 Ingresar al panel
@@ -333,10 +522,93 @@
 
 </div>
 
+<div class="modal-overlay" id="recoverModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="recoverModalTitle">
+        <div class="modal-header">
+            <h3 id="recoverModalTitle">Recuperar contraseña</h3>
+            <button type="button" class="modal-close" id="closeRecoverModal" aria-label="Cerrar modal" onclick="closeModal('recoverModal')">×</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin:0;color:#374151;font-size:.95rem;line-height:1.5;">
+                Ingresa tu correo de recuperación para recibir el código de verificación.
+            </p>
+            <div class="form-group">
+                <label class="form-label">Correo de recuperación</label>
+                <div class="input-wrap">
+                    <i class="input-icon fa-solid fa-envelope"></i>
+                    <input type="email" id="recoverEmail" placeholder="Ingresa tu correo de recuperación" autocomplete="email">
+                </div>
+            </div>
+            <div class="status-message" id="recoverStatus">&nbsp;</div>
+            <div class="form-group hidden" id="verificationCodeGroup">
+                <label class="form-label">Código de verificación</label>
+                <div class="input-wrap">
+                    <i class="input-icon fa-solid fa-key"></i>
+                    <input type="text" id="recoverCode" placeholder="Ingresa el código que recibiste">
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="modal-button secondary" id="cancelRecover" onclick="closeModal('recoverModal')">Cancelar</button>
+            <button type="button" class="modal-button secondary" id="sendCodeBtn" onclick="recoverSendCode()">Enviar código</button>
+            <button type="button" class="modal-button primary hidden" id="confirmRecoverBtn" onclick="confirmRecovery()">Confirmar</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="resetPasswordModal" aria-hidden="true">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="resetPasswordModalTitle">
+        <div class="modal-header">
+            <h3 id="resetPasswordModalTitle">Nueva contraseña</h3>
+            <button type="button" class="modal-close" id="closeResetModal" aria-label="Cerrar modal" onclick="closeModal('resetPasswordModal')">×</button>
+        </div>
+        <div class="modal-body">
+            <p style="margin:0;color:#374151;font-size:.95rem;line-height:1.5;">
+                Crea una nueva contraseña y confírmala para completar la actualización.
+            </p>
+            <div class="form-group">
+                <label class="form-label">Nueva contraseña</label>
+                <div class="input-wrap">
+                    <i class="input-icon fa-solid fa-lock"></i>
+                    <input type="password" id="newPassword" placeholder="Nueva contraseña" autocomplete="new-password">
+                    <span class="toggle-pass" onclick="togglePassField('newPassword','newEyeIcon')">
+                        <i class="fa-solid fa-eye" id="newEyeIcon"></i>
+                    </span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Confirmar contraseña</label>
+                <div class="input-wrap">
+                    <i class="input-icon fa-solid fa-lock"></i>
+                    <input type="password" id="confirmPassword" placeholder="Confirmar contraseña" autocomplete="new-password">
+                    <span class="toggle-pass" onclick="togglePassField('confirmPassword','confirmEyeIcon')">
+                        <i class="fa-solid fa-eye" id="confirmEyeIcon"></i>
+                    </span>
+                </div>
+            </div>
+            <div class="strength-meter">
+                <div class="strength-meter-label">
+                    <span>Seguridad de la contraseña</span>
+                    <span id="strengthText">Ingresa una contraseña</span>
+                </div>
+                <div class="meter-bar">
+                    <div class="meter-bar-fill" id="strengthFill"></div>
+                </div>
+            </div>
+            <div class="success-message" id="resetSuccessMessage">Contraseña actualizada correctamente. Redirigiendo al inicio de sesión...</div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="modal-button secondary" id="cancelReset">Cancelar</button>
+            <button type="button" class="modal-button primary" id="updatePasswordBtn">Actualizar contraseña</button>
+        </div>
+    </div>
+</div>
+
 <script>
-function togglePass() {
-    const input = document.getElementById('passwordInput');
-    const icon  = document.getElementById('eyeIcon');
+function togglePassField(inputId, iconId) {
+    const input = document.getElementById(inputId);
+    const icon = document.getElementById(iconId);
+    if (!input || !icon) return;
     if (input.type === 'password') {
         input.type = 'text';
         icon.classList.replace('fa-eye', 'fa-eye-slash');
@@ -344,6 +616,285 @@ function togglePass() {
         input.type = 'password';
         icon.classList.replace('fa-eye-slash', 'fa-eye');
     }
+}
+
+function togglePass() {
+    togglePassField('passwordInput', 'eyeIcon');
+}
+
+function openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    modal.classList.add('visible');
+    modal.setAttribute('aria-hidden', 'false');
+    modal.style.opacity = '1';
+    modal.style.pointerEvents = 'auto';
+}
+
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (!modal) return;
+    modal.classList.remove('visible');
+    modal.setAttribute('aria-hidden', 'true');
+    modal.style.opacity = '';
+    modal.style.pointerEvents = 'none';
+}
+
+function updateStrengthIndicator(password) {
+    const strengthText = document.getElementById('strengthText');
+    const strengthFill = document.getElementById('strengthFill');
+    const trimmed = password.trim();
+    let strength = 0;
+    if (trimmed.length >= 8) strength += 1;
+    if (/[A-Z]/.test(trimmed) && /[a-z]/.test(trimmed)) strength += 1;
+    if (/[0-9]/.test(trimmed) || /[^A-Za-z0-9]/.test(trimmed)) strength += 1;
+
+    if (!trimmed) {
+        strengthText.textContent = 'Ingresa una contraseña';
+        strengthFill.style.width = '0%';
+        strengthFill.className = 'meter-bar-fill';
+        return;
+    }
+
+    if (strength <= 1) {
+        strengthText.textContent = 'Contraseña débil';
+        strengthFill.style.width = '33%';
+        strengthFill.className = 'meter-bar-fill meter-weak';
+    } else if (strength === 2) {
+        strengthText.textContent = 'Contraseña media';
+        strengthFill.style.width = '66%';
+        strengthFill.className = 'meter-bar-fill meter-medium';
+    } else {
+        strengthText.textContent = 'Contraseña segura';
+        strengthFill.style.width = '100%';
+        strengthFill.className = 'meter-bar-fill meter-strong';
+    }
+}
+
+function showForgotHintIfError() {
+    const hint = document.getElementById('forgotPasswordHint');
+    const errorAlert = document.querySelector('.alert-item.error');
+    if (hint && errorAlert) {
+        hint.classList.remove('hidden');
+    }
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (const cookie of cookies) {
+            const trimmed = cookie.trim();
+            if (trimmed.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(trimmed.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function getCsrfToken() {
+    return document.querySelector('input[name="csrfmiddlewaretoken"]')?.value || getCookie('csrftoken');
+}
+
+function postJson(url, data) {
+    return fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': getCsrfToken(),
+        },
+        body: new URLSearchParams(data),
+    });
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+    const recoverBtn = document.getElementById('recoverPasswordBtn');
+    const recoverLink = document.getElementById('recoverPasswordLink');
+    const cancelRecover = document.getElementById('cancelRecover');
+    const closeRecover = document.getElementById('closeRecoverModal');
+    const recoverModal = document.getElementById('recoverModal');
+    const recoverEmail = document.getElementById('recoverEmail');
+    const recoverCode = document.getElementById('recoverCode');
+
+    const resetModal = document.getElementById('resetPasswordModal');
+    const closeReset = document.getElementById('closeResetModal');
+    const cancelReset = document.getElementById('cancelReset');
+    const newPassword = document.getElementById('newPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const updatePasswordBtn = document.getElementById('updatePasswordBtn');
+    const resetSuccessMessage = document.getElementById('resetSuccessMessage');
+
+    if (recoverBtn) {
+        recoverBtn.addEventListener('click', function() { openModal('recoverModal'); });
+    }
+    if (recoverLink) {
+        recoverLink.addEventListener('click', function() { openModal('recoverModal'); });
+    }
+    if (recoverModal) {
+        recoverModal.addEventListener('click', function(event) {
+            if (event.target === recoverModal) {
+                closeModal('recoverModal');
+            }
+        });
+    }
+    if (closeReset) {
+        closeReset.addEventListener('click', function() { closeModal('resetPasswordModal'); });
+    }
+    if (cancelReset) {
+        cancelReset.addEventListener('click', function() { closeModal('resetPasswordModal'); });
+    }
+    if (resetModal) {
+        resetModal.addEventListener('click', function(event) {
+            if (event.target === resetModal) {
+                closeModal('resetPasswordModal');
+            }
+        });
+    }
+
+    if (newPassword) {
+        newPassword.addEventListener('input', function() {
+            updateStrengthIndicator(newPassword.value);
+        });
+    }
+    if (confirmPassword) {
+        confirmPassword.addEventListener('input', function() {
+            updateStrengthIndicator(newPassword.value);
+        });
+    }
+
+    if (updatePasswordBtn) {
+        updatePasswordBtn.addEventListener('click', function() {
+            resetPassword();
+        });
+    }
+
+    showForgotHintIfError();
+});
+
+function recoverSendCode() {
+    const recoverEmail = document.getElementById('recoverEmail');
+    const verificationCodeGroup = document.getElementById('verificationCodeGroup');
+    const confirmRecoverBtn = document.getElementById('confirmRecoverBtn');
+    const recoverStatus = document.getElementById('recoverStatus');
+    const emailValue = recoverEmail ? recoverEmail.value.trim() : '';
+
+    if (!recoverStatus || !recoverEmail) {
+        return;
+    }
+
+    if (!emailValue) {
+        recoverStatus.textContent = 'Por favor ingresa tu correo.';
+        recoverStatus.className = 'status-message error';
+        return;
+    }
+
+    postJson('/login/enviar-codigo/', { email: emailValue })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.ok) {
+                recoverStatus.textContent = data.error || 'No se pudo enviar el código.';
+                recoverStatus.className = 'status-message error';
+                return;
+            }
+            verificationCodeGroup.classList.remove('hidden');
+            if (confirmRecoverBtn) confirmRecoverBtn.classList.remove('hidden');
+            recoverStatus.textContent = 'Código enviado. Revisa tu correo e ingresa el código.';
+            recoverStatus.className = 'status-message success';
+            const recoverCode = document.getElementById('recoverCode');
+            if (recoverCode) {
+                recoverCode.value = '';
+                recoverCode.focus();
+            }
+        })
+        .catch(() => {
+            recoverStatus.textContent = 'Error de conexión. Intenta de nuevo.';
+            recoverStatus.className = 'status-message error';
+        });
+}
+
+function confirmRecovery() {
+    const recoverEmail = document.getElementById('recoverEmail');
+    const recoverCode = document.getElementById('recoverCode');
+    const recoverStatus = document.getElementById('recoverStatus');
+    const emailValue = recoverEmail ? recoverEmail.value.trim() : '';
+    const codeValue = recoverCode ? recoverCode.value.trim() : '';
+
+    if (!recoverStatus || !recoverEmail || !recoverCode) {
+        return;
+    }
+
+    if (!emailValue) {
+        recoverStatus.textContent = 'Por favor ingresa tu correo.';
+        recoverStatus.className = 'status-message error';
+        return;
+    }
+
+    if (!codeValue) {
+        recoverStatus.textContent = 'Por favor ingresa el código de verificación.';
+        recoverStatus.className = 'status-message error';
+        return;
+    }
+
+    postJson('/login/confirmar-codigo/', { email: emailValue, code: codeValue })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.ok) {
+                recoverStatus.textContent = data.error || 'Código incorrecto.';
+                recoverStatus.className = 'status-message error';
+                return;
+            }
+            recoverStatus.textContent = 'Código correcto. Abriendo segunda ventana...';
+            recoverStatus.className = 'status-message success';
+            setTimeout(function() {
+                closeModal('recoverModal');
+                openModal('resetPasswordModal');
+            }, 400);
+        })
+        .catch(() => {
+            recoverStatus.textContent = 'Error de conexión. Intenta de nuevo.';
+            recoverStatus.className = 'status-message error';
+        });
+}
+
+function resetPassword() {
+    const newPassword = document.getElementById('newPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+    const resetSuccessMessage = document.getElementById('resetSuccessMessage');
+    const passValue = newPassword ? newPassword.value.trim() : '';
+    const confirmValue = confirmPassword ? confirmPassword.value.trim() : '';
+
+    if (!passValue || !confirmValue) {
+        alert('Completa ambos campos de contraseña.');
+        return;
+    }
+    if (passValue !== confirmValue) {
+        alert('Las contraseñas no coinciden.');
+        return;
+    }
+    if (passValue.length < 8) {
+        alert('La contraseña debe tener al menos 8 caracteres.');
+        return;
+    }
+
+    postJson('/login/resetear-contrasena/', { password: passValue, confirm_password: confirmValue })
+        .then(response => response.json())
+        .then(data => {
+            if (!data.ok) {
+                alert(data.error || 'No se pudo actualizar la contraseña.');
+                return;
+            }
+            if (resetSuccessMessage) {
+                resetSuccessMessage.style.display = 'block';
+            }
+            setTimeout(function() {
+                window.location.href = window.location.href;
+            }, 1500);
+        })
+        .catch(() => {
+            alert('Error de conexión. Intenta de nuevo.');
+        });
 }
 </script>
 </body>
