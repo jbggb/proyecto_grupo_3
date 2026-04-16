@@ -56,11 +56,9 @@ def enviar_notificacion_a_activos(asunto, mensaje, tipo='info', excluir_usuario=
         asunto: Asunto del email
         mensaje: Cuerpo del mensaje
         tipo: Tipo de notificación
-        excluir_usuario: Usuario a excluir (opcional)
+        excluir_usuario: Usuario a excluir (opcional) - REMOVIDO, ahora envía a todos
     """
     usuarios = User.objects.filter(is_active=True)
-    if excluir_usuario:
-        usuarios = usuarios.exclude(pk=excluir_usuario.pk)
 
     resultado = []
     for usuario in usuarios:
