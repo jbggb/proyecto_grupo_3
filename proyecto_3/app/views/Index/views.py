@@ -1,8 +1,10 @@
 """Vista principal del sistema"""
 from django.shortcuts import render
+from django.http import JsonResponse
 from django.views import View
 from django.utils.decorators import method_decorator
 from app.decorators import admin_login_required
+from app.context_processors import notificaciones
 from ...models import Producto, Cliente, Venta, Proveedor, Compra, Reporte
 
 
@@ -31,3 +33,51 @@ class IndexView(View):
 
 
 index = IndexView.as_view()
+
+
+@admin_login_required
+def notificaciones_data(request):
+    """
+    Endpoint simple para refrescar la campana sin recargar la página.
+    """
+    data = notificaciones(request)
+    lista = data.get('notificaciones', [])[:20]
+    payload = []
+    for n in lista:
+        payload.append({
+            'tipo': n.get('tipo', 'info'),
+            'icono': n.get('icono', '🔔'),
+            'mensaje': n.get('mensaje', ''),
+            'url': n.get('url', '#'),
+            'prioridad': n.get('prioridad', 4),
+        })
+
+    return JsonResponse({
+        'ok': True,
+        'total_notificaciones': data.get('total_notificaciones', 0),
+        'notificaciones': payload,
+    })
+
+
+@admin_login_required
+def limpiar_notificaciones(request):
+    """
+    Elimina todas las notificaciones no leídas del usuario.
+    """
+    from app.models import NotificacionEmail
+
+    if request.method == 'POST':
+        NotificacionEmail.objects.filter(
+            usuario=request.user,
+            leida=False
+        ).delete()
+
+        return JsonResponse({
+            'ok': True,
+            'mensaje': 'Notificaciones eliminadas'
+        })
+
+    return JsonResponse({
+        'ok': False,
+        'error': 'Método no permitido'
+    }, status=405)

@@ -45,6 +45,17 @@ def notificaciones(request):
         ).order_by('-fecha_creacion')[:10]
 
         for notif in notif_usuario:
+            # Determinar URL según el tipo de notificación
+            url = '#'
+            if 'compra' in notif.asunto.lower():
+                url = '/compras/'
+            elif 'venta' in notif.asunto.lower():
+                url = '/ventas/'
+            elif 'stock' in notif.asunto.lower() or 'agotado' in notif.asunto.lower():
+                url = '/productos/'
+            elif 'proveedor' in notif.asunto.lower():
+                url = '/proveedores/'
+
             notificaciones_lista.append({
                 'tipo': notif.tipo,
                 'icono': {
@@ -54,7 +65,7 @@ def notificaciones(request):
                     'success': '✅',
                 }.get(notif.tipo, '🔔'),
                 'mensaje': notif.asunto,
-                'url': '#',
+                'url': url,
                 'fecha': notif.fecha_creacion,
                 'prioridad': 1 if notif.tipo == 'error' else 2 if notif.tipo == 'alerta' else 3,
                 'notif_id': notif.id,

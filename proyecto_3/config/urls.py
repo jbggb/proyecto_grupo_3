@@ -28,6 +28,8 @@ urlpatterns = [
 
     # ── Inicio ─────────────────────────────────────────────────────
     path('', index_views.index, name='inicio'),
+    path('notificaciones/data/', index_views.notificaciones_data, name='notificaciones_data'),
+    path('notificaciones/limpiar/', index_views.limpiar_notificaciones, name='limpiar_notificaciones'),
 
     # ── Auth ───────────────────────────────────────────────────────
     path('login/',  auth_views.login_view,  name='login'),

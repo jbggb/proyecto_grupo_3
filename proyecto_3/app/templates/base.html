@@ -76,6 +76,7 @@
             min-width: 380px;
             max-height: 500px;
             overflow-y: auto;
+            z-index: 2000 !important;
         }
         .notification-item {
             transition: background 0.2s;
@@ -110,9 +111,58 @@
         .badge-priority-3 {
             background-color: #17a2b8;
         }
+        .skip-link {
+            position: absolute;
+            top: -40px;
+            left: 10px;
+            z-index: 2000;
+            background: #000;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 4px;
+            text-decoration: none;
+        }
+        .skip-link:focus {
+            top: 10px;
+        }
+        .sr-only {
+            position: absolute !important;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
+        a:focus-visible, button:focus-visible {
+            outline: 3px solid #ffc107;
+            outline-offset: 2px;
+        }
+        .accessibility-toggle {
+            position: fixed;
+            right: 16px;
+            bottom: 16px;
+            z-index: 2100;
+            border-radius: 999px;
+            padding: 10px 14px;
+            background: #111827;
+            color: #fff;
+            border: 1px solid #374151;
+            font-size: 0.9rem;
+            box-shadow: 0 4px 14px rgba(0,0,0,.25);
+        }
+        body.a11y-contrast {
+            filter: contrast(1.12);
+        }
+        body.a11y-large-text {
+            font-size: 1.08rem;
+        }
     </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Saltar al contenido principal</a>
+<div id="notif-live-region" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 <div style="
     position: fixed;
     top: 0; left: 0;
@@ -136,13 +186,13 @@
             <!-- NOTIFICACIONES DROPDOWN (VERSIÓN COMPLETA) -->
             {% if request.user.is_authenticated %}
             <div class="dropdown me-3">
-                <button class="btn btn-outline-light dropdown-toggle position-relative" type="button" data-bs-toggle="dropdown">
+                <button id="notifDropdownBtn" class="btn btn-outline-light dropdown-toggle position-relative" type="button" data-bs-toggle="dropdown" aria-label="Abrir notificaciones">
                     <i class="fa-solid fa-bell"></i>
                     {% if total_notificaciones > 0 %}
-                        <span class="badge bg-danger rounded-pill notification-badge">{{ total_notificaciones }}</span>
+                        <span id="notifBadge" class="badge bg-danger rounded-pill notification-badge">{{ total_notificaciones }}</span>
                     {% endif %}
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end dropdown-notif p-0">
+                <ul id="notifDropdownMenu" class="dropdown-menu dropdown-menu-end dropdown-notif p-0">
                     {% if total_notificaciones == 0 %}
                         <li class="text-center py-4">
                             <i class="fa-solid fa-check-circle text-success fa-3x mb-3"></i>
@@ -152,7 +202,7 @@
                     {% else %}
                         <li class="dropdown-header bg-light py-2">
                             <div class="d-flex justify-content-between align-items-center">
-                                <span><i class="fa-solid fa-bell me-1"></i> Notificaciones ({{ total_notificaciones }})</span>
+                                <span id="notifHeaderText"><i class="fa-solid fa-bell me-1"></i> Notificaciones ({{ total_notificaciones }})</span>
                                 <button class="btn btn-sm btn-link p-0" id="refreshNotifBtn" title="Actualizar">
                                     <i class="fa-solid fa-rotate-right"></i>
                                 </button>
@@ -203,9 +253,14 @@
                         
                         <li><hr class="dropdown-divider my-0"></li>
                         <li class="text-center py-2 bg-light">
-                            <a href="{% url 'reportes' %}" class="text-decoration-none small">
-                                <i class="fa-solid fa-chart-line me-1"></i>Ver todos los reportes
-                            </a>
+                            <div class="d-flex justify-content-between align-items-center px-3">
+                                <a href="{% url 'reportes' %}" class="text-decoration-none small flex-grow-1">
+                                    <i class="fa-solid fa-chart-line me-1"></i>Ver reportes
+                                </a>
+                                <button id="limpiarNotifBtn" class="btn btn-sm btn-outline-danger ms-2" title="Borrar todas">
+                                    <i class="fa-solid fa-trash"></i>
+                                </button>
+                            </div>
                         </li>
                     {% endif %}
                 </ul>
@@ -235,7 +290,7 @@
     <aside id="sidebar" class="bg-dark text-light p-3">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="mb-0 sidebar-title">Inventario</h4>
-            <button id="toggle-btn" title="Ocultar menú">
+            <button id="toggle-btn" title="Ocultar menú" aria-label="Mostrar u ocultar menú lateral">
                 <i class="fa-solid fa-bars"></i>
             </button>
         </div>
@@ -311,7 +366,7 @@
     </aside>
 
     <!-- CONTENIDO PRINCIPAL -->
-    <main id="main-content" class="p-4">
+    <main id="main-content" class="p-4" role="main" tabindex="-1">
         {% block content %}{% endblock %}
     </main>
 </div>
@@ -319,6 +374,9 @@
 <footer class="bg-dark text-light text-center py-2">
     <small>Proyecto Inventario - Grupo 3 © 2025</small>
 </footer>
+<button id="a11yToggleBtn" class="accessibility-toggle" type="button" aria-label="Activar modo accesible">
+    <i class="fa-solid fa-universal-access me-1"></i> Accesibilidad
+</button>
 
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'js/confirmaciones.js' %}"></script>
@@ -354,15 +412,170 @@
         });
     }
 
-    // Actualización automática de notificaciones (opcional)
-    document.getElementById('refreshNotifBtn')?.addEventListener('click', function() {
-        location.reload();
+    // Notificaciones en "tiempo real" por polling (sin recargar página)
+    function badgeHTML(total) {
+        if (total <= 0) return '';
+        return '<span id="notifBadge" class="badge bg-danger rounded-pill notification-badge">' + total + '</span>';
+    }
+
+    function prioridadBadge(prioridad) {
+        if (prioridad === 1) return '<span class="badge badge-priority-1">Crítica</span>';
+        if (prioridad === 2) return '<span class="badge badge-priority-2">Urgente</span>';
+        if (prioridad === 3) return '<span class="badge badge-priority-3">Importante</span>';
+        return '';
+    }
+
+    let lastNotifCount = Number({{ total_notificaciones|default:0 }});
+
+    function renderNotifMenu(data) {
+        const menu = document.getElementById('notifDropdownMenu');
+        const btn = document.getElementById('notifDropdownBtn');
+        const liveRegion = document.getElementById('notif-live-region');
+        if (!menu || !btn) return;
+
+        const total = Number(data.total_notificaciones || 0);
+        btn.setAttribute('aria-label', `Abrir notificaciones. Tienes ${total} notificación(es)`);
+        if (liveRegion && total !== lastNotifCount) {
+            liveRegion.textContent = `Actualización: ahora tienes ${total} notificación(es).`;
+        }
+        lastNotifCount = total;
+
+        btn.innerHTML = '<i class="fa-solid fa-bell"></i>' + badgeHTML(total);
+
+        if (total === 0) {
+            menu.innerHTML = `
+                <li class="text-center py-4">
+                    <i class="fa-solid fa-check-circle text-success fa-3x mb-3"></i>
+                    <p class="mb-0 text-muted">¡Todo en orden!</p>
+                    <small class="text-muted">No hay notificaciones pendientes</small>
+                </li>
+            `;
+            return;
+        }
+
+        let html = `
+            <li class="dropdown-header bg-light py-2">
+                <div class="d-flex justify-content-between align-items-center">
+                    <span id="notifHeaderText"><i class="fa-solid fa-bell me-1"></i> Notificaciones (${total})</span>
+                    <button class="btn btn-sm btn-link p-0" id="refreshNotifBtn" title="Actualizar">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                </div>
+            </li>
+            <li><hr class="dropdown-divider my-0"></li>
+        `;
+
+        const lista = data.notificaciones || [];
+        for (let i = 0; i < lista.length; i++) {
+            const n = lista[i];
+            html += `
+                <li class="notification-item notification-${n.tipo || 'info'} position-relative">
+                    <a class="dropdown-item" href="${n.url || '#'}" style="white-space: normal; padding: 12px 15px;">
+                        <div class="d-flex">
+                            <div class="flex-shrink-0 me-3 fs-4">${n.icono || '🔔'}</div>
+                            <div class="flex-grow-1">
+                                <div class="small mb-1">${n.mensaje || ''}</div>
+                                <div class="d-flex justify-content-end align-items-center mt-1">
+                                    ${prioridadBadge(n.prioridad)}
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </li>
+            `;
+            if (i !== lista.length - 1) {
+                html += '<li><hr class="dropdown-divider my-0"></li>';
+            }
+        }
+
+        html += `
+            <li><hr class="dropdown-divider my-0"></li>
+            <li class="text-center py-2 bg-light">
+                <div class="d-flex justify-content-between align-items-center px-3">
+                    <a href="{% url 'reportes' %}" class="text-decoration-none small flex-grow-1">
+                        <i class="fa-solid fa-chart-line me-1"></i>Ver reportes
+                    </a>
+                    <button id="limpiarNotifBtn" class="btn btn-sm btn-outline-danger ms-2" title="Borrar todas">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                </div>
+            </li>
+        `;
+
+        menu.innerHTML = html;
+
+        const refreshBtn = document.getElementById('refreshNotifBtn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', function(ev) {
+                ev.preventDefault();
+                ev.stopPropagation();
+                fetchNotificaciones();
+            });
+        }
+    }
+
+    function fetchNotificaciones() {
+        fetch("{% url 'notificaciones_data' %}", {
+            method: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data && data.ok) {
+                renderNotifMenu(data);
+            }
+        })
+        .catch(() => {});
+    }
+
+    const refreshBtn = document.getElementById('refreshNotifBtn');
+    if (refreshBtn) {
+        refreshBtn.addEventListener('click', function(ev) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            fetchNotificaciones();
+        });
+    }
+
+    // Botón para limpiar notificaciones
+    document.addEventListener('click', function(ev) {
+        if (ev.target.closest('#limpiarNotifBtn')) {
+            ev.preventDefault();
+            ev.stopPropagation();
+            fetch("{% url 'limpiar_notificaciones' %}", {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.ok) {
+                    fetchNotificaciones();
+                }
+            })
+            .catch(() => {});
+        }
     });
 
-    // Actualizar cada 60 segundos
-    setTimeout(function() {
-        location.reload();
-    }, 60000);
+    // Refresca cada 15 segundos sin recargar la página.
+    setInterval(fetchNotificaciones, 15000);
+
+    // Accesibilidad básica visible (alto contraste + texto un poco más grande)
+    const a11yBtn = document.getElementById('a11yToggleBtn');
+    const a11yState = localStorage.getItem('a11y_enabled') === '1';
+    if (a11yState) {
+        document.body.classList.add('a11y-contrast', 'a11y-large-text');
+    }
+    if (a11yBtn) {
+        a11yBtn.addEventListener('click', function() {
+            const enabled = document.body.classList.toggle('a11y-contrast');
+            document.body.classList.toggle('a11y-large-text', enabled);
+            localStorage.setItem('a11y_enabled', enabled ? '1' : '0');
+            a11yBtn.setAttribute('aria-label', enabled ? 'Desactivar modo accesible' : 'Activar modo accesible');
+        });
+    }
 </script>
 
 {% if messages %}
