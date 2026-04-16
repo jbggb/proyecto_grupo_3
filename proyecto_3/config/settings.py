@@ -105,7 +105,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 # Email: SMTP real siempre
 _email_user = _env('EMAIL_HOST_USER', 'sebscontre2112@gmail.com')
-_email_password = _env('EMAIL_HOST_PASSWORD', '')
+_email_password = _env('EMAIL_HOST_PASSWORD', 'hiwr tqyb wlzm ytrm')
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = _env('EMAIL_HOST', 'smtp.gmail.com')
 EMAIL_PORT = int(_env('EMAIL_PORT', 587))
