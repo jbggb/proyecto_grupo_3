@@ -3,6 +3,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.views import View
 from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
 from app.decorators import admin_login_required
 from app.context_processors import notificaciones
 from ...models import Producto, Cliente, Venta, Proveedor, Compra, Reporte
@@ -59,7 +60,7 @@ def notificaciones_data(request):
     })
 
 
-@admin_login_required
+@login_required
 def limpiar_notificaciones(request):
     """
     Elimina todas las notificaciones no leídas del usuario.
