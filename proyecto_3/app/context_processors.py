@@ -256,7 +256,7 @@ def notificaciones(request):
         compras_atrasadas = Compra.objects.filter(
             estado='Pendiente',
             fechaCompra__lt=hoy
-        ).values('Proveedor__nombre').annotate(total=Count('id'))
+        ).values('Proveedor__nombre').annotate(total=Count('idCompra'))
 
         for proveedor in compras_atrasadas:
             notificaciones_lista.append({
