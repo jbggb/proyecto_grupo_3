@@ -3,27 +3,6 @@ from django.contrib.auth.models import User
 from datetime import datetime
 
 
-class Administrador(models.Model):
-    """
-    Tabla legacy — se mantiene para no romper la BD existente,
-    pero NO se usa en la lógica actual. El sistema usa auth.User.
-    """
-    idAdministrador = models.AutoField(primary_key=True, db_column='id')
-    nombre          = models.CharField(max_length=150)
-    usuario         = models.CharField(max_length=50, unique=True)
-    contrasena      = models.CharField(max_length=255)
-    email           = models.EmailField(max_length=100)
-    fechaRegistro   = models.DateField(default=datetime.now)
-
-    def __str__(self):
-        return self.nombre
-
-    class Meta:
-        verbose_name        = 'administrador'
-        verbose_name_plural = 'administradores'
-        db_table            = 'administrador'
-
-
 class Cliente(models.Model):
     ESTADO_CHOICES = [
         ('activo',   'Activo'),
@@ -150,7 +129,8 @@ class Venta(models.Model):
 
 class DetalleVenta(models.Model):
     venta           = models.ForeignKey(Venta, on_delete=models.CASCADE, related_name='detalles')
-    producto_nombre = models.CharField(max_length=255)
+    producto        = models.ForeignKey(Producto, on_delete=models.SET_NULL, null=True, blank=True, db_column='producto_id')
+    producto_nombre = models.CharField(max_length=255)  # Mantenido por compatibilidad/auditoría
     precio          = models.DecimalField(max_digits=10, decimal_places=2)
     cantidad        = models.IntegerField(default=1)
 
@@ -255,3 +235,30 @@ class Reporte(models.Model):
         verbose_name        = 'reporte'
         verbose_name_plural = 'reportes'
         db_table            = 'reporte'
+
+
+class NotificacionEmail(models.Model):
+    TIPO_CHOICES = [
+        ('alerta', 'Alerta'),
+        ('info', 'Información'),
+        ('error', 'Error'),
+        ('success', 'Éxito'),
+    ]
+
+    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notificaciones_email')
+    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='info')
+    asunto = models.CharField(max_length=255)
+    mensaje = models.TextField()
+    leida = models.BooleanField(default=False)
+    enviada = models.BooleanField(default=False)
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+    fecha_envio = models.DateTimeField(null=True, blank=True)
+
+    def __str__(self):
+        return f"{self.asunto} - {self.usuario.username}"
+
+    class Meta:
+        verbose_name = 'notificación email'
+        verbose_name_plural = 'notificaciones email'
+        db_table = 'notificacion_email'
+        ordering = ['-fecha_creacion']

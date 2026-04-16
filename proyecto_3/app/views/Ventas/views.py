@@ -11,6 +11,7 @@ from django.db import transaction
 from django.db.models import Sum
 from django.http import JsonResponse
 from app.decorators import admin_login_required
+from app.services.notifications import notificacion_stock_bajo, notificacion_venta_completada
 from ...models import Venta, DetalleVenta, Producto, Cliente
 
 
@@ -29,6 +30,9 @@ def _descontar_stock(ids, cantidades):
             )
         producto.stock -= cant
         producto.save()
+        # Notificar si stock queda bajo
+        if producto.stock <= 5:
+            notificacion_stock_bajo(producto)
 
 
 def _devolver_stock(detalles_qs):
@@ -259,6 +263,8 @@ class CompletarVentaView(View):
         venta        = get_object_or_404(Venta, id=id)
         venta.estado = 'Completada'
         venta.save()
+        # Enviar notificación de venta completada
+        notificacion_venta_completada(venta)
         messages.success(request, f'Venta #{venta.id} marcada como completada.')
         return redirect('ventas')
 

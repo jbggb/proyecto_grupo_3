@@ -46,32 +46,28 @@
 <div class="card border-0 shadow-sm mb-4">
     <div class="card-body">
         <form method="get" class="row g-2 align-items-end">
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label class="form-label mb-1">Buscar</label>
                 <input type="text" name="buscar" class="form-control"
                        placeholder="Buscar por nombre de cliente..."
                        value="{{ request.GET.buscar }}">
             </div>
-            <div class="col-md-5">
-                <div class="row g-2">
-                    <div class="col-6">
-                        <label class="form-label mb-1">Desde</label>
-                        <input type="date" name="fecha_desde" class="form-control"
-                               value="{{ request.GET.fecha_desde }}">
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label mb-1">Hasta</label>
-                        <input type="date" name="fecha_hasta" class="form-control"
-                               value="{{ request.GET.fecha_hasta }}">
-                    </div>
-                </div>
+            <div class="col-md-2">
+                <label class="form-label mb-1">Desde</label>
+                <input type="date" name="fecha_desde" class="form-control"
+                       value="{{ request.GET.fecha_desde }}">
             </div>
-            <div class="col-md-3 d-flex align-items-end gap-2">
-                <button type="submit" class="btn btn-primary w-100 h-100">
+            <div class="col-md-2">
+                <label class="form-label mb-1">Hasta</label>
+                <input type="date" name="fecha_hasta" class="form-control"
+                       value="{{ request.GET.fecha_hasta }}">
+            </div>
+            <div class="col-md-5 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary flex-fill h-100">
                     <i class="fa-solid fa-search me-1"></i> Aplicar
                 </button>
                 {% if request.GET.buscar or request.GET.fecha_desde or request.GET.fecha_hasta %}
-                <a href="{% url 'ventas' %}" class="btn btn-secondary w-100 h-100">Limpiar</a>
+                <a href="{% url 'ventas' %}" class="btn btn-secondary flex-fill h-100">Limpiar</a>
                 {% endif %}
             </div>
         </form>

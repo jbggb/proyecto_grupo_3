@@ -3,20 +3,22 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ─────────────────────────────────────────────────────────────────
-# SEGURIDAD — nunca pongas la clave real aquí directamente.
-# En tu PC de desarrollo funciona con el valor por defecto.
-# En producción setea la variable de entorno DJANGO_SECRET_KEY.
-# ─────────────────────────────────────────────────────────────────
-SECRET_KEY = os.environ.get(
+
+def _env(name, default=None, required=False):
+    value = os.environ.get(name, default)
+    if required and (value is None or str(value).strip() == ""):
+        raise RuntimeError(f"Missing required environment variable: {name}")
+    return value
+
+# Seguridad/configuración
+DEBUG = _env('DJANGO_DEBUG', 'True') == 'True'
+SECRET_KEY = _env(
     'DJANGO_SECRET_KEY',
-    'django-insecure-gz$1v1x-_euas8t6k79&+u^#&5plztdj*ibh3vuu5lv=2w&p@%'
+    # Solo para desarrollo local. En producción es obligatorio usar variable.
+    'dev-only-change-me',
+    required=not DEBUG,
 )
-
-# En producción cambiar a False y configurar ALLOWED_HOSTS correctamente
-DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
-
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [host.strip() for host in _env('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if host.strip()]
 
 INSTALLED_APPS = [
     'app',
@@ -68,11 +70,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('DB_NAME', 'proyecto'),
-        'USER': os.environ.get('DB_USER', 'root'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'parceroj'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '3306'),
+        'NAME': _env('DB_NAME', 'proyecto'),
+        'USER': _env('DB_USER', 'root'),
+        'PASSWORD': _env('DB_PASSWORD', '12345678',),
+        'HOST': _env('DB_HOST', 'localhost'),
+        'PORT': _env('DB_PORT', '3306'),
         'OPTIONS': {
             'init_command': "SET time_zone = '-05:00'",
         },
@@ -101,16 +103,17 @@ STATICFILES_DIRS = [BASE_DIR / 'app' / 'static']
 MEDIA_URL  = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# Configuración de correo para pruebas con SMTP real.
-# Para usar Gmail, crea primero una contraseña de aplicación en tu cuenta de Google.
-EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.smtp.EmailBackend')
-EMAIL_HOST = os.environ.get('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT = int(os.environ.get('EMAIL_PORT', 587))
-EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
-EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'juangit6747@gmail.com')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'jdvp nmwo diwp goia')
-DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER)
-EMAIL_TIMEOUT = int(os.environ.get('EMAIL_TIMEOUT', 10))
+# Email: SMTP real siempre
+_email_user = _env('EMAIL_HOST_USER', 'sebscontre2112@gmail.com')
+_email_password = _env('EMAIL_HOST_PASSWORD', '')
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = _env('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(_env('EMAIL_PORT', 587))
+EMAIL_USE_TLS = _env('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = _email_user
+EMAIL_HOST_PASSWORD = _email_password
+DEFAULT_FROM_EMAIL = _env('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'no-reply@localhost')
+EMAIL_TIMEOUT = int(_env('EMAIL_TIMEOUT', 10))
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

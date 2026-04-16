@@ -17,45 +17,41 @@
     <div class="card-body">
         <form method="get" class="row g-2 align-items-end">
             <div class="col-md-3">
-                <label class="form-label mb-1">Buscar por nombre</label>
+                <label class="form-label mb-1">Buscar</label>
                 <input type="text" name="busqueda" class="form-control"
                        placeholder="Buscar proveedor..." value="{{ busqueda }}">
             </div>
             <div class="col-md-2">
-                <label class="form-label mb-1">Filtrar por días de envío</label>
+                <label class="form-label mb-1">Filtrar por envío</label>
                 <select name="envio" class="form-select">
                     <option value="">Todos</option>
                     <option value="rapido" {% if envio_filtro == 'rapido' %}selected{% endif %}>
-                        🟢 Rápido (1 – 7 días)
+                        Rápido (1-7 d)
                     </option>
                     <option value="normal" {% if envio_filtro == 'normal' %}selected{% endif %}>
-                        🟡 Normal (8 – 15 días)
+                        Normal (8-15 d)
                     </option>
                     <option value="lento" {% if envio_filtro == 'lento' %}selected{% endif %}>
-                        🔴 Lento (más de 15 días)
+                        Lento (15+ d)
                     </option>
                 </select>
             </div>
-            <div class="col-md-4">
-                <div class="row g-2">
-                    <div class="col-6">
-                        <label class="form-label mb-1">Desde</label>
-                        <input type="date" name="fecha_desde" class="form-control"
-                               value="{{ request.GET.fecha_desde }}">
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label mb-1">Hasta</label>
-                        <input type="date" name="fecha_hasta" class="form-control"
-                               value="{{ request.GET.fecha_hasta }}">
-                    </div>
-                </div>
+            <div class="col-md-2">
+                <label class="form-label mb-1">Desde</label>
+                <input type="date" name="fecha_desde" class="form-control"
+                       value="{{ request.GET.fecha_desde }}">
             </div>
-            <div class="col-md-2 d-flex align-items-end gap-2">
-                <button type="submit" class="btn btn-primary w-100 h-100">
+            <div class="col-md-2">
+                <label class="form-label mb-1">Hasta</label>
+                <input type="date" name="fecha_hasta" class="form-control"
+                       value="{{ request.GET.fecha_hasta }}">
+            </div>
+            <div class="col-md-3 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary flex-fill h-100">
                     <i class="fa-solid fa-search me-1"></i> Buscar
                 </button>
                 {% if busqueda or envio_filtro or request.GET.fecha_desde or request.GET.fecha_hasta %}
-                    <a href="{% url 'proveedores' %}" class="btn btn-secondary w-100 h-100">Limpiar</a>
+                <a href="{% url 'proveedores' %}" class="btn btn-secondary flex-fill h-100">Limpiar</a>
                 {% endif %}
             </div>
         </form>

@@ -19,27 +19,33 @@
 
 <!-- Buscador y filtros -->
 <div class="filter-bar">
-    <form method="GET" class="d-flex gap-3 w-100">
-        <div class="search-box">
-            <input type="text" name="busqueda" class="form-control" 
-                   placeholder="Buscar cliente por nombre..." 
+    <form method="GET" class="row g-2 align-items-end w-100">
+        <div class="col-md-3">
+            <label class="form-label mb-1">Buscar</label>
+            <input type="text" name="busqueda" class="form-control"
+                   placeholder="Buscar cliente por nombre..."
                    pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+"
                    title="Solo se permiten letras y espacios"
                    value="{{ request.GET.busqueda }}">
         </div>
-        <select name="estado" class="form-control" style="width: auto;">
-            <option value="">Filtrar por estado</option>
-            <option value="activo" {% if request.GET.estado == "activo" %}selected{% endif %}>Activos</option>
-            <option value="inactivo" {% if request.GET.estado == "inactivo" %}selected{% endif %}>Inactivos</option>
-        </select>
-        <button type="submit" class="btn btn-primary">
-            <i class="fa-solid fa-filter me-2"></i>Filtrar
-        </button>
-        {% if request.GET.busqueda or request.GET.estado %}
-        <a href="{% url 'clientes' %}" class="btn btn-secondary">
-            <i class="fa-solid fa-times me-2"></i>Limpiar
-        </a>
-        {% endif %}
+        <div class="col-md-2">
+            <label class="form-label mb-1">Filtrar por estado</label>
+            <select name="estado" class="form-select">
+                <option value="">Todos</option>
+                <option value="activo" {% if request.GET.estado == "activo" %}selected{% endif %}>Activos</option>
+                <option value="inactivo" {% if request.GET.estado == "inactivo" %}selected{% endif %}>Inactivos</option>
+            </select>
+        </div>
+        <div class="col-md-5 d-flex align-items-end gap-2">
+            <button type="submit" class="btn btn-primary flex-fill h-100">
+                <i class="fa-solid fa-filter me-2"></i>Filtrar
+            </button>
+            {% if request.GET.busqueda or request.GET.estado %}
+            <a href="{% url 'clientes' %}" class="btn btn-secondary flex-fill h-100">
+                <i class="fa-solid fa-times me-2"></i>Limpiar
+            </a>
+            {% endif %}
+        </div>
     </form>
 </div>
 
