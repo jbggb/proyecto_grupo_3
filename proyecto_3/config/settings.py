@@ -104,16 +104,17 @@ MEDIA_URL  = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Email: SMTP real siempre
-_email_user = _env('EMAIL_HOST_USER', 'sebscontre2112@gmail.com')
-_email_password = _env('EMAIL_HOST_PASSWORD', 'hiwr tqyb wlzm ytrm')
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = _env('EMAIL_HOST', 'smtp.gmail.com')
-EMAIL_PORT = int(_env('EMAIL_PORT', 587))
-EMAIL_USE_TLS = _env('EMAIL_USE_TLS', 'True') == 'True'
-EMAIL_HOST_USER = _email_user
+# Las credenciales DEBEN venir del archivo .env en producción.
+_email_user     = _env('EMAIL_HOST_USER',     '')
+_email_password = _env('EMAIL_HOST_PASSWORD', '')
+EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST          = _env('EMAIL_HOST',     'smtp.gmail.com')
+EMAIL_PORT          = int(_env('EMAIL_PORT', 587))
+EMAIL_USE_TLS       = _env('EMAIL_USE_TLS',  'True') == 'True'
+EMAIL_HOST_USER     = _email_user
 EMAIL_HOST_PASSWORD = _email_password
-DEFAULT_FROM_EMAIL = _env('DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'no-reply@localhost')
-EMAIL_TIMEOUT = int(_env('EMAIL_TIMEOUT', 10))
+DEFAULT_FROM_EMAIL  = _env('DEFAULT_FROM_EMAIL', _email_user or 'no-reply@localhost')
+EMAIL_TIMEOUT       = int(_env('EMAIL_TIMEOUT',  10))
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 

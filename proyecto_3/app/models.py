@@ -13,7 +13,7 @@ class Cliente(models.Model):
     telefono      = models.CharField(max_length=20)
     email         = models.EmailField(max_length=100)
     direccion     = models.CharField(max_length=200, blank=True, default='')
-    estado        = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='activo')
+    estado        = models.CharField(max_length=10, choices=ESTADO_CHOICES, default='activo', db_index=True)
     fechaRegistro = models.DateField(default=datetime.now)
 
     def __str__(self):
@@ -27,7 +27,7 @@ class Cliente(models.Model):
 
 class Marca(models.Model):
     idMarca     = models.AutoField(primary_key=True, db_column='idMarca')
-    nombreMarca = models.CharField(max_length=100)
+    nombreMarca = models.CharField(max_length=100, db_index=True)
 
     def __str__(self):
         return self.nombreMarca
@@ -40,7 +40,7 @@ class Marca(models.Model):
 
 class TipoProductos(models.Model):
     idTipo      = models.AutoField(primary_key=True, db_column='idTipo')
-    nombre_tipo = models.CharField(max_length=100, db_column='nombre')
+    nombre_tipo = models.CharField(max_length=100, db_column='nombre', db_index=True)
     descripcion = models.TextField(db_column='descripcion', blank=True, default='')
 
     def __str__(self):
@@ -55,7 +55,7 @@ class TipoProductos(models.Model):
 class UnidadMedida(models.Model):
     """Renombrada a PascalCase. El db_table no cambia, la BD sigue igual."""
     idUnidad      = models.AutoField(primary_key=True, db_column='idUnidad')
-    nombre_unidad = models.CharField(max_length=100, db_column='nombreUnidad')
+    nombre_unidad = models.CharField(max_length=100, db_column='nombreUnidad', db_index=True)
     abreviatura   = models.CharField(max_length=10, db_column='abreviatura', blank=True, default='-')
 
     def __str__(self):

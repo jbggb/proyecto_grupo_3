@@ -161,6 +161,7 @@
     </style>
 </head>
 <body>
+{% csrf_token %}
 <a href="#main-content" class="skip-link">Saltar al contenido principal</a>
 <div id="notif-live-region" class="sr-only" aria-live="polite" aria-atomic="true"></div>
 <div style="
@@ -207,7 +208,7 @@
                                     <button class="btn btn-sm btn-link p-0 me-2" id="refreshNotifBtn" title="Actualizar">
                                         <i class="fa-solid fa-rotate-right"></i>
                                     </button>
-                                    <button class="btn btn-sm btn-link p-0 text-danger" id="limpiarNotifBtn" title="Borrar todas">
+                                    <button class="btn btn-sm btn-link p-0 text-danger" id="limpiarNotifBtn" title="Eliminar notificaciones guardadas">
                                         <i class="fa-solid fa-trash"></i>
                                     </button>
                                 </div>
@@ -542,25 +543,48 @@
         });
     }
 
+    // Función auxiliar para obtener token CSRF de la cookie
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue || '';
+    }
+
     // Botón para limpiar notificaciones
     document.addEventListener('click', function(ev) {
         if (ev.target.closest('#limpiarNotifBtn')) {
             ev.preventDefault();
             ev.stopPropagation();
+            const csrftoken = getCookie('csrftoken');
+            console.log('CSRF Token:', csrftoken ? 'presente' : 'falta');
             fetch("{% url 'limpiar_notificaciones' %}", {
                 method: 'POST',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+                    'X-CSRFToken': csrftoken,
+                    'Content-Type': 'application/json'
                 }
             })
-            .then(response => response.json())
+            .then(response => {
+                console.log('Response status:', response.status);
+                return response.json();
+            })
             .then(data => {
+                console.log('Response data:', data);
                 if (data.ok) {
                     fetchNotificaciones();
                 }
             })
-            .catch(() => {});
+            .catch(err => console.error('Error:', err));
         }
     });
 

@@ -19,7 +19,7 @@ class IndexView(View):
             total_proveedores = Proveedor.objects.count()
             total_compras    = Compra.objects.count()
             total_reportes   = Reporte.objects.count()
-        except:
+        except Exception:
             total_productos = total_clientes = total_ventas = 0
             total_proveedores = total_compras = total_reportes = 0
 
@@ -63,19 +63,19 @@ def notificaciones_data(request):
 @login_required
 def limpiar_notificaciones(request):
     """
-    Elimina todas las notificaciones no leídas del usuario.
+    Elimina TODAS las notificaciones del usuario (leídas y no leídas).
     """
     from app.models import NotificacionEmail
 
     if request.method == 'POST':
-        NotificacionEmail.objects.filter(
-            usuario=request.user,
-            leida=False
-        ).delete()
+        total_eliminadas = NotificacionEmail.objects.filter(
+            usuario=request.user
+        ).delete()[0]
 
         return JsonResponse({
             'ok': True,
-            'mensaje': 'Notificaciones eliminadas'
+            'mensaje': f'{total_eliminadas} notificaciones eliminadas',
+            'eliminadas': total_eliminadas
         })
 
     return JsonResponse({
