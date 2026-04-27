@@ -4,6 +4,7 @@ app/urls.py está vacío a propósito: las rutas viven aquí.
 """
 from django.urls import path, include
 from django.contrib import admin
+from app.views.IA import views as ia_views 
 
 from app.views.Auth          import views as auth_views
 from app.views.Index         import views as index_views
@@ -18,6 +19,7 @@ from app.views.Marcas        import views as marcas_views
 from app.views.Tipo_producto import views as tipos_views
 from app.views.Unidades      import views as unidades_views
 from app.views               import backup as backup_views
+
 
 urlpatterns = [
     # Django admin (necesario para la app usuarios)
@@ -98,6 +100,9 @@ urlpatterns = [
     # ── Backup y Restauración ──────────────────────────────────────
     path('backup/',             backup_views.backup,           name='backup'),
     path('backup/restaurar/',   backup_views.restaurar_datos,  name='restaurar_datos'),
+    # ── Asistente IA ───────────────────────────────────────────────
+    path('ia/',      ia_views.ia_index, name='ia_index'),
+    path('ia/chat/', ia_views.ia_chat,  name='ia_chat'),
 ]
 
 
