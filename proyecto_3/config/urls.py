@@ -28,15 +28,19 @@ urlpatterns = [
 
     # ── Inicio ─────────────────────────────────────────────────────
     path('', index_views.index, name='inicio'),
-    path('notificaciones/data/', index_views.notificaciones_data, name='notificaciones_data'),
-    path('notificaciones/limpiar/', index_views.limpiar_notificaciones, name='limpiar_notificaciones'),
 
     # ── Auth ───────────────────────────────────────────────────────
     path('login/',  auth_views.login_view,  name='login'),
     path('logout/', auth_views.logout_view, name='logout'),
-    path('login/enviar-codigo/', auth_views.send_recovery_code, name='send_recovery_code'),
-    path('login/confirmar-codigo/', auth_views.validate_recovery_code, name='validate_recovery_code'),
-    path('login/resetear-contrasena/', auth_views.reset_password, name='reset_password'),
+    path('login/enviar-codigo/',       auth_views.send_recovery_code,     name='send_recovery_code'),
+    path('login/confirmar-codigo/',    auth_views.validate_recovery_code,  name='validate_recovery_code'),
+    path('login/resetear-contrasena/', auth_views.reset_password,          name='reset_password'),
+
+    # ── Notificaciones ─────────────────────────────────────────────
+    path('notificaciones/data/',  index_views.notificaciones_data, name='notificaciones_data'),
+    path('notificaciones/limpiar/', index_views.limpiar_notificaciones, name='limpiar_notificaciones'),
+    path('notificaciones/leer/<int:id>/', index_views.marcar_leida_notificacion, name='marcar_leida_notificacion'),
+    path('notificaciones/eliminar/<int:id>/', index_views.eliminar_notificacion, name='eliminar_notificacion'),
 
     # ── Productos ──────────────────────────────────────────────────
     path('productos/',                    productos_views.productos,       name='productos'),
@@ -103,7 +107,6 @@ urlpatterns = [
     # ── Backup y Restauración ──────────────────────────────────────
     path('backup/',             backup_views.backup,           name='backup'),
     path('backup/restaurar/',   backup_views.restaurar_datos,  name='restaurar_datos'),
-    
 ]
 
 

@@ -245,6 +245,11 @@ class EditarVentaView(View):
 
 @method_decorator(admin_login_required, name='dispatch')
 class CompletarVentaView(View):
+    def get(self, request, id):
+        # Protección: no permitir completar venta por GET (URL directa)
+        messages.error(request, 'Acción no permitida.')
+        return redirect('ventas')
+
     def post(self, request, id):
         venta        = get_object_or_404(Venta, id=id)
         venta.estado = 'Completada'

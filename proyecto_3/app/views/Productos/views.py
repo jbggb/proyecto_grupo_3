@@ -6,6 +6,7 @@ from django.views import View
 from django.utils.decorators import method_decorator
 from app.decorators import admin_login_required
 from app.models import Producto, Marca, TipoProductos, unidad_medida
+from app.services.notifications import notificacion_stock_bajo
 
 
 def _contexto_productos(query='', form_data=None):
@@ -56,7 +57,7 @@ class CrearProductoView(View):
 
         if not nombre:
             return error('El nombre es obligatorio.')
-        if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$', nombre):
+        if not re.match(r'^[a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ\s\-\.%&/]+$', nombre):
             return error('El nombre solo puede contener letras y espacios.')
         if Marca.objects.filter(nombreMarca__iexact=nombre).exists():
             return error(f'"{nombre}" ya existe como Marca.')
@@ -80,7 +81,7 @@ class CrearProductoView(View):
             return error('El stock debe ser un número entre 0 y 1.000.')
 
         try:
-            Producto.objects.create(
+            producto = Producto.objects.create(
                 nombre=nombre,
                 precio=precio_val,
                 stock=int(stock),
@@ -88,6 +89,9 @@ class CrearProductoView(View):
                 idTipo=get_object_or_404(TipoProductos, idTipo=idTipo),
                 idUnidad=get_object_or_404(unidad_medida, idUnidad=idUnidad),
             )
+            # Notificar si el producto se crea con stock bajo
+            if producto.stock <= 5:
+                notificacion_stock_bajo(producto)
             messages.success(request, f'Producto "{nombre}" creado correctamente.')
         except Exception as e:
             messages.error(request, f'Error al crear el producto: {str(e)}')
@@ -109,7 +113,7 @@ class EditarProductoView(View):
         if not nombre:
             messages.error(request, 'El nombre es obligatorio.')
             return redirect('productos')
-        if not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$', nombre):
+        if not re.match(r'^[a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ\s\-\.%&/]+$', nombre):
             messages.error(request, 'El nombre solo puede contener letras y espacios.')
             return redirect('productos')
         if Marca.objects.filter(nombreMarca__iexact=nombre).exists():

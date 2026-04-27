@@ -51,6 +51,7 @@ def notificaciones_data(request):
             'mensaje': n.get('mensaje', ''),
             'url': n.get('url', '#'),
             'prioridad': n.get('prioridad', 4),
+            'notif_id': n.get('notif_id', None),
         })
 
     return JsonResponse({
@@ -82,3 +83,36 @@ def limpiar_notificaciones(request):
         'ok': False,
         'error': 'Método no permitido'
     }, status=405)
+
+
+@login_required
+def marcar_leida_notificacion(request, id):
+    """
+    Marca una notificación específica como leída.
+    """
+    from django.shortcuts import get_object_or_404
+    from app.models import NotificacionEmail
+
+    if request.method == 'POST':
+        notif = get_object_or_404(NotificacionEmail, id=id, usuario=request.user)
+        notif.leida = True
+        notif.save()
+        return JsonResponse({'ok': True, 'mensaje': 'Notificación marcada como leída'})
+    
+    return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
+
+
+@login_required
+def eliminar_notificacion(request, id):
+    """
+    Elimina una notificación específica.
+    """
+    from django.shortcuts import get_object_or_404
+    from app.models import NotificacionEmail
+
+    if request.method == 'POST':
+        notif = get_object_or_404(NotificacionEmail, id=id, usuario=request.user)
+        notif.delete()
+        return JsonResponse({'ok': True, 'mensaje': 'Notificación eliminada'})
+    
+    return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)

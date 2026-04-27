@@ -3,6 +3,13 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Cargar variables del archivo .env automaticamente
+try:
+    from dotenv import load_dotenv
+    load_dotenv(BASE_DIR / '.env')
+except ImportError:
+    pass  # Si no esta instalado, usa variables del sistema
+
 
 def _env(name, default=None, required=False):
     value = os.environ.get(name, default)

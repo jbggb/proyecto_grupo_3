@@ -1,11 +1,11 @@
 // Bloquea números y caracteres especiales completamente
 function bloquearNumeros(input, errorId) {
     var antes = input.value;
-    var limpio = input.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ ]/g, '');
+    var limpio = input.value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ\s\-\.%&\/]/g, '');
     limpio = limpio.replace(/ {2,}/g, ' ');
     if (antes !== limpio) {
         input.value = limpio;
-        mostrarError(errorId, 'Solo se permiten letras y espacios.');
+        mostrarError(errorId, 'Solo se permiten letras, números y caracteres especiales básicos.');
     } else {
         ocultarError(errorId);
     }
