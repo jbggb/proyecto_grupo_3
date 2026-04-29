@@ -50,7 +50,7 @@
                                     </option>
                                 {% endfor %}
                             </select>
-                            <a href="{% url 'marcas' %}?next=productos" class="text-success small mt-1 d-block">+ Gestionar Marcas</a>
+                            <a href="{% url 'marcas' %}?next=productos" onclick="guardarBorrador()" class="text-success small mt-1 d-block">+ Gestionar Marcas</a>
                         </div>
                     </div>
                     <div class="row">
@@ -65,7 +65,7 @@
                                     </option>
                                 {% endfor %}
                             </select>
-                            <a href="{% url 'tipos' %}?next=productos" class="text-success small mt-1 d-block">+ Gestionar Tipos</a>
+                            <a href="{% url 'tipos' %}?next=productos" onclick="guardarBorrador()" class="text-success small mt-1 d-block">+ Gestionar Tipos</a>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">Unidad de Medida <span class="text-danger">*</span></label>
@@ -78,7 +78,7 @@
                                     </option>
                                 {% endfor %}
                             </select>
-                            <a href="{% url 'unidades' %}?next=productos" class="text-success small mt-1 d-block">+ Gestionar Unidades</a>
+                            <a href="{% url 'unidades' %}?next=productos" onclick="guardarBorrador()" class="text-success small mt-1 d-block">+ Gestionar Unidades</a>
                         </div>
                     </div>
                 </div>
