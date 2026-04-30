@@ -348,7 +348,7 @@ document.addEventListener('DOMContentLoaded', function () {
         instruccion.className = clases[tipo] || clases.info;
         instruccion.innerHTML = html;
     }
-
+//hola
     var modalAgregar = document.getElementById('modalAgregar');
     if (modalAgregar) {
         modalAgregar.addEventListener('hidden.bs.modal', resetScanner);
