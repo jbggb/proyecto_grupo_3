@@ -11,3 +11,5 @@ function bloquearNombreTipo(input) {
         el._timer = setTimeout(function() { el.style.display = 'none'; }, 3000);
     }
 }
+
+//por ahora no se valida el precio del tipo, pero se podría agregar una función similar a validarPrecio() de productos.js si se decide hacerlo en el futuro.
