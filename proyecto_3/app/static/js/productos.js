@@ -1,4 +1,5 @@
-// Bloquea números y caracteres especiales completamente
+// ── Validaciones de campos ────────────────────────────────────────
+
 function bloquearNumeros(input, errorId) {
     var antes = input.value;
     var limpio = input.value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ\s\-\.%&\/]/g, '');
@@ -11,7 +12,6 @@ function bloquearNumeros(input, errorId) {
     }
 }
 
-// Solo numeros enteros en precio, máximo 800000
 function validarPrecio(input, errorId) {
     var limpio = input.value.replace(/[^\d]/g, '');
     limpio = limpio.replace(/^0+(\d)/, '$1');
@@ -53,7 +53,8 @@ function ocultarError(errorId) {
     if (el) el.style.display = 'none';
 }
 
-// Ver producto con SweetAlert
+// ── Ver producto con SweetAlert ───────────────────────────────────
+
 function verProducto(id, nombre, precio, stock, marca, tipo, unidad) {
     Swal.fire({
         title: '<strong>' + nombre + '</strong>',
@@ -73,7 +74,8 @@ function verProducto(id, nombre, precio, stock, marca, tipo, unidad) {
     });
 }
 
-// Eliminar producto con SweetAlert — usa POST para evitar Method Not Allowed
+// ── Eliminar producto con SweetAlert ─────────────────────────────
+
 function eliminarProducto(url, nombre) {
     Swal.fire({
         title: '¿Eliminar producto?',
@@ -84,14 +86,14 @@ function eliminarProducto(url, nombre) {
         cancelButtonColor: '#6c757d',
         confirmButtonText: 'Sí, eliminar',
         cancelButtonText: 'Cancelar'
-    }).then(function(result) {
+    }).then(function (result) {
         if (result.isConfirmed) {
             var form = document.createElement('form');
             form.method = 'POST';
             form.action = url;
             var csrf = document.createElement('input');
-            csrf.type  = 'hidden';
-            csrf.name  = 'csrfmiddlewaretoken';
+            csrf.type = 'hidden';
+            csrf.name = 'csrfmiddlewaretoken';
             csrf.value = document.cookie.split('; ')
                 .find(row => row.startsWith('csrftoken='))
                 .split('=')[1];
@@ -102,11 +104,130 @@ function eliminarProducto(url, nombre) {
     });
 }
 
-// Abrir modal automáticamente si viene de gestionar marcas, tipos o unidades
-window.addEventListener('DOMContentLoaded', function () {
-    var params = new URLSearchParams(window.location.search);
-    if (params.get('abrir_modal') === '1') {
+// ── Borrador en sessionStorage ────────────────────────────────────
+
+var SK = 'prod_modal_draft';
+
+function guardarBorrador() {
+    var draft = {
+        nombre:   $('[name="nombre"]', '#formAgregarProducto').val(),
+        precio:   $('[name="precio"]', '#formAgregarProducto').val(),
+        stock:    $('[name="stock"]',  '#formAgregarProducto').val(),
+        idMarca:  $('#add_idMarca').val(),
+        idTipo:   $('#add_idTipo').val(),
+        idUnidad: $('#add_idUnidad').val(),
+    };
+    sessionStorage.setItem(SK, JSON.stringify(draft));
+}
+
+function restaurarBorrador() {
+    var raw = sessionStorage.getItem(SK);
+    if (!raw) return;
+    try {
+        var d = JSON.parse(raw);
+        $('[name="nombre"]', '#formAgregarProducto').val(d.nombre || '');
+        $('[name="precio"]', '#formAgregarProducto').val(d.precio || '');
+        $('[name="stock"]',  '#formAgregarProducto').val(d.stock  || '');
+        if (d.idMarca)  { $('#add_idMarca').val(d.idMarca).trigger('change'); }
+        if (d.idTipo)   { $('#add_idTipo').val(d.idTipo).trigger('change');   }
+        if (d.idUnidad) { $('#add_idUnidad').val(d.idUnidad).trigger('change'); }
+    } catch (e) {}
+}
+
+function limpiarBorrador() {
+    sessionStorage.removeItem(SK);
+}
+
+// ── Lógica principal ──────────────────────────────────────────────
+
+$(document).ready(function () {
+
+    // Leer variable Django pasada desde el HTML via data-attribute
+    var config         = document.getElementById('productos-config');
+    var abrirModal     = config && config.dataset.abrirModal === 'true';
+    var params         = new URLSearchParams(window.location.search);
+    var vieneGestionar = params.get('abrir_modal') === '1';
+
+    // Si no viene de Gestionar ni hay error Django: limpiar borrador residual
+    if (!vieneGestionar && !abrirModal) {
+        limpiarBorrador();
+    }
+
+    var s2opts = {
+        theme: 'bootstrap-5',
+        width: '100%',
+        language: {
+            noResults: function () { return 'No se encontraron resultados'; },
+            searching: function () { return 'Buscando...'; },
+        },
+    };
+
+    // ── Select2 modal Agregar ─────────────────────────────────────
+    function initSelect2Agregar() {
+        $('#add_idMarca, #add_idTipo, #add_idUnidad').each(function () {
+            if (!$(this).hasClass('select2-hidden-accessible')) {
+                $(this).select2($.extend({}, s2opts, {
+                    dropdownParent: $('#modalAgregar'),
+                    placeholder: $(this).find('option:first').text(),
+                }));
+            }
+        });
+    }
+
+    $('#modalAgregar').on('shown.bs.modal', function () {
+        initSelect2Agregar();
+        restaurarBorrador();
+    });
+
+    // Guardar borrador solo al hacer clic en "Gestionar..." dentro del modal
+    $('#modalAgregar').on('click', 'a[href*="next=productos"]', function () {
+        guardarBorrador();
+    });
+
+    // Limpiar borrador al enviar el form con éxito
+    $('#formAgregarProducto').on('submit', function () {
+        limpiarBorrador();
+    });
+
+    $('#modalAgregar').on('hide.bs.modal', function () {
+        // Destruir Select2 antes de cerrar para evitar conflicto con backdrop
+        $('#add_idMarca, #add_idTipo, #add_idUnidad').each(function () {
+            if ($(this).hasClass('select2-hidden-accessible')) {
+                $(this).select2('destroy');
+            }
+        });
+    });
+
+    $('#modalAgregar').on('hidden.bs.modal', function () {
+        // Limpiar backdrop residual
+        $('.modal-backdrop').remove();
+        $('body').removeClass('modal-open').css('overflow', '').css('padding-right', '');
+        // Limpiar borrador y form al cerrar
+        limpiarBorrador();
+        $('#formAgregarProducto')[0].reset();
+    });
+
+    // ── Select2 modales Editar ────────────────────────────────────
+    $('[id^="modalEditar"]').each(function () {
+        var $modal = $(this);
+        var pid    = $modal.attr('id').replace('modalEditar', '');
+
+        $modal.on('shown.bs.modal', function () {
+            $modal.find('.select2-editar-' + pid).each(function () {
+                if (!$(this).hasClass('select2-hidden-accessible')) {
+                    $(this).select2($.extend({}, s2opts, {
+                        dropdownParent: $modal,
+                        placeholder: $(this).find('option:first').text(),
+                    }));
+                }
+            });
+        });
+    });
+
+    // ── Auto-abrir modal (error Django o vuelta de Gestionar) ─────
+    if (abrirModal || vieneGestionar) {
         var modal = new bootstrap.Modal(document.getElementById('modalAgregar'));
         modal.show();
     }
+
 });

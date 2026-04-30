@@ -33,7 +33,9 @@
                         </label>
                         <input type="text" name="nombreMarca" class="form-control" required
                                minlength="2" maxlength="100"
+                               oninput="bloquearNombreMarca(this)"
                                placeholder="Ej: Diana, Alpina...">
+                        <div id="marca_error" class="text-danger small mt-1" style="display:none;"></div>
                     </div>
                     <button type="submit" class="btn btn-success w-100">
                         <i class="fas fa-save me-1"></i> Guardar
@@ -80,4 +82,8 @@
     </div>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/marcas.js' %}"></script>
 {% endblock %}
