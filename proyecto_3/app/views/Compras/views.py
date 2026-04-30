@@ -7,6 +7,7 @@ from django.utils.decorators import method_decorator
 from django.db import transaction
 from django.http import JsonResponse
 from app.decorators import admin_login_required
+from app.services.notifications import notificacion_stock_bajo, notificacion_compra_creada, notificacion_compra_proxima_vencer
 from ...models import Compra, Proveedor, Producto
 
 
@@ -26,6 +27,9 @@ def _restar_stock(producto_id, cantidad):
     producto = Producto.objects.select_for_update().get(pk=producto_id)
     producto.stock = max(0, producto.stock - cantidad)
     producto.save()
+    # Notificar si stock queda bajo
+    if producto.stock <= 5:
+        notificacion_stock_bajo(producto)
 
 
 # ─────────────────────────────────────────────
@@ -153,6 +157,8 @@ class CrearCompraView(View):
                 if estado_str == 'Completada':
                     _sumar_stock(int(producto_id), cantidad)
 
+            # Enviar notificación de nueva compra
+            notificacion_compra_creada(compra)
             messages.success(request, f'Compra #{compra.idCompra} registrada exitosamente.')
         except Exception as e:
             messages.error(request, f'Error al crear la compra: {str(e)}')

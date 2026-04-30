@@ -21,19 +21,26 @@
 
 <div class="card mb-3">
     <div class="card-body">
-        <form method="GET">
-            <input type="text" name="q" class="form-control mb-2" placeholder="Buscar producto..." value="{{ request.GET.q }}">
-            <label class="form-label">Filtrar por stock:</label>
-            <div class="d-flex gap-2">
-                <select name="stock" class="form-select w-auto">
+        <form method="GET" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <label class="form-label mb-1">Buscar</label>
+                <input type="text" name="q" class="form-control" placeholder="Buscar producto..." value="{{ request.GET.q }}">
+            </div>
+            <div class="col-md-2">
+                <label class="form-label mb-1">Filtrar por stock</label>
+                <select name="stock" class="form-select">
                     <option value="">Todos</option>
                     <option value="disponible" {% if request.GET.stock == 'disponible' %}selected{% endif %}>Disponible</option>
-                    <option value="bajo"       {% if request.GET.stock == 'bajo'       %}selected{% endif %}>Stock bajo</option>
-                    <option value="agotado"    {% if request.GET.stock == 'agotado'    %}selected{% endif %}>Agotado</option>
+                    <option value="bajo" {% if request.GET.stock == 'bajo' %}selected{% endif %}>Stock bajo</option>
+                    <option value="agotado" {% if request.GET.stock == 'agotado' %}selected{% endif %}>Agotado</option>
                 </select>
-                <button type="submit" class="btn btn-primary">Buscar</button>
+            </div>
+            <div class="col-md-5 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary flex-fill h-100">
+                    <i class="fa-solid fa-search me-1"></i> Buscar
+                </button>
                 {% if request.GET.q or request.GET.stock %}
-                    <a href="{% url 'productos' %}" class="btn btn-secondary">Limpiar</a>
+                <a href="{% url 'productos' %}" class="btn btn-secondary flex-fill h-100">Limpiar</a>
                 {% endif %}
             </div>
         </form>
@@ -100,7 +107,12 @@
 <!-- Select2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- QuaggaJS — escáner de códigos de barras -->
+<script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+
 <script src="{% static 'js/productos.js' %}"></script>
+<script src="{% static 'js/escaner.js' %}"></script>
 
 <script>
 // ── Clave de sessionStorage ───────────────────────────────────────
@@ -218,7 +230,6 @@ $(document).ready(function () {
   });
 
   // ── Auto-abrir modal si hubo error de validación ──────────────
-  // Auto-abrir si hubo error de validacion Django
   {% if abrir_modal_agregar %}
     const $modalError = new bootstrap.Modal(document.getElementById('modalAgregar'));
     $modalError.show();

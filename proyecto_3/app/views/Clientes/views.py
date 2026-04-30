@@ -38,13 +38,10 @@ def _validar_cliente(nombre, documento, telefono, email, direccion, estado, clie
     elif len(telefono) < 7 or len(telefono) > 15:
         errores.append('El teléfono debe tener entre 7 y 15 dígitos.')
 
-    dominios_permitidos = ['gmail.com', 'hotmail.com', 'outlook.com', 'yahoo.com']
     if not email:
         errores.append('El email es obligatorio.')
     elif not re.match(PATRON_EMAIL, email):
         errores.append('El email no tiene un formato válido (ejemplo: cliente@empresa.com).')
-    elif email.split('@')[1] not in dominios_permitidos:
-        errores.append(f"Solo se permiten correos de: {', '.join(dominios_permitidos)}")
     else:
         qs = Cliente.objects.filter(email=email)
         if cliente_id:

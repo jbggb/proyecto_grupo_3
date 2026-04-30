@@ -80,7 +80,13 @@
                 <td>{{ compra.Producto.nombre }}</td>
                 <td>{{ compra.cantidad }}</td>
                 <td>${{ compra.total|floatformat:0 }}</td>
-                <td>{{ compra.Administrador.nombre }}</td>
+                <td>
+                    {% if compra.usuario %}
+                        {{ compra.usuario.get_full_name|default:compra.usuario.username }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
                 <td>{{ compra.fechaCompra|date:"d/m/Y" }}</td>
                 <td>
                     {% if compra.estado == 'Completada' %}
@@ -217,8 +223,15 @@
                 <p><strong>ID:</strong> {{ compra.idCompra }}</p>
                 <p><strong>Proveedor:</strong> {{ compra.Proveedor.nombre }}</p>
                 <p><strong>Producto:</strong> {{ compra.Producto.nombre }}</p>
-                <p><strong>Administrador:</strong> {{ compra.Administrador.nombre }}</p>
-                <p><strong>Fecha:</strong> {{ compra.fecha|date:"d/m/Y" }}</p>
+                <p>
+                    <strong>Administrador:</strong>
+                    {% if compra.usuario %}
+                        {{ compra.usuario.get_full_name|default:compra.usuario.username }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </p>
+                <p><strong>Fecha:</strong> {{ compra.fechaCompra|date:"d/m/Y" }}</p>
                 <p><strong>Estado:</strong>
                     {% if compra.estado == 'Completada' %}
                         <span class="badge badge-success">Completada</span>

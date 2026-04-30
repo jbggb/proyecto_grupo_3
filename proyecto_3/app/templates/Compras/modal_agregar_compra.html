@@ -56,8 +56,14 @@
                 <td>{{ compra.idCompra }}</td>
                 <td>{{ compra.Proveedor.nombre }}</td>
                 <td>{{ compra.Producto.nombre }}</td>
-                <td>{{ compra.Administrador.nombre }}</td>
-                <td>{{ compra.fecha|date:"d/m/Y" }}</td>
+                <td>
+                    {% if compra.usuario %}
+                        {{ compra.usuario.get_full_name|default:compra.usuario.username }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ compra.fechaCompra|date:"d/m/Y" }}</td>
                 <td>
                     {% if compra.estado == True %}
                         <span class="badge badge-success">Completada</span>

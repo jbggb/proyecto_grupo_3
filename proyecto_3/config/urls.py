@@ -34,15 +34,25 @@ urlpatterns = [
     # ── Auth ───────────────────────────────────────────────────────
     path('login/',  auth_views.login_view,  name='login'),
     path('logout/', auth_views.logout_view, name='logout'),
-    path('login/enviar-codigo/', auth_views.send_recovery_code, name='send_recovery_code'),
-    path('login/confirmar-codigo/', auth_views.validate_recovery_code, name='validate_recovery_code'),
-    path('login/resetear-contrasena/', auth_views.reset_password, name='reset_password'),
+    path('login/enviar-codigo/',       auth_views.send_recovery_code,     name='send_recovery_code'),
+    path('login/confirmar-codigo/',    auth_views.validate_recovery_code,  name='validate_recovery_code'),
+    path('login/resetear-contrasena/', auth_views.reset_password,          name='reset_password'),
+
+    # ── Notificaciones ─────────────────────────────────────────────
+    path('notificaciones/data/',  index_views.notificaciones_data, name='notificaciones_data'),
+    path('notificaciones/limpiar/', index_views.limpiar_notificaciones, name='limpiar_notificaciones'),
+    path('notificaciones/leer/<int:id>/', index_views.marcar_leida_notificacion, name='marcar_leida_notificacion'),
+    path('notificaciones/eliminar/<int:id>/', index_views.eliminar_notificacion, name='eliminar_notificacion'),
 
     # ── Productos ──────────────────────────────────────────────────
-    path('productos/',                    productos_views.productos,       name='productos'),
-    path('productos/crear/',              productos_views.crear_producto,  name='crear_producto'),
-    path('productos/editar/<int:id>/',    productos_views.editar_producto, name='editar_producto'),
+    path('productos/',                    productos_views.productos,        name='productos'),
+    path('productos/crear/',              productos_views.crear_producto,   name='crear_producto'),
+    path('productos/editar/<int:id>/',    productos_views.editar_producto,  name='editar_producto'),
     path('productos/eliminar/<int:id>/',  productos_views.eliminar_producto, name='eliminar_producto'),
+    # ── Escáner de código de barras ────────────────────────────────
+    path('productos/buscar-codigo/',         productos_views.buscar_codigo_barras,    name='buscar_codigo_barras'),
+    path('productos/actualizar-stock-escaner/', productos_views.actualizar_stock_escaner, name='actualizar_stock_escaner'),
+    # ──────────────────────────────────────────────────────────────
     path('reporte/productos/pdf',   exportar_views.ExportarProductosPDF.as_view(),   name='exportar_productos_pdf'),
     path('reporte/productos/excel', exportar_views.ExportarProductosExcel.as_view(), name='exportar_productos_excel'),
 

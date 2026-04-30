@@ -732,25 +732,11 @@ window.addEventListener('DOMContentLoaded', function() {
     if (recoverLink) {
         recoverLink.addEventListener('click', function() { openModal('recoverModal'); });
     }
-    if (recoverModal) {
-        recoverModal.addEventListener('click', function(event) {
-            if (event.target === recoverModal) {
-                closeModal('recoverModal');
-            }
-        });
-    }
     if (closeReset) {
         closeReset.addEventListener('click', function() { closeModal('resetPasswordModal'); });
     }
     if (cancelReset) {
         cancelReset.addEventListener('click', function() { closeModal('resetPasswordModal'); });
-    }
-    if (resetModal) {
-        resetModal.addEventListener('click', function(event) {
-            if (event.target === resetModal) {
-                closeModal('resetPasswordModal');
-            }
-        });
     }
 
     if (newPassword) {

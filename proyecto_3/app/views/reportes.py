@@ -170,7 +170,7 @@ class ExportarVentasExcel(View):
 
 class ExportarComprasPDF(View):
     def get(self, request):
-        compras  = Compra.objects.select_related('Producto', 'Proveedor', 'Administrador').all().order_by('-fechaCompra')
+        compras  = Compra.objects.select_related('Producto', 'Proveedor', 'usuario').all().order_by('-fechaCompra')
         columnas = ['ID', 'Fecha', 'Producto', 'Proveedor', 'Cantidad', 'Precio Unit.', 'Total', 'Estado']
         datos    = [
             (f'C{c.idCompra:03d}',
@@ -193,7 +193,7 @@ class ExportarComprasPDF(View):
 
 class ExportarComprasExcel(View):
     def get(self, request):
-        compras  = Compra.objects.select_related('Producto', 'Proveedor', 'Administrador').all().order_by('-fechaCompra')
+        compras  = Compra.objects.select_related('Producto', 'Proveedor', 'usuario').all().order_by('-fechaCompra')
         columnas = ['ID', 'Fecha', 'Producto', 'Proveedor', 'Cantidad', 'Precio Unit.', 'Total', 'Estado']
         datos    = [
             (f'C{c.idCompra:03d}',
