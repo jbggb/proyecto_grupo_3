@@ -1,18 +1,7 @@
-# app/context_processors.py
-"""
-Context processor para notificaciones guardadas en BD.
-Solo muestra notificaciones enviadas por email (NotificacionEmail).
-"""
-
 from django.utils import timezone
 from app.models import NotificacionEmail
 
-
 def notificaciones(request):
-    """
-    Retorna solo las notificaciones guardadas en BD (NotificacionEmail).
-    """
-    # Solo calcular si el usuario está autenticado
     if not request.user.is_authenticated:
         return {
             'notificaciones': [],
@@ -25,14 +14,12 @@ def notificaciones(request):
     notificaciones_lista = []
 
     try:
-        # Obtener máximo 20 notificaciones no leídas (LIMIT importante para rendimiento)
         notif_usuario = NotificacionEmail.objects.filter(
             usuario=request.user,
             leida=False
         ).order_by('-fecha_creacion')[:20]
 
         for notif in notif_usuario:
-            # Determinar URL según el tipo de notificación
             url = '#'
             if 'compra' in notif.asunto.lower():
                 url = '/compras/'

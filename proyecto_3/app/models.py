@@ -72,13 +72,21 @@ unidad_medida = UnidadMedida
 
 
 class Producto(models.Model):
-    idProducto = models.AutoField(primary_key=True, db_column='idProducto')
-    idTipo     = models.ForeignKey(TipoProductos, on_delete=models.CASCADE, db_column='idTipo')
-    idMarca    = models.ForeignKey(Marca,         on_delete=models.CASCADE, db_column='idMarca')
-    idUnidad   = models.ForeignKey(UnidadMedida,  on_delete=models.CASCADE, db_column='idUnidad')
-    nombre     = models.CharField(max_length=255)
-    precio     = models.DecimalField(max_digits=10, decimal_places=2)
-    stock      = models.IntegerField(default=0)
+    idProducto    = models.AutoField(primary_key=True, db_column='idProducto')
+    idTipo        = models.ForeignKey(TipoProductos, on_delete=models.CASCADE, db_column='idTipo')
+    idMarca       = models.ForeignKey(Marca,         on_delete=models.CASCADE, db_column='idMarca')
+    idUnidad      = models.ForeignKey(UnidadMedida,  on_delete=models.CASCADE, db_column='idUnidad')
+    nombre        = models.CharField(max_length=255)
+    precio        = models.DecimalField(max_digits=10, decimal_places=2)
+    stock         = models.IntegerField(default=0)
+    # ── Campo nuevo: código de barras EAN/UPC ─────────────────────
+    codigo_barras = models.CharField(
+        max_length=50,
+        blank=True,
+        default='',
+        db_index=True,
+        verbose_name='Código de barras',
+    )
 
     def __str__(self):
         return self.nombre
@@ -130,7 +138,7 @@ class Venta(models.Model):
 class DetalleVenta(models.Model):
     venta           = models.ForeignKey(Venta, on_delete=models.CASCADE, related_name='detalles')
     producto        = models.ForeignKey(Producto, on_delete=models.SET_NULL, null=True, blank=True, db_column='producto_id')
-    producto_nombre = models.CharField(max_length=255)  # Mantenido por compatibilidad/auditoría
+    producto_nombre = models.CharField(max_length=255)
     precio          = models.DecimalField(max_digits=10, decimal_places=2)
     cantidad        = models.IntegerField(default=1)
 
@@ -182,10 +190,6 @@ class Compra(models.Model):
 
 
 class Pedidos(models.Model):
-    """
-    FK migrada de Administrador legacy a auth.User.
-    Requiere nueva migración: makemigrations app.
-    """
     usuario      = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -210,10 +214,6 @@ class Pedidos(models.Model):
 
 
 class Reporte(models.Model):
-    """
-    FK migrada de Administrador legacy a auth.User.
-    Requiere nueva migración: makemigrations app.
-    """
     idCompra  = models.ForeignKey(Compra,  on_delete=models.CASCADE, db_column='idCompra',  null=True, blank=True)
     idPedido  = models.ForeignKey(Pedidos, on_delete=models.CASCADE, db_column='idPedido',  null=True, blank=True)
     idVenta   = models.ForeignKey(Venta,   on_delete=models.CASCADE, db_column='idVenta',   null=True, blank=True)
@@ -239,26 +239,25 @@ class Reporte(models.Model):
 
 class NotificacionEmail(models.Model):
     TIPO_CHOICES = [
-        ('alerta', 'Alerta'),
-        ('info', 'Información'),
-        ('error', 'Error'),
+        ('alerta',  'Alerta'),
+        ('info',    'Información'),
+        ('error',   'Error'),
         ('success', 'Éxito'),
     ]
-
-    usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notificaciones_email')
-    tipo = models.CharField(max_length=20, choices=TIPO_CHOICES, default='info')
-    asunto = models.CharField(max_length=255)
-    mensaje = models.TextField()
-    leida = models.BooleanField(default=False)
-    enviada = models.BooleanField(default=False)
+    usuario        = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notificaciones_email')
+    tipo           = models.CharField(max_length=20, choices=TIPO_CHOICES, default='info')
+    asunto         = models.CharField(max_length=255)
+    mensaje        = models.TextField()
+    leida          = models.BooleanField(default=False)
+    enviada        = models.BooleanField(default=False)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
-    fecha_envio = models.DateTimeField(null=True, blank=True)
+    fecha_envio    = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.asunto} - {self.usuario.username}"
 
     class Meta:
-        verbose_name = 'notificación email'
+        verbose_name        = 'notificación email'
         verbose_name_plural = 'notificaciones email'
-        db_table = 'notificacion_email'
-        ordering = ['-fecha_creacion']
+        db_table            = 'notificacion_email'
+        ordering            = ['-fecha_creacion']

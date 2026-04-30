@@ -107,7 +107,12 @@
 <!-- Select2 JS -->
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
+<!-- QuaggaJS — escáner de códigos de barras -->
+<script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+
 <script src="{% static 'js/productos.js' %}"></script>
+<script src="{% static 'js/escaner.js' %}"></script>
 
 <script>
 // ── Clave de sessionStorage ───────────────────────────────────────
@@ -225,7 +230,6 @@ $(document).ready(function () {
   });
 
   // ── Auto-abrir modal si hubo error de validación ──────────────
-  // Auto-abrir si hubo error de validacion Django
   {% if abrir_modal_agregar %}
     const $modalError = new bootstrap.Modal(document.getElementById('modalAgregar'));
     $modalError.show();
@@ -240,10 +244,6 @@ $(document).ready(function () {
       }, 200);
     }
   {% endif %}
-
-
-
-
 
 });
 </script>

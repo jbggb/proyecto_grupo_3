@@ -1,94 +1,219 @@
-<!-- Modal Agregar -->
+<!-- Modal Agregar / Escáner -->
 <div class="modal fade" id="modalAgregar" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-success text-white">
-                <h5 class="modal-title"><i class="fa-solid fa-plus me-2"></i>Agregar Nuevo Producto</h5>
+                <h5 class="modal-title"><i class="fa-solid fa-plus me-2"></i>Agregar Producto</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{% url 'crear_producto' %}" id="formAgregarProducto">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Nombre del Producto <span class="text-danger">*</span></label>
-                            <input type="text" class="form-control" name="nombre" required
-                                   value="{{ form_data.nombre }}"
-                                   oninput="bloquearNumeros(this, 'add_nombre_error')"
-                                   placeholder="Ej: Arroz Diana">
-                            <div id="add_nombre_error" class="text-danger small mt-1" style="display:none;"></div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Precio <span class="text-danger">*</span></label>
-                            <div class="input-group">
-                                <span class="input-group-text">$</span>
-                                <input type="text" inputmode="numeric" class="form-control" name="precio" required
-                                       value="{{ form_data.precio }}"
-                                       oninput="validarPrecio(this, 'add_precio_error')"
-                                       placeholder="Ej: 5000">
+            <div class="modal-body p-0">
+
+                <!-- Pestañas -->
+                <ul class="nav nav-tabs px-3 pt-3" id="tabsAgregar" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="tab-manual-btn" data-bs-toggle="tab"
+                            data-bs-target="#tab-manual" type="button" role="tab">
+                            <i class="fa-solid fa-keyboard me-1"></i> Manual
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab-scanner-btn" data-bs-toggle="tab"
+                            data-bs-target="#tab-scanner" type="button" role="tab"
+                            id="btnTabEscaner">
+                            <i class="fa-solid fa-barcode me-1"></i> Escanear código de barras
+                        </button>
+                    </li>
+                </ul>
+
+                <div class="tab-content px-3 pb-3 pt-2">
+
+                    <!-- ══ PESTAÑA MANUAL ══════════════════════════════════════ -->
+                    <div class="tab-pane fade show active" id="tab-manual" role="tabpanel">
+                        <form method="POST" action="{% url 'crear_producto' %}" id="formAgregarProducto">
+                            {% csrf_token %}
+                            <!-- Campo oculto: se llena automáticamente al escanear -->
+                            <input type="hidden" name="codigo_barras" id="add_codigo_barras">
+                            <div class="row mt-2">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-semibold">Nombre del Producto <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" name="nombre" id="add_nombre" required
+                                           value="{{ form_data.nombre }}"
+                                           oninput="bloquearNumeros(this, 'add_nombre_error')"
+                                           placeholder="Ej: Arroz Diana">
+                                    <div id="add_nombre_error" class="text-danger small mt-1" style="display:none;"></div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-semibold">Precio <span class="text-danger">*</span></label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">$</span>
+                                        <input type="text" inputmode="numeric" class="form-control" name="precio" required
+                                               value="{{ form_data.precio }}"
+                                               oninput="validarPrecio(this, 'add_precio_error')"
+                                               placeholder="Ej: 5000">
+                                    </div>
+                                    <div id="add_precio_error" class="text-danger small mt-1" style="display:none;"></div>
+                                </div>
                             </div>
-                            <div id="add_precio_error" class="text-danger small mt-1" style="display:none;"></div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-semibold">Stock <span class="text-danger">*</span></label>
+                                    <input type="text" inputmode="numeric" class="form-control" name="stock" required
+                                           value="{{ form_data.stock }}"
+                                           oninput="validarStock(this, 'add_stock_error')"
+                                           placeholder="Ej: 100">
+                                    <div id="add_stock_error" class="text-danger small mt-1" style="display:none;"></div>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-semibold">Marca <span class="text-danger">*</span></label>
+                                    <select class="form-select" name="idMarca" id="add_idMarca" required>
+                                        <option value="">Seleccione una marca</option>
+                                        {% for marca in marcas %}
+                                            <option value="{{ marca.idMarca }}"
+                                                {% if form_data.idMarca == marca.idMarca|stringformat:"s" %}selected{% endif %}>
+                                                {{ marca.nombreMarca }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <a href="{% url 'marcas' %}?next=productos" class="text-success small mt-1 d-block">+ Gestionar Marcas</a>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-semibold">Tipo de Producto <span class="text-danger">*</span></label>
+                                    <select class="form-select" name="idTipo" id="add_idTipo" required>
+                                        <option value="">Seleccione un tipo</option>
+                                        {% for tipo in tipos %}
+                                            <option value="{{ tipo.idTipo }}"
+                                                {% if form_data.idTipo == tipo.idTipo|stringformat:"s" %}selected{% endif %}>
+                                                {{ tipo.nombre_tipo }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <a href="{% url 'tipos' %}?next=productos" class="text-success small mt-1 d-block">+ Gestionar Tipos</a>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-semibold">Unidad de Medida <span class="text-danger">*</span></label>
+                                    <select class="form-select" name="idUnidad" id="add_idUnidad" required>
+                                        <option value="">Seleccione una unidad</option>
+                                        {% for unidad in unidades %}
+                                            <option value="{{ unidad.idUnidad }}"
+                                                {% if form_data.idUnidad == unidad.idUnidad|stringformat:"s" %}selected{% endif %}>
+                                                {{ unidad.nombre_unidad }} ({{ unidad.abreviatura }})
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                    <a href="{% url 'unidades' %}?next=productos" class="text-success small mt-1 d-block">+ Gestionar Unidades</a>
+                                </div>
+                            </div>
+                            <div class="d-flex justify-content-end gap-2 mt-1">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="submit" class="btn btn-success px-4">
+                                    <i class="fa-solid fa-floppy-disk me-1"></i> Guardar Producto
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- ══ PESTAÑA ESCÁNER ════════════════════════════════════ -->
+                    <div class="tab-pane fade" id="tab-scanner" role="tabpanel">
+                        <div class="mt-3">
+
+                            <!-- Estado / instrucción -->
+                            <div id="scanner-instruccion" class="alert alert-info d-flex align-items-center gap-2 mb-3">
+                                <i class="fa-solid fa-circle-info fa-lg"></i>
+                                <span>Haz clic en <strong>Activar cámara</strong> y apunta al código de barras del producto.</span>
+                            </div>
+
+                            <!-- Área de la cámara -->
+                            <div id="scanner-area" class="position-relative mb-3" style="display:none;">
+                                <div id="interactive" class="viewport" style="width:100%; max-height:320px; overflow:hidden; border-radius:8px; background:#000;"></div>
+                                <!-- Línea de escaneo animada -->
+                                <div id="scanner-line" style="
+                                    position:absolute; top:50%; left:5%; right:5%;
+                                    height:2px; background:rgba(40,200,100,0.85);
+                                    box-shadow:0 0 8px 2px rgba(40,200,100,0.6);
+                                    animation: scanline 2s linear infinite;
+                                    pointer-events:none;">
+                                </div>
+                            </div>
+
+                            <!-- Código detectado (solo lectura) -->
+                            <div class="input-group mb-3">
+                                <span class="input-group-text"><i class="fa-solid fa-barcode"></i></span>
+                                <input type="text" id="scanner-codigo-display" class="form-control"
+                                       placeholder="El código aparecerá aquí automáticamente..." readonly>
+                                <button class="btn btn-outline-secondary" type="button" id="btn-limpiar-scanner">
+                                    <i class="fa-solid fa-xmark"></i>
+                                </button>
+                            </div>
+
+                            <!-- Botones de control -->
+                            <div class="d-flex gap-2 flex-wrap mb-3">
+                                <button class="btn btn-success" id="btn-activar-camara">
+                                    <i class="fa-solid fa-camera me-1"></i> Activar cámara
+                                </button>
+                                <button class="btn btn-danger" id="btn-detener-camara" style="display:none;">
+                                    <i class="fa-solid fa-stop me-1"></i> Detener cámara
+                                </button>
+                                <button class="btn btn-outline-secondary" id="btn-subir-imagen">
+                                    <i class="fa-solid fa-image me-1"></i> Subir foto del código
+                                </button>
+                                <button class="btn btn-outline-primary" id="btn-buscar-manual-codigo" style="display:none;">
+                                    <i class="fa-solid fa-magnifying-glass me-1"></i> Buscar este código
+                                </button>
+                            </div>
+
+                            <!-- Input oculto para imagen -->
+                            <input type="file" id="scanner-input-imagen" accept="image/*" style="display:none;">
+
+                            <!-- Preview imagen subida -->
+                            <img id="scanner-preview-imagen" src="" alt="Preview"
+                                 style="display:none; max-width:100%; max-height:180px; border-radius:6px; margin-bottom:12px; object-fit:contain; border:1px solid #dee2e6;">
+
+                            <!-- Resultado de la búsqueda -->
+                            <div id="scanner-resultado" style="display:none;"></div>
+
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Stock <span class="text-danger">*</span></label>
-                            <input type="text" inputmode="numeric" class="form-control" name="stock" required
-                                   value="{{ form_data.stock }}"
-                                   oninput="validarStock(this, 'add_stock_error')"
-                                   placeholder="Ej: 100">
-                            <div id="add_stock_error" class="text-danger small mt-1" style="display:none;"></div>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Marca <span class="text-danger">*</span></label>
-                            <select class="form-select" name="idMarca" id="add_idMarca" required>
-                                <option value="">Seleccione una marca</option>
-                                {% for marca in marcas %}
-                                    <option value="{{ marca.idMarca }}"
-                                        {% if form_data.idMarca == marca.idMarca|stringformat:"s" %}selected{% endif %}>
-                                        {{ marca.nombreMarca }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                            <a href="{% url 'marcas' %}?next=productos" class="text-success small mt-1 d-block">+ Gestionar Marcas</a>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Tipo de Producto <span class="text-danger">*</span></label>
-                            <select class="form-select" name="idTipo" id="add_idTipo" required>
-                                <option value="">Seleccione un tipo</option>
-                                {% for tipo in tipos %}
-                                    <option value="{{ tipo.idTipo }}"
-                                        {% if form_data.idTipo == tipo.idTipo|stringformat:"s" %}selected{% endif %}>
-                                        {{ tipo.nombre_tipo }}
-                                    </option>
-                                {% endfor %}
-                            </select>
-                            <a href="{% url 'tipos' %}?next=productos" class="text-success small mt-1 d-block">+ Gestionar Tipos</a>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-semibold">Unidad de Medida <span class="text-danger">*</span></label>
-                            <select class="form-select" name="idUnidad" id="add_idUnidad" required>
-                                <option value="">Seleccione una unidad</option>
-                                {% for unidad in unidades %}
-                                    <option value="{{ unidad.idUnidad }}"
-                                        {% if form_data.idUnidad == unidad.idUnidad|stringformat:"s" %}selected{% endif %}>
-                                        {{ unidad.nombre_unidad }} ({{ unidad.abreviatura }})
-                                    </option>
-                                {% endfor %}
-                            </select>
-                            <a href="{% url 'unidades' %}?next=productos" class="text-success small mt-1 d-block">+ Gestionar Unidades</a>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success px-4">
-                        <i class="fa-solid fa-floppy-disk me-1"></i> Guardar Producto
-                    </button>
-                </div>
-            </form>
+
+                </div><!-- /tab-content -->
+            </div><!-- /modal-body -->
         </div>
     </div>
 </div>
+
+
+<!-- ══ Modal actualizar stock (producto ya existente) ════════════════ -->
+<div class="modal fade" id="modalActualizarStock" tabindex="-1" data-bs-backdrop="static">
+    <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h6 class="modal-title"><i class="fa-solid fa-cubes me-1"></i> Actualizar Stock</h6>
+                <button type="button" class="btn-close btn-close-white" id="btn-cerrar-stock-modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-1 fw-semibold" id="stock-modal-nombre"></p>
+                <p class="text-muted small mb-3">Stock actual: <strong id="stock-modal-actual"></strong></p>
+                <label class="form-label fw-semibold">Cantidad a agregar <span class="text-danger">*</span></label>
+                <input type="number" id="stock-modal-cantidad" class="form-control" min="1" max="1000" placeholder="Ej: 10">
+                <div id="stock-modal-error" class="text-danger small mt-1" style="display:none;"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-cancelar-stock">Cancelar</button>
+                <button type="button" class="btn btn-primary btn-sm" id="btn-guardar-stock">
+                    <i class="fa-solid fa-floppy-disk me-1"></i> Guardar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+@keyframes scanline {
+    0%   { top: 20%; }
+    50%  { top: 80%; }
+    100% { top: 20%; }
+}
+.drawingBuffer { display: none; }
+#interactive video { width: 100% !important; height: auto !important; }
+</style>
