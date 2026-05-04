@@ -67,6 +67,7 @@
                     <td>{{ producto.idMarca.nombreMarca }}</td>
                     <td>{{ producto.idTipo.nombre_tipo }}</td>
                     <td>{{ producto.idUnidad.nombre_unidad }}</td>
+                    
                     <td>
                         <button class="btn btn-info btn-sm"
                             onclick="verProducto(
@@ -115,8 +116,6 @@
 <script src="{% static 'js/escaner.js' %}"></script>
 
 <script>
-// ── Clave de sessionStorage ───────────────────────────────────────
-const SK = 'prod_modal_draft';
 
 // ── Guardar borrador en sessionStorage ───────────────────────────
 function guardarBorrador() {

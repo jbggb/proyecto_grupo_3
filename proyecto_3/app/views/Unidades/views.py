@@ -43,7 +43,7 @@ class CrearUnidadView(View):
             messages.error(request, 'El nombre debe tener al menos 2 letras.')
         elif not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$', nombre):
             messages.error(request, 'El nombre solo puede contener letras y espacios.')
-        elif not abreviatura or abreviatura not in ABREVIATURAS_VALIDAS:
+        elif not abreviatura or abreviatura not in ABREVIATURAS.values():
             messages.error(request, 'Debes seleccionar una abreviatura válida del listado.')
         elif unidad_medida.objects.filter(nombre_unidad__iexact=nombre).exists():
             messages.error(request, f'Ya existe una unidad llamada "{nombre}".')

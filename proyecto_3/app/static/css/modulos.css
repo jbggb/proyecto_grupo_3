@@ -1,8 +1,514 @@
 /*
  * modulos.css — Estilos unificados para TODOS los módulos del sistema
- * Aplica el mismo diseño consistente en: Productos, Ventas, Compras,
- * Clientes, Proveedores, Reportes, Marcas, Tipos, Unidades, Backup
+ * Tema Industrial Oscuro: Rojo, Negro, Verde, Blanco
+ * Aplica diseño consistente en: Productos, Ventas, Compras, Clientes, Proveedores, Reportes, Marcas, Tipos, Unidades, Backup
  */
+
+/* Variables compartidas con estilos_pagina.css */
+:root {
+  --primary-red: #DC2626;
+  --primary-red-hover: #B91C1C;
+  --primary-red-light: rgba(220, 38, 38, 0.1);
+  --success-green: #16A34A;
+  --success-green-hover: #15803D;
+  --success-green-light: rgba(22, 163, 74, 0.1);
+  --neutral-black: #0F0F0F;
+  --neutral-dark: #1A1A1A;
+  --neutral-gray: #2A2A2A;
+  --neutral-light: #404040;
+  --neutral-border: #525252;
+  --text-white: #FFFFFF;
+  --text-light: #F5F5F5;
+  --text-muted: #A3A3A3;
+  --text-dark: #737373;
+  --border-radius: 8px;
+  --border-radius-lg: 12px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --transition-fast: 0.15s ease-in-out;
+}
+
+/* ── Encabezado de página ─────────────────────────────────────── */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-xl);
+    padding-bottom: var(--spacing-md);
+    border-bottom: 1px solid var(--neutral-border);
+}
+.page-header h2 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-white);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+.page-header h2 i {
+    color: var(--primary-red);
+}
+
+/* ── Tarjetas ─────────────────────────────────────────────────── */
+.card {
+    background: var(--neutral-dark) !important;
+    border: 1px solid var(--neutral-border) !important;
+    border-radius: var(--border-radius-lg) !important;
+    box-shadow: var(--shadow-md) !important;
+    margin-bottom: var(--spacing-lg);
+    transition: var(--transition-fast);
+    overflow: hidden;
+    position: relative;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary-red), var(--success-green));
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--primary-red-light);
+}
+
+.card-header {
+    background: var(--neutral-gray) !important;
+    border-bottom: 1px solid var(--neutral-border) !important;
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0 !important;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 0.875rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: var(--spacing-lg) var(--spacing-xl) !important;
+    color: var(--text-white) !important;
+}
+
+.card-header.bg-dark {
+    background: var(--neutral-gray) !important;
+}
+
+.card-body {
+    padding: var(--spacing-xl) !important;
+    color: var(--text-light);
+}
+
+/* ── Tablas ───────────────────────────────────────────────────── */
+.table {
+    font-size: 0.875rem;
+    color: var(--text-light);
+}
+
+.table thead th {
+    background: var(--neutral-gray) !important;
+    color: var(--text-white) !important;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    font-size: 0.75rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: var(--spacing-md);
+    border-bottom: 2px solid var(--neutral-border);
+    white-space: nowrap;
+}
+
+.table tbody td {
+    padding: var(--spacing-md);
+    vertical-align: middle;
+    font-size: 0.875rem;
+    color: var(--text-light);
+    border-bottom: 1px solid var(--neutral-border);
+}
+
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.table tbody tr:hover td {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.table-dark thead th {
+    background: var(--neutral-gray) !important;
+    color: var(--text-white) !important;
+}
+
+/* ── Formularios de búsqueda ──────────────────────────────────── */
+.form-control, .form-select {
+    background: var(--neutral-black) !important;
+    border: 1px solid var(--neutral-border) !important;
+    border-radius: var(--border-radius) !important;
+    color: var(--text-light) !important;
+    font-size: 0.875rem !important;
+    padding: var(--spacing-sm) var(--spacing-md) !important;
+    transition: var(--transition-fast);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--primary-red) !important;
+    box-shadow: 0 0 0 3px var(--primary-red-light) !important;
+    background: var(--neutral-dark) !important;
+    color: var(--text-white) !important;
+}
+
+.form-control::placeholder {
+    color: var(--text-dark) !important;
+}
+
+.form-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-white) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--spacing-sm);
+}
+
+/* ── Botones ──────────────────────────────────────────────────── */
+.btn {
+    border-radius: var(--border-radius) !important;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600 !important;
+    font-size: 0.875rem !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    transition: var(--transition-fast) !important;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.btn-primary {
+    background: var(--primary-red) !important;
+    color: var(--text-white) !important;
+}
+.btn-primary:hover {
+    background: var(--primary-red-hover) !important;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-success {
+    background: var(--success-green) !important;
+    color: var(--text-white) !important;
+}
+.btn-success:hover {
+    background: var(--success-green-hover) !important;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-danger {
+    background: var(--primary-red) !important;
+    color: var(--text-white) !important;
+}
+.btn-danger:hover {
+    background: var(--primary-red-hover) !important;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-info {
+    background: #3B82F6 !important;
+    color: var(--text-white) !important;
+}
+.btn-info:hover {
+    background: #2563EB !important;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-warning {
+    background: #F59E0B !important;
+    color: var(--text-white) !important;
+}
+.btn-warning:hover {
+    background: #D97706 !important;
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-secondary {
+    background: var(--neutral-gray) !important;
+    color: var(--text-light) !important;
+}
+.btn-secondary:hover {
+    background: var(--neutral-light) !important;
+    color: var(--text-white) !important;
+}
+
+.btn-sm {
+    padding: var(--spacing-xs) var(--spacing-sm) !important;
+    font-size: 0.75rem !important;
+}
+
+/* ── Modales ──────────────────────────────────────────────────── */
+.modal-content {
+    background: var(--neutral-dark) !important;
+    border: 1px solid var(--neutral-border) !important;
+    border-radius: var(--border-radius-lg) !important;
+    box-shadow: var(--shadow-lg) !important;
+    color: var(--text-light) !important;
+    overflow: hidden;
+}
+
+.modal-header {
+    background: var(--neutral-gray) !important;
+    border-bottom: 1px solid var(--neutral-border) !important;
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0 !important;
+    padding: var(--spacing-lg) var(--spacing-xl) !important;
+}
+
+.modal-header.bg-success {
+    background: rgba(22, 163, 74, 0.1) !important;
+    border-bottom-color: var(--success-green) !important;
+}
+.modal-header.bg-primary {
+    background: var(--primary-red-light) !important;
+    border-bottom-color: var(--primary-red) !important;
+}
+.modal-header.bg-danger {
+    background: rgba(220, 38, 38, 0.1) !important;
+    border-bottom-color: var(--primary-red) !important;
+}
+.modal-header.bg-warning {
+    background: rgba(245, 158, 11, 0.1) !important;
+    border-bottom-color: #F59E0B !important;
+}
+.modal-header.bg-info {
+    background: rgba(59, 130, 246, 0.1) !important;
+    border-bottom-color: #3B82F6 !important;
+}
+.modal-header.bg-dark {
+    background: var(--neutral-gray) !important;
+}
+
+.modal-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.125rem !important;
+    font-weight: 700 !important;
+    color: var(--text-white) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.modal-body {
+    padding: var(--spacing-xl) !important;
+    background: var(--neutral-dark) !important;
+}
+
+.modal-footer {
+    background: var(--neutral-gray) !important;
+    border-top: 1px solid var(--neutral-border) !important;
+    border-radius: 0 0 var(--border-radius-lg) var(--border-radius-lg) !important;
+    padding: var(--spacing-lg) var(--spacing-xl) !important;
+}
+
+/* ── Badges de estado ─────────────────────────────────────────── */
+.badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem !important;
+    font-weight: 600 !important;
+    border-radius: var(--border-radius) !important;
+    padding: var(--spacing-xs) var(--spacing-sm) !important;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border: 1px solid transparent;
+}
+
+.badge.bg-success, .badge-success {
+    background: var(--success-green-light) !important;
+    color: var(--success-green) !important;
+    border-color: var(--success-green);
+}
+
+.badge.bg-danger, .badge-danger {
+    background: rgba(220, 38, 38, 0.1) !important;
+    color: var(--primary-red) !important;
+    border-color: var(--primary-red);
+}
+
+.badge.bg-warning, .badge-warning {
+    background: rgba(245, 158, 11, 0.1) !important;
+    color: #F59E0B !important;
+    border-color: #F59E0B;
+}
+
+.badge.bg-info, .badge-info {
+    background: rgba(59, 130, 246, 0.1) !important;
+    color: #3B82F6 !important;
+    border-color: #3B82F6;
+}
+
+/* ── Alertas ──────────────────────────────────────────────────── */
+.alert {
+    border: 1px solid !important;
+    border-radius: var(--border-radius) !important;
+    font-size: 0.875rem !important;
+    padding: var(--spacing-md) !important;
+    margin-bottom: var(--spacing-md);
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+}
+
+.alert-success {
+    background: var(--success-green-light) !important;
+    border-color: var(--success-green) !important;
+    color: var(--success-green) !important;
+}
+
+.alert-danger {
+    background: rgba(220, 38, 38, 0.1) !important;
+    border-color: var(--primary-red) !important;
+    color: var(--primary-red) !important;
+}
+
+.alert-warning {
+    background: rgba(245, 158, 11, 0.1) !important;
+    border-color: #F59E0B !important;
+    color: #F59E0B !important;
+}
+
+.alert-info {
+    background: rgba(59, 130, 246, 0.1) !important;
+    border-color: #3B82F6 !important;
+    color: #3B82F6 !important;
+}
+
+/* ── Encabezado de módulo unificado ───────────────────────────── */
+.module-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--text-white);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.module-title i {
+    color: var(--primary-red);
+}
+
+/* ── Estados de inventario específicos ────────────────────────── */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--border-radius);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-badge.in-stock {
+    background: var(--success-green-light);
+    color: var(--success-green);
+}
+
+.status-badge.low-stock {
+    background: rgba(245, 158, 11, 0.1);
+    color: #F59E0B;
+}
+
+.status-badge.out-of-stock {
+    background: rgba(220, 38, 38, 0.1);
+    color: var(--primary-red);
+}
+
+.status-badge.pending {
+    background: rgba(59, 130, 246, 0.1);
+    color: #3B82F6;
+}
+
+/* ── Barra de progreso de stock ───────────────────────────────── */
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: var(--neutral-gray);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: var(--spacing-xs);
+}
+
+.progress-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width var(--transition-fast);
+}
+
+.progress-fill.high {
+    background: var(--success-green);
+}
+
+.progress-fill.medium {
+    background: #F59E0B;
+}
+
+.progress-fill.low {
+    background: var(--primary-red);
+}
+
+/* ── Contenedor de acciones ───────────────────────────────────── */
+.action-buttons {
+    display: flex;
+    gap: var(--spacing-sm);
+    flex-wrap: wrap;
+}
+
+.action-buttons .btn {
+    flex: 1;
+    min-width: 120px;
+    justify-content: center;
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-md);
+    }
+
+    .action-buttons {
+        flex-direction: column;
+    }
+
+    .action-buttons .btn {
+        width: 100%;
+    }
+
+    .card-body {
+        padding: var(--spacing-lg) !important;
+    }
+
+    .modal-body {
+        padding: var(--spacing-lg) !important;
+    }
+}
 
 /* ── Encabezado de página ─────────────────────────────────────── */
 .page-header {
