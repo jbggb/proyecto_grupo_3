@@ -47,17 +47,4 @@ function mostrarErrorTipo(msg) {
     }
 }
 
-function confirmarEliminar(nombre, form) {
-    Swal.fire({
-        title: '¿Eliminar tipo?',
-        html: 'Estás a punto de eliminar <strong>"' + nombre + '"</strong>.<br>Esta acción no se puede deshacer.',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#dc3545',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-    }).then(function (result) {
-        if (result.isConfirmed) { form.submit(); }
-    });
-}
+//por ahora no se valida el precio del tipo, pero se podría agregar una función similar a validarPrecio() de productos.js si se decide hacerlo en el futuro.

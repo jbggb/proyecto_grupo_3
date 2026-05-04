@@ -107,7 +107,7 @@
                 </tr>
                 {% empty %}
                 <tr>
-                    <td colspan="7" class="text-center text-muted py-4">
+                    <td colspan="8" class="text-center text-muted py-4">
                         <i class="fas fa-users fa-2x mb-2 d-block opacity-25"></i>
                         No hay administradores registrados.
                     </td>
@@ -134,7 +134,11 @@ $(document).ready(function () {
             url: '//cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
         },
         columnDefs: [
-            { orderable: false, targets: [1, 7] }  // Foto y Acciones no ordenables
+            { orderable: false, targets: [1, 7] }
+        ],
+        columns: [
+            null, null, null, null, null, null, null,
+            { orderable: false }
         ]
     });
 });

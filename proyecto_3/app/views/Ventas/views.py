@@ -11,6 +11,7 @@ from django.db import transaction
 from django.db.models import Sum
 from django.http import JsonResponse
 from app.decorators import admin_login_required
+from app.services.notifications import notificacion_stock_bajo, notificacion_venta_completada
 from ...models import Venta, DetalleVenta, Producto, Cliente
 
 
@@ -29,38 +30,25 @@ def _descontar_stock(ids, cantidades):
             )
         producto.stock -= cant
         producto.save()
+        # Notificar si stock queda bajo
+        if producto.stock <= 5:
+            notificacion_stock_bajo(producto)
 
 
 def _devolver_stock(detalles_qs):
     """
     Devuelve el stock de los productos a partir de un queryset de DetalleVenta.
-
-    ─── CORRECCIÓN ──────────────────────────────────────────────────────────
-    La versión anterior buscaba el producto por producto_nombre (un string).
-    Si existían dos productos con el mismo nombre pero diferente marca o tipo,
-    devolvía stock al primero que encontrara, que podría ser el equivocado.
-
-    La solución correcta es guardar producto_id en DetalleVenta (FK).
-    Como eso requiere una migración, por ahora se agrega un filtro más preciso:
-    buscar por nombre Y limitar a uno solo con .first(), dejando constancia del
-    problema en el comentario para el instructor.
-
-    Deuda técnica: agregar producto FK en DetalleVenta para resolver esto
-    definitivamente sin ambigüedad.
-    ─────────────────────────────────────────────────────────────────────────
+    Usa la FK producto_id guardada en el detalle para identificar el producto
+    de forma exacta, sin ambigüedad por nombre.
     """
     for detalle in detalles_qs:
         try:
-            # Busca exactamente por nombre — si hay duplicados de nombre toma el primero.
-            # La solución definitiva es agregar producto_id FK en DetalleVenta.
-            producto = Producto.objects.select_for_update().filter(
-                nombre=detalle.producto_nombre
-            ).first()
-            if producto:
+            if detalle.producto_id:
+                producto = Producto.objects.select_for_update().get(pk=detalle.producto_id)
                 producto.stock += detalle.cantidad or 0
                 producto.save()
-        except Exception:
-            pass  # el producto fue eliminado, no hay stock que devolver
+        except Producto.DoesNotExist:
+            pass  # El producto fue eliminado, no hay stock que devolver
 
 
 def rango_dia(fecha):
@@ -166,6 +154,7 @@ class CrearVentaView(View):
                 for i in range(len(ids)):
                     DetalleVenta.objects.create(
                         venta           = venta,
+                        producto_id     = int(ids[i]),
                         producto_nombre = nombres[i],
                         precio          = prec_float[i],
                         cantidad        = cant_int[i],
@@ -241,6 +230,7 @@ class EditarVentaView(View):
                 for i in range(len(ids)):
                     DetalleVenta.objects.create(
                         venta           = venta,
+                        producto_id     = int(ids[i]),
                         producto_nombre = nombres[i],
                         precio          = prec_float[i],
                         cantidad        = cant_int[i],
@@ -255,10 +245,17 @@ class EditarVentaView(View):
 
 @method_decorator(admin_login_required, name='dispatch')
 class CompletarVentaView(View):
+    def get(self, request, id):
+        # Protección: no permitir completar venta por GET (URL directa)
+        messages.error(request, 'Acción no permitida.')
+        return redirect('ventas')
+
     def post(self, request, id):
         venta        = get_object_or_404(Venta, id=id)
         venta.estado = 'Completada'
         venta.save()
+        # Enviar notificación de venta completada
+        notificacion_venta_completada(venta)
         messages.success(request, f'Venta #{venta.id} marcada como completada.')
         return redirect('ventas')
 

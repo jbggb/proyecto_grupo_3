@@ -1,0 +1,222 @@
+/*
+ * modulos.css — Estilos unificados para TODOS los módulos del sistema
+ * Aplica el mismo diseño consistente en: Productos, Ventas, Compras,
+ * Clientes, Proveedores, Reportes, Marcas, Tipos, Unidades, Backup
+ */
+
+/* ── Encabezado de página ─────────────────────────────────────── */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+.page-header h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.page-header h2 i {
+    color: #667eea;
+}
+
+/* ── Tarjetas ─────────────────────────────────────────────────── */
+.card {
+    border: none !important;
+    border-radius: 14px !important;
+    box-shadow: 0 2px 12px rgba(0,0,0,.07) !important;
+    background: rgba(255,255,255,0.95) !important;
+    backdrop-filter: blur(8px);
+}
+.card-header {
+    border-radius: 14px 14px 0 0 !important;
+    font-weight: 600;
+    font-size: .9rem;
+    letter-spacing: .02em;
+    padding: 14px 20px !important;
+}
+.card-header.bg-dark {
+    background: linear-gradient(90deg, #1e293b, #334155) !important;
+}
+.card-body {
+    padding: 20px !important;
+}
+
+/* ── Tablas ───────────────────────────────────────────────────── */
+.table {
+    font-size: .875rem;
+}
+.table thead th {
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    border-bottom: 2px solid rgba(255,255,255,.1);
+    white-space: nowrap;
+}
+.table tbody td {
+    padding: 12px 16px;
+    vertical-align: middle;
+    font-size: .875rem;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+}
+.table tbody tr:last-child td {
+    border-bottom: none;
+}
+.table tbody tr:hover td {
+    background: #f8faff;
+}
+.table-dark thead th {
+    background: linear-gradient(90deg, #1e293b, #334155);
+    color: #e2e8f0;
+}
+
+/* ── Formularios de búsqueda ──────────────────────────────────── */
+.form-control, .form-select {
+    border-radius: 8px !important;
+    border: 1.5px solid #e2e8f0 !important;
+    font-size: .875rem !important;
+    padding: 8px 12px !important;
+    transition: border-color .2s, box-shadow .2s;
+}
+.form-control:focus, .form-select:focus {
+    border-color: #667eea !important;
+    box-shadow: 0 0 0 3px rgba(102,126,234,.12) !important;
+}
+.form-label {
+    font-size: .8rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 4px;
+}
+
+/* ── Botones ──────────────────────────────────────────────────── */
+.btn {
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    font-size: .85rem !important;
+    transition: all .2s !important;
+}
+.btn-primary {
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    border: none !important;
+}
+.btn-primary:hover {
+    opacity: .9 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(102,126,234,.35) !important;
+}
+.btn-success {
+    background: linear-gradient(135deg, #22c55e, #16a34a) !important;
+    border: none !important;
+}
+.btn-success:hover {
+    opacity: .9 !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(34,197,94,.35) !important;
+}
+.btn-danger {
+    background: linear-gradient(135deg, #ef4444, #dc2626) !important;
+    border: none !important;
+}
+.btn-danger:hover {
+    opacity: .9 !important;
+    transform: translateY(-1px) !important;
+}
+.btn-info {
+    background: linear-gradient(135deg, #0ea5e9, #0284c7) !important;
+    border: none !important;
+    color: #fff !important;
+}
+.btn-info:hover {
+    opacity: .9 !important;
+    transform: translateY(-1px) !important;
+}
+.btn-warning {
+    background: linear-gradient(135deg, #f59e0b, #d97706) !important;
+    border: none !important;
+    color: #fff !important;
+}
+.btn-secondary {
+    background: #64748b !important;
+    border: none !important;
+}
+.btn-sm {
+    padding: 5px 10px !important;
+    font-size: .78rem !important;
+}
+
+/* ── Modales ──────────────────────────────────────────────────── */
+.modal-content {
+    border: none !important;
+    border-radius: 16px !important;
+    box-shadow: 0 20px 60px rgba(0,0,0,.2) !important;
+    overflow: hidden;
+}
+.modal-header {
+    padding: 18px 24px !important;
+    border-bottom: 1px solid #f1f5f9 !important;
+}
+.modal-header.bg-success { background: linear-gradient(135deg, #22c55e, #16a34a) !important; }
+.modal-header.bg-primary { background: linear-gradient(135deg, #667eea, #764ba2) !important; }
+.modal-header.bg-danger  { background: linear-gradient(135deg, #ef4444, #dc2626) !important; }
+.modal-header.bg-warning { background: linear-gradient(135deg, #f59e0b, #d97706) !important; }
+.modal-header.bg-info    { background: linear-gradient(135deg, #0ea5e9, #0284c7) !important; }
+.modal-header.bg-dark    { background: linear-gradient(135deg, #1e293b, #334155) !important; }
+.modal-title {
+    font-size: .95rem !important;
+    font-weight: 700 !important;
+}
+.modal-body { padding: 24px !important; }
+.modal-footer {
+    padding: 16px 24px !important;
+    border-top: 1px solid #f1f5f9 !important;
+}
+
+/* ── Badges de estado ─────────────────────────────────────────── */
+.badge {
+    font-size: .72rem !important;
+    font-weight: 600 !important;
+    border-radius: 6px !important;
+    padding: 4px 8px !important;
+}
+
+/* ── Alertas ──────────────────────────────────────────────────── */
+.alert {
+    border: none !important;
+    border-radius: 10px !important;
+    font-size: .875rem !important;
+}
+
+/* ── Encabezado de módulo unificado ───────────────────────────── */
+.module-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 0;
+}
+.module-title i { color: #667eea; }
+
+/* ── Input group ──────────────────────────────────────────────── */
+.input-group-text {
+    border-radius: 8px 0 0 8px !important;
+    border: 1.5px solid #e2e8f0 !important;
+    background: #f8fafc !important;
+    color: #667eea !important;
+    font-weight: 600;
+}
+
+/* ── Scrollbar personalizada ──────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #667eea; }
