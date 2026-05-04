@@ -15,6 +15,9 @@ UNIDADES_PERMITIDAS = {
     'unidad', 'docena', 'paquete', 'caja', 'bolsa', 'botella', 'lata', 'porción'
 }
 
+# Abreviaturas permitidas (valores válidos del select)
+ABREVIATURAS_VALIDAS = {'kg','g','mg','t','lb','oz','l','ml','cl','m','cm','mm','un','doc','paq','caj','bol','bot','lta','por'}
+
 # Abreviaturas estándar por unidad
 ABREVIATURAS = {
     'kilogramo': 'kg', 'gramo': 'g', 'miligramo': 'mg', 'tonelada': 't',
