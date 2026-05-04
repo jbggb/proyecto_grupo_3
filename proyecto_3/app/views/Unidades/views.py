@@ -8,21 +8,14 @@ from django.urls import reverse
 from app.decorators import admin_login_required
 from app.models import unidad_medida, Producto
 
-# Lista blanca de unidades permitidas (en minúsculas para comparación)
-UNIDADES_PERMITIDAS = {
-    'kilogramo', 'gramo', 'miligramo', 'tonelada', 'libra', 'onza',
-    'litro', 'mililitro', 'centilitro', 'metro', 'centímetro', 'milímetro',
-    'unidad', 'docena', 'paquete', 'caja', 'bolsa', 'botella', 'lata', 'porción'
-}
-
 # Abreviaturas permitidas (valores válidos del select)
-ABREVIATURAS_VALIDAS = {'kg','g','mg','t','lb','oz','l','ml','cl','m','cm','mm','un','doc','paq','caj','bol','bot','lta','por'}
+ABREVIATURAS_VALIDAS = {'kg','g','mg','t','lb','oz','l','ml','kl','cl','m','cm','mm','un','doc','paq','caj','bol','bot','lta','por'}
 
 # Abreviaturas estándar por unidad
 ABREVIATURAS = {
     'kilogramo': 'kg', 'gramo': 'g', 'miligramo': 'mg', 'tonelada': 't',
     'libra': 'lb', 'onza': 'oz', 'litro': 'l', 'mililitro': 'ml',
-    'centilitro': 'cl', 'metro': 'm', 'centímetro': 'cm', 'milímetro': 'mm',
+    'kilolitro': 'kl', 'centilitro': 'cl', 'metro': 'm', 'centímetro': 'cm', 'milímetro': 'mm',
     'unidad': 'un', 'docena': 'doc', 'paquete': 'paq', 'caja': 'caj',
     'bolsa': 'bol', 'botella': 'bot', 'lata': 'lta', 'porción': 'por'
 }
@@ -38,16 +31,17 @@ class UnidadesView(View):
 class CrearUnidadView(View):
     def post(self, request):
         nombre       = request.POST.get('nombre_unidad', '').strip()
-        abreviatura  = request.POST.get('abreviatura', '').strip()
+        abreviatura  = request.POST.get('abreviatura', '').strip().lower()
 
         if not nombre:
             messages.error(request, 'El nombre es obligatorio.')
         elif len(nombre) < 2:
-            messages.error(request, 'El nombre debe tener al menos 2 letras.')
-        elif not re.match(r'^[a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]+$', nombre):
-            messages.error(request, 'El nombre solo puede contener letras y espacios.')
+            messages.error(request, 'El nombre es muy corto.')
+        # El regex ahora permite: letras, números, espacios y puntos.
+        elif not re.match(r'^[a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ .]+$', nombre):
+            messages.error(request, 'El nombre contiene caracteres no permitidos.')
         elif not abreviatura or abreviatura not in ABREVIATURAS_VALIDAS:
-            messages.error(request, 'Debes seleccionar una abreviatura válida del listado.')
+            messages.error(request, 'La abreviatura no es válida o no fue seleccionada.')
         elif unidad_medida.objects.filter(nombre_unidad__iexact=nombre).exists():
             messages.error(request, f'Ya existe una unidad llamada "{nombre}".')
         else:

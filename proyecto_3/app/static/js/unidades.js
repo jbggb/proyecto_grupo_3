@@ -1,6 +1,6 @@
 var unidadesExistentes = [];
 
-var ABREVIATURAS_VALIDAS = ['kg','g','mg','t','lb','oz','l','ml','cl','m','cm','mm','un','doc','paq','caj','bol','bot','lta','por'];
+var ABREVIATURAS_VALIDAS = ['kg','g','mg','t','lb','oz','l','ml','kl','cl','m','cm','mm','un','doc','paq','caj','bol','bot','lta','por'];
 
 document.addEventListener('DOMContentLoaded', function () {
     // Recolectar unidades ya registradas
@@ -8,42 +8,45 @@ document.addEventListener('DOMContentLoaded', function () {
         unidadesExistentes.push(el.textContent.trim().toLowerCase());
     });
 
-    var form = document.querySelector('form');
-    if (form) {
-        form.addEventListener('submit', function (e) {
-            var inputNombre = form.querySelector('input[name="nombre_unidad"]');
-            var selectAbrev = form.querySelector('select[name="abreviatura"]');
-            var nombre = inputNombre.value.trim();
-            var abrev  = selectAbrev ? selectAbrev.value.trim() : '';
+    // Aplicar validación a todos los formularios de la página
+    document.querySelectorAll('form').forEach(function (form) {
+        if (form.querySelector('input[name="nombre_unidad"]')) {
+            form.addEventListener('submit', function (e) {
+                var inputNombre = form.querySelector('input[name="nombre_unidad"]');
+                var fieldAbrev  = form.querySelector('[name="abreviatura"]');
+                var nombre = inputNombre.value.trim();
+                var abrev  = fieldAbrev ? fieldAbrev.value.trim().toLowerCase() : '';
 
-            if (nombre.length < 2) {
-                e.preventDefault();
-                mostrarErrorUnidad('⚠ El nombre debe tener al menos 2 letras.');
-                inputNombre.focus();
-                return;
-            }
-            if (!abrev || !ABREVIATURAS_VALIDAS.includes(abrev)) {
-                e.preventDefault();
-                mostrarErrorAbreviatura('⚠ Debes seleccionar una abreviatura del listado.');
-                selectAbrev.focus();
-                return;
-            }
-            if (unidadesExistentes.includes(nombre.toLowerCase())) {
-                e.preventDefault();
-                mostrarErrorUnidad('⚠ Ya existe una unidad con ese nombre.');
-                inputNombre.focus();
-            }
-        });
-    }
+                if (nombre.length < 2) {
+                    e.preventDefault();
+                    mostrarErrorUnidad('⚠ El nombre debe tener al menos 2 caracteres.');
+                    inputNombre.focus();
+                    return;
+                }
+                if (!abrev || !ABREVIATURAS_VALIDAS.includes(abrev)) {
+                    e.preventDefault();
+                    mostrarErrorAbreviatura('⚠ Selección de abreviatura obligatoria.');
+                    if (fieldAbrev) fieldAbrev.focus();
+                    return;
+                }
+                // Solo validar duplicados al CREAR (si el formulario no tiene ID de edición)
+                if (!form.action.includes('editar') && unidadesExistentes.includes(nombre.toLowerCase())) {
+                    e.preventDefault();
+                    mostrarErrorUnidad('⚠ Ya existe una unidad con ese nombre.');
+                    inputNombre.focus();
+                }
+            });
+        }
+    });
 });
 
 function bloquearNombreUnidad(input) {
     var antes = input.value;
-    var limpio = antes.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ ]/g, '');
+    var limpio = antes.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ .]/g, '');
     limpio = limpio.replace(/ {2,}/g, ' ');
     if (antes !== limpio) {
         input.value = limpio;
-        mostrarErrorUnidad('⚠ Solo se permiten letras y espacios.');
+        mostrarErrorUnidad('⚠ Solo letras, números y espacios.');
     }
 }
 

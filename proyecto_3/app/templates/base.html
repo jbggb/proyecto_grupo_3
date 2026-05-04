@@ -37,8 +37,14 @@
             border-radius: 6px;
             transition: background 0.2s;
         }
-        #sidebar a:hover {
+        #sidebar a:hover, #sidebar .productos-toggle:hover {
             background-color: rgba(255,255,255,0.1);
+        }
+        .sub-link:hover {
+            background-color: rgba(255,255,255,0.08) !important;
+        }
+        .sub-link.active {
+            background-color: rgba(255,255,255,0.15) !important;
         }
         #sidebar a i {
             min-width: 24px;
@@ -60,7 +66,6 @@
             transition: margin-left 0.3s ease;
             flex: 1;
         }
-<<<<<<< HEAD
 
         /* ── Botón flotante IA ── */
         #chat-btn {
@@ -149,8 +154,6 @@
             font-size: 14px;
         }
         #chat-input-area button:hover { background: #0b5ed7; }
-=======
->>>>>>> origin/sebastian
     </style>
 </head>
 <body>
@@ -268,10 +271,40 @@
             <i class="fa-solid fa-house"></i>
             <span class="link-text ms-2">Inicio</span>
         </a>
-        <a href="{% url 'productos' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'productos' %} active{% endif %}">
-            <i class="fa-solid fa-box"></i>
-            <span class="link-text ms-2">Productos</span>
-        </a>
+
+        <!-- Menú desplegable Productos -->
+        <div class="productos-menu mb-2">
+            <button class="productos-toggle d-flex align-items-center text-light text-decoration-none w-100 border-0 bg-transparent p-0"
+                    style="padding: 10px 8px !important; border-radius: 6px; cursor: pointer; transition: background 0.2s;"
+                    onclick="toggleProductosMenu(this)"
+                    title="Productos">
+                <i class="fa-solid fa-box" style="min-width:24px; text-align:center;"></i>
+                <span class="link-text ms-2 d-flex align-items-center justify-content-between w-100">
+                    Productos
+                    <i class="fa-solid fa-chevron-down ms-auto me-1 chevron-icon" style="font-size:.75rem; transition: transform 0.25s;"></i>
+                </span>
+            </button>
+            <div class="productos-submenu ps-3 mt-1"
+                 style="display:{% if request.resolver_match and request.resolver_match.url_name in 'productos,marcas,tipos,unidades' %}block{% else %}none{% endif %}; border-left: 2px solid rgba(255,255,255,0.2);">
+                <a href="{% url 'productos' %}" class="d-flex align-items-center text-light py-1 text-decoration-none sub-link{% if request.resolver_match and request.resolver_match.url_name == 'productos' %} active{% endif %}" style="border-radius:4px; padding: 6px 8px;">
+                    <i class="fa-solid fa-boxes-stacked" style="min-width:20px; text-align:center; font-size:.9rem;"></i>
+                    <span class="link-text ms-2" style="font-size:.9rem;">Productos</span>
+                </a>
+                <a href="{% url 'marcas' %}" class="d-flex align-items-center text-light py-1 text-decoration-none sub-link{% if request.resolver_match and request.resolver_match.url_name == 'marcas' %} active{% endif %}" style="border-radius:4px; padding: 6px 8px;">
+                    <i class="fa-solid fa-tag" style="min-width:20px; text-align:center; font-size:.9rem;"></i>
+                    <span class="link-text ms-2" style="font-size:.9rem;">Marcas</span>
+                </a>
+                <a href="{% url 'unidades' %}" class="d-flex align-items-center text-light py-1 text-decoration-none sub-link{% if request.resolver_match and request.resolver_match.url_name == 'unidades' %} active{% endif %}" style="border-radius:4px; padding: 6px 8px;">
+                    <i class="fa-solid fa-ruler" style="min-width:20px; text-align:center; font-size:.9rem;"></i>
+                    <span class="link-text ms-2" style="font-size:.9rem;">Unidades de Medida</span>
+                </a>
+                <a href="{% url 'tipos' %}" class="d-flex align-items-center text-light py-1 text-decoration-none sub-link{% if request.resolver_match and request.resolver_match.url_name == 'tipos' %} active{% endif %}" style="border-radius:4px; padding: 6px 8px;">
+                    <i class="fa-solid fa-layer-group" style="min-width:20px; text-align:center; font-size:.9rem;"></i>
+                    <span class="link-text ms-2" style="font-size:.9rem;">Tipo de Producto</span>
+                </a>
+            </div>
+        </div>
+
         <a href="{% url 'clientes' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'clientes' %} active{% endif %}">
             <i class="fa-solid fa-users"></i>
             <span class="link-text ms-2">Clientes</span>
@@ -340,6 +373,22 @@
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'js/confirmaciones.js' %}"></script>
 <script>
+    // Submenu Productos
+    function toggleProductosMenu(btn) {
+        const submenu = btn.closest('.productos-menu').querySelector('.productos-submenu');
+        const chevron = btn.querySelector('.chevron-icon');
+        const isOpen = submenu.style.display !== 'none';
+        submenu.style.display = isOpen ? 'none' : 'block';
+        chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+        const submenu = document.querySelector('.productos-submenu');
+        const chevron = document.querySelector('.chevron-icon');
+        if (submenu && submenu.style.display !== 'none') {
+            chevron.style.transform = 'rotate(180deg)';
+        }
+    });
+
     const toggleBtn = document.getElementById('toggle-btn');
     const sidebar = document.getElementById('sidebar');
 
@@ -437,9 +486,7 @@
                 updateBadge(data.total_notificaciones || 0);
                 renderDropdown(data.notificaciones || []);
             })
-            .catch(() => {
-                // No romper la página si falla la carga de notificaciones.
-            });
+            .catch(() => {});
     }
 
     notifButton.addEventListener('click', function() {
@@ -450,7 +497,7 @@
         const clearBtn = event.target.closest('#clear-notifications');
         const readBtn = event.target.closest('.btn-read-notif');
         const deleteBtn = event.target.closest('.btn-delete-notif');
-        
+
         if (clearBtn) {
             event.preventDefault();
             fetch(clearUrl, {
@@ -468,13 +515,11 @@
                     renderDropdown([]);
                 }
             })
-            .catch(() => {
-                // No romper si la limpieza falla.
-            });
+            .catch(() => {});
         } else if (readBtn) {
             event.preventDefault();
             const id = readBtn.getAttribute('data-id');
-            if(!id) return;
+            if (!id) return;
             fetch('/notificaciones/leer/' + id + '/', {
                 method: 'POST',
                 headers: {
@@ -483,12 +528,12 @@
                     'X-CSRFToken': getCookie('csrftoken'),
                 },
             }).then(response => response.json()).then(data => {
-                if(data.ok) refreshNotifications();
+                if (data.ok) refreshNotifications();
             }).catch(() => {});
         } else if (deleteBtn) {
             event.preventDefault();
             const id = deleteBtn.getAttribute('data-id');
-            if(!id) return;
+            if (!id) return;
             fetch('/notificaciones/eliminar/' + id + '/', {
                 method: 'POST',
                 headers: {
@@ -497,7 +542,7 @@
                     'X-CSRFToken': getCookie('csrftoken'),
                 },
             }).then(response => response.json()).then(data => {
-                if(data.ok) refreshNotifications();
+                if (data.ok) refreshNotifications();
             }).catch(() => {});
         }
     });
@@ -584,7 +629,6 @@ document.addEventListener('DOMContentLoaded', function() {
     const iconMap  = { 'success': 'success', 'error': 'error', 'warning': 'warning', 'info': 'info', 'debug': 'info' };
     const titleMap = { 'success': '¡Listo!', 'error': '¡Error!', 'warning': '¡Atención!', 'info': '¡Info!' };
 
-    // Toast (esquina inferior derecha) para success/info — no interrumpe el flujo
     const Toast = Swal.mixin({
         toast: true,
         position: 'bottom-end',
@@ -600,13 +644,11 @@ document.addEventListener('DOMContentLoaded', function() {
     mensajes.forEach(function(msg) {
         const tipo = msg.tipo || 'info';
         if (tipo === 'success' || tipo === 'info') {
-            // Toast silencioso para operaciones exitosas
             Toast.fire({
                 icon: iconMap[tipo],
                 title: msg.texto,
             });
         } else {
-            // Popup bloqueante para errores y advertencias (requieren atención)
             Swal.fire({
                 icon: iconMap[tipo] || 'warning',
                 title: titleMap[tipo] || '¡Atención!',
@@ -621,7 +663,6 @@ document.addEventListener('DOMContentLoaded', function() {
 {% endif %}
 
 {% block extra_js %}{% endblock %}
-
 
 </body>
 </html>
