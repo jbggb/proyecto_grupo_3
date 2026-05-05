@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var btnSubirImagen  = el('btn-subir-imagen');
     var previewImagen   = el('scanner-preview-imagen');
 
-    var modalStock          = new bootstrap.Modal(el('modalActualizarStock'));
+    var modalStock          = bootstrap.Modal.getOrCreateInstance(el('modalActualizarStock'));
     var stockNombre         = el('stock-modal-nombre');
     var stockActual         = el('stock-modal-actual');
     var stockCantidad       = el('stock-modal-cantidad');
@@ -285,7 +285,14 @@ document.addEventListener('DOMContentLoaded', function () {
         stockError.style.display = 'none';
         modalStock.show();
     }
-    function cerrarModalStock() { modalStock.hide(); }
+    function cerrarModalStock() {
+        modalStock.hide();
+        // Limpiar backdrop residual por si queda huerfano (modal static)
+        document.querySelectorAll(".modal-backdrop").forEach(function(b) { b.remove(); });
+        document.body.classList.remove("modal-open");
+        document.body.style.removeProperty("overflow");
+        document.body.style.removeProperty("padding-right");
+    }
     btnCancelarStock.addEventListener('click', cerrarModalStock);
     btnCerrarStockModal.addEventListener('click', cerrarModalStock);
 

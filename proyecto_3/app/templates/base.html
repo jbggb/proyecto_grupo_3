@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{% static 'css/all.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/estilos_pagina.css' %}">
     <link rel="stylesheet" href="{% static 'css/modulos.css' %}">
+    <link rel="stylesheet" href="{% static 'css/animaciones.css' %}">
     <script src="{% static 'js/sweetalert2.min.js' %}"></script>
     <style>
         #sidebar {
@@ -347,7 +348,7 @@
     </aside>
 
     <!-- CONTENIDO -->
-    <main id="main-content" class="p-4">
+    <main id="main-content" class="p-4 animate-fade-in">
         {% block content %}{% endblock %}
     </main>
 </div>
@@ -715,6 +716,26 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endif %}
+
+
+<!-- ── FIX GLOBAL: Limpieza de backdrop y scroll al cerrar cualquier modal ── -->
+<script>
+(function () {
+    // Se ejecuta cada vez que Bootstrap termina de ocultar un modal
+    document.addEventListener('hidden.bs.modal', function () {
+        // Si no hay otro modal abierto, limpiar backdrops residuales
+        var modalAbierto = document.querySelector('.modal.show');
+        if (!modalAbierto) {
+            document.querySelectorAll('.modal-backdrop').forEach(function (b) { b.remove(); });
+            document.body.classList.remove('modal-open');
+            document.body.style.removeProperty('overflow');
+            document.body.style.removeProperty('padding-right');
+        }
+    });
+})();
+</script>
+
+<script src="{% static 'js/animaciones.js' %}"></script>
 
 {% block extra_js %}{% endblock %}
 
