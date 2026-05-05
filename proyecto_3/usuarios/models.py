@@ -4,7 +4,6 @@ from django.contrib.auth.models import User
 
 # Solo dos roles: superadmin (is_superuser=True) y admin (is_superuser=False)
 ROLES = (
-    ('superadmin', 'Superadministrador'),
     ('admin',      'Administrador'),
 )
 

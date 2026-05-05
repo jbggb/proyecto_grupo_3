@@ -43,33 +43,33 @@
                     </div>
 
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Abreviatura</label>
-                        <input type="text" name="abreviatura" class="form-control"
-                               maxlength="10" list="lista_abreviaturas"
-                               placeholder="Ej: kg, lt...">
-                        <datalist id="lista_abreviaturas">
-                            <option value="kg">Kilogramo</option>
-                            <option value="g">Gramo</option>
-                            <option value="mg">Miligramo</option>
-                            <option value="t">Tonelada</option>
-                            <option value="lb">Libra</option>
-                            <option value="oz">Onza</option>
-                            <option value="l">Litro</option>
-                            <option value="ml">Mililitro</option>
-                            <option value="cl">Centilitro</option>
-                            <option value="m">Metro</option>
-                            <option value="cm">Centímetro</option>
-                            <option value="mm">Milímetro</option>
-                            <option value="un">Unidad</option>
-                            <option value="doc">Docena</option>
-                            <option value="paq">Paquete</option>
-                            <option value="caj">Caja</option>
-                            <option value="bol">Bolsa</option>
-                            <option value="bot">Botella</option>
-                            <option value="lta">Lata</option>
-                            <option value="por">Porción</option>
-                        </datalist>
-                        <small class="text-muted">Opcional — puedes elegir de la lista o escribir la tuya.</small>
+                        <label class="form-label fw-semibold">
+                            Abreviatura <span class="text-danger">*</span>
+                        </label>
+                        <select name="abreviatura" class="form-select" required id="select_abreviatura">
+                            <option value="">-- Seleccione una abreviatura --</option>
+                            <option value="kg">kg — Kilogramo</option>
+                            <option value="g">g — Gramo</option>
+                            <option value="mg">mg — Miligramo</option>
+                            <option value="t">t — Tonelada</option>
+                            <option value="lb">lb — Libra</option>
+                            <option value="oz">oz — Onza</option>
+                            <option value="l">l — Litro</option>
+                            <option value="ml">ml — Mililitro</option>
+                            <option value="cl">cl — Centilitro</option>
+                            <option value="m">m — Metro</option>
+                            <option value="cm">cm — Centímetro</option>
+                            <option value="mm">mm — Milímetro</option>
+                            <option value="un">un — Unidad</option>
+                            <option value="doc">doc — Docena</option>
+                            <option value="paq">paq — Paquete</option>
+                            <option value="caj">caj — Caja</option>
+                            <option value="bol">bol — Bolsa</option>
+                            <option value="bot">bot — Botella</option>
+                            <option value="lta">lta — Lata</option>
+                            <option value="por">por — Porción</option>
+                        </select>
+                        <div id="abreviatura_error" class="text-danger small mt-1" style="display:none;"></div>
                     </div>
 
                     <button type="submit" class="btn btn-success w-100">

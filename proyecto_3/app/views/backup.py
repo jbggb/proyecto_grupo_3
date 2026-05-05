@@ -9,7 +9,7 @@ from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
-from app.decorators import admin_login_required
+from app.decorators import superadmin_required
 import platform
 import shutil
 
@@ -77,7 +77,7 @@ def probar_conexion_mysql():
 
 # ========== VISTA PARA MOSTRAR OPCIONES DE RESPALDO ==========
 
-@admin_login_required
+@superadmin_required
 @require_http_methods(["GET", "POST"])
 def backup(request):
     """Muestra el menú de opciones para respaldo y restauración."""
@@ -104,7 +104,7 @@ def backup(request):
 
 # ========== VISTA PARA RESTAURAR DATOS ==========
 
-@admin_login_required
+@superadmin_required
 @require_http_methods(["GET", "POST"])
 def restaurar_datos(request):
     """Restaura datos desde un archivo SQL."""

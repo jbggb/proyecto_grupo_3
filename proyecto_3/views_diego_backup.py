@@ -1,12 +1,9 @@
 """Vistas para gestión de productos"""
 import re
-import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.views import View
 from django.utils.decorators import method_decorator
-from django.http import JsonResponse
-from django.views.decorators.http import require_GET, require_POST
 from app.decorators import admin_login_required
 from app.models import Producto, Marca, TipoProductos, unidad_medida
 
@@ -70,12 +67,14 @@ class CrearProductoView(View):
         if Producto.objects.filter(nombre__iexact=nombre, idMarca=idMarca, idTipo=idTipo).exists():
             return error(f'Ya existe un producto "{nombre}" con esa marca y tipo.')
 
+        # ─── CORRECCIÓN: usar float en lugar de isdigit para aceptar decimales ───
         try:
             precio_val = float(precio.replace(',', '.'))
             if precio_val < 1 or precio_val > 800000:
                 raise ValueError
         except ValueError:
             return error('El precio debe ser un número entre 1 y 800.000.')
+        # ─────────────────────────────────────────────────────────────────────────
 
         if not stock.isdigit() or int(stock) < 0 or int(stock) > 1000:
             return error('El stock debe ser un número entre 0 y 1.000.')
@@ -166,35 +165,3 @@ productos         = ProductosView.as_view()
 crear_producto    = CrearProductoView.as_view()
 editar_producto   = EditarProductoView.as_view()
 eliminar_producto = EliminarProductoView.as_view()
-
-
-@admin_login_required
-@require_GET
-def buscar_codigo_barras(request):
-    codigo = request.GET.get('codigo', '').strip()
-    if not codigo:
-        return JsonResponse({'error': 'Código vacío'}, status=400)
-    try:
-        producto = Producto.objects.get(codigo_barras=codigo)
-        return JsonResponse({
-            'id':     producto.idProducto,
-            'nombre': producto.nombre,
-            'precio': float(producto.precio),
-            'stock':  producto.stock,
-        })
-    except Producto.DoesNotExist:
-        return JsonResponse({'error': 'Producto no encontrado'}, status=404)
-
-
-@admin_login_required
-@require_POST
-def actualizar_stock_escaner(request):
-    try:
-        data     = json.loads(request.body)
-        producto = Producto.objects.get(idProducto=data.get('id'))
-        cantidad = int(data.get('cantidad', 0))
-        producto.stock += cantidad
-        producto.save()
-        return JsonResponse({'ok': True, 'stock': producto.stock})
-    except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)

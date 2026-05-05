@@ -23,6 +23,9 @@ db.sqlite3
 # Archivo de settings local (cada quien tiene su propia contraseña de BD)
 proyecto_3/config/settings_local.py
 
+# Variables de entorno
+.env
+
 # ===========================
 # Entornos virtuales
 # ===========================
