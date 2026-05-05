@@ -13,8 +13,10 @@ document.addEventListener('DOMContentLoaded', function () {
         if (form.querySelector('input[name="nombre_unidad"]')) {
             form.addEventListener('submit', function (e) {
                 var inputNombre = form.querySelector('input[name="nombre_unidad"]');
+                var selectAbrev = form.querySelector('select[name="abreviatura"]');
                 var fieldAbrev  = form.querySelector('[name="abreviatura"]');
                 var nombre = inputNombre.value.trim();
+                var abrev  = selectAbrev ? selectAbrev.value.trim().toLowerCase() : '';
                 var abrev  = fieldAbrev ? fieldAbrev.value.trim().toLowerCase() : '';
 
                 if (nombre.length < 2) {
@@ -26,6 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!abrev || !ABREVIATURAS_VALIDAS.includes(abrev)) {
                     e.preventDefault();
                     mostrarErrorAbreviatura('⚠ Selección de abreviatura obligatoria.');
+                    if (selectAbrev) selectAbrev.focus();
                     if (fieldAbrev) fieldAbrev.focus();
                     return;
                 }
@@ -42,10 +45,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
 function bloquearNombreUnidad(input) {
     var antes = input.value;
+    var limpio = antes.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ \.]/g, '');
     var limpio = antes.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ .]/g, '');
     limpio = limpio.replace(/ {2,}/g, ' ');
     if (antes !== limpio) {
         input.value = limpio;
+        mostrarErrorUnidad('⚠ Solo se permiten letras, números, puntos y espacios.');
         mostrarErrorUnidad('⚠ Solo letras, números y espacios.');
     }
 }
