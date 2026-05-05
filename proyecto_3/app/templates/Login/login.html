@@ -4,602 +4,500 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>El Despecho — Panel Administrativo</title>
+    <title>El Despecho — Login Administrativo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
+        
         :root {
-            --rojo:      #9b1c1c;
-            --rojo-mid:  #b91c1c;
-            --rojo-light:#dc2626;
-            --dorado:    #f59e0b;
-            --texto:     #1a1a1a;
-            --gris:      #6b7280;
+            --primary: #9b1c1c;
+            --primary-hover: #b91c1c;
+            --bg-dark: #161615;
+            --glass-bg: rgba(60, 59, 56, 0.3);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-main: #f8fafc;
+            --text-muted: #9ca3af;
         }
 
         body {
-            font-family: 'DM Sans', sans-serif;
+            font-family: 'Inter', sans-serif;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 24px 16px;
             background: linear-gradient(150deg, #3c3b38 0%, #1b1d1b 45%, #161615 100%);
-            position: relative;
+            color: var(--text-main);
             overflow: hidden;
+            position: relative;
         }
 
-        /* Puntos de fondo */
-        body::before {
-            content: '';
-            position: fixed; inset: 0;
-            background-image: radial-gradient(rgba(255,255,255,.06) 1px, transparent 1px);
-            background-size: 28px 28px;
-            pointer-events: none;
-        }
-
-        /* Círculos decorativos */
-        .deco-1 {
-            position: fixed;
-            top: -120px; right: -120px;
-            width: 420px; height: 420px;
+        /* Efectos visuales de fondo (SaaS/IA Style) */
+        .glow-orb-1 {
+            position: absolute;
+            top: -10%; left: -10%;
+            width: 50vw; height: 50vw;
+            background: radial-gradient(circle, rgba(155, 28, 28, 0.25) 0%, transparent 60%);
             border-radius: 50%;
-            background: rgba(255,255,255,.04);
+            filter: blur(80px);
+            animation: float 10s ease-in-out infinite alternate;
+            z-index: 0;
             pointer-events: none;
         }
-        .deco-2 {
-            position: fixed;
-            bottom: -80px; left: -80px;
-            width: 300px; height: 300px;
+        .glow-orb-2 {
+            position: absolute;
+            bottom: -20%; right: -10%;
+            width: 40vw; height: 40vw;
+            background: radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, transparent 60%);
             border-radius: 50%;
-            background: rgba(255,255,255,.03);
+            filter: blur(80px);
+            animation: float 12s ease-in-out infinite alternate-reverse;
+            z-index: 0;
             pointer-events: none;
         }
 
-        /* Tarjeta principal */
+        @keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(5%, 5%); }
+        }
+
+        /* Tarjeta Glassmorphism */
         .card {
             position: relative;
-            z-index: 1;
+            z-index: 10;
             width: 100%;
-            max-width: 440px;
-            background: #fff;
+            max-width: 420px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
             border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 32px 80px rgba(0,0,0,.35), 0 8px 24px rgba(0,0,0,.2);
+            padding: 40px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: zoomFadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            opacity: 0;
+            transform: scale(0.95) translateY(20px);
         }
 
-        /* Cabecera de la tarjeta */
+        @keyframes zoomFadeIn {
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        /* Cabecera */
         .card-header {
-            background: linear-gradient(145deg, #7f1d1d, #9b1c1c);
-            padding: 32px 36px 28px;
             text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .card-header::after {
-            content: '';
-            position: absolute;
-            bottom: -30px; left: 50%;
-            transform: translateX(-50%);
-            width: 120px; height: 60px;
-            background: #fff;
-            border-radius: 50% 50% 0 0;
+            margin-bottom: 32px;
         }
 
         .logo-wrap {
-            width: 80px; height: 80px;
-            border-radius: 18px;
-            background: rgba(255,255,255,.12);
-            border: 2px solid rgba(255,255,255,.2);
+            width: 64px; height: 64px;
+            margin: 0 auto 20px;
+            background: linear-gradient(145deg, #7f1d1d, #9b1c1c);
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 16px;
+            font-size: 28px;
+            color: #fff;
+            box-shadow: 0 10px 20px -5px rgba(155, 28, 28, 0.4);
             overflow: hidden;
         }
-
-        .logo-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        .logo-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 16px; }
 
         .card-title {
-            font-family: 'Fraunces', Georgia, serif;
-            font-size: 1.6rem;
-            font-weight: 900;
-            color: #fff;
-            line-height: 1.1;
-            margin-bottom: 4px;
-        }
-
-        .card-title span { color: var(--dorado); font-style: italic; }
-
-        .card-sub {
-            font-size: .78rem;
-            color: rgba(255,255,255,.6);
-            letter-spacing: .04em;
-        }
-
-        /* Cuerpo del formulario */
-        .card-body {
-            padding: 36px 36px 32px;
-        }
-
-        .form-eyebrow {
-            font-size: .7rem;
-            font-weight: 600;
-            color: var(--rojo-mid);
-            text-transform: uppercase;
-            letter-spacing: .1em;
-            margin-bottom: 6px;
-        }
-
-        .form-title {
-            font-family: 'Fraunces', Georgia, serif;
-            font-size: 1.4rem;
+            font-size: 1.5rem;
             font-weight: 700;
-            color: var(--texto);
-            margin-bottom: 24px;
+            margin-bottom: 8px;
+            letter-spacing: -0.02em;
+        }
+        
+        .card-sub {
+            font-size: 0.875rem;
+            color: var(--text-muted);
         }
 
         /* Alertas */
-        .alerts { margin-bottom: 16px; }
+        .alerts { margin-bottom: 24px; }
         .alert-item {
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-size: 0.875rem;
             display: flex;
             align-items: center;
-            gap: 9px;
-            padding: 10px 13px;
-            border-radius: 10px;
-            font-size: .83rem;
-            font-weight: 500;
-            margin-bottom: 8px;
+            gap: 10px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(10px);
         }
-        .alert-item.error   { background:#fee2e2; color:#1b4399; border:1px solid #fecaca; }
-        .alert-item.success { background:#dcfce7; color:#166534; border:1px solid #bbf7d0; }
+        .alert-item.error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+        .alert-item.success {
+            background: rgba(34, 197, 94, 0.1);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            color: #86efac;
+        }
 
         /* Inputs */
-        .form-group { margin-bottom: 16px; }
+        .form-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
 
         .form-label {
             display: block;
-            font-size: .7rem;
-            font-weight: 600;
-            color: #4b5563;
-            text-transform: uppercase;
-            letter-spacing: .07em;
-            margin-bottom: 6px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            transition: color 0.3s;
         }
 
-        .input-wrap { position: relative; display: flex; align-items: center; }
+        .input-wrap {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
 
         .input-icon {
-            position: absolute; left: 13px;
-            color: #9ca3af; font-size: .85rem;
-            pointer-events: none;
+            position: absolute;
+            left: 16px;
+            color: #64748b;
+            font-size: 1rem;
+            transition: color 0.3s;
         }
 
         .input-wrap input {
             width: 100%;
-            padding: 12px 14px 12px 38px;
-            border: 1.5px solid #e5e7eb;
-            border-radius: 11px;
-            font-size: .9rem;
-            font-family: 'DM Sans', sans-serif;
-            color: var(--texto);
-            background: #f9fafb;
-            transition: border-color .15s, box-shadow .15s, background .15s;
+            padding: 14px 16px 14px 44px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            font-family: inherit;
             outline: none;
+            transition: all 0.3s ease;
         }
 
         .input-wrap input:focus {
-            border-color: var(--rojo-mid);
-            background: #fff;
-            box-shadow: 0 0 0 3px rgba(185,28,28,.1);
+            background: rgba(27, 29, 27, 0.8);
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(155, 28, 28, 0.15);
         }
 
-        .input-wrap input::placeholder { color: #d1d5db; }
+        .input-wrap input:focus + .input-icon,
+        .input-wrap input:focus ~ .input-icon {
+            color: var(--primary);
+        }
+
+        .input-wrap input::placeholder {
+            color: #475569;
+        }
 
         .toggle-pass {
-            position: absolute; right: 13px;
-            color: #9ca3af; cursor: pointer;
-            font-size: .85rem; transition: color .15s;
-        }
-        .toggle-pass:hover { color: var(--rojo-mid); }
-
-        /* Botón */
-        .btn-login {
-            width: 100%;
-            padding: 13px;
-            background: var(--rojo);
-            color: #fff;
-            border: none;
-            border-radius: 11px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: .92rem;
-            font-weight: 600;
+            position: absolute;
+            right: 16px;
+            color: #64748b;
             cursor: pointer;
-            margin-top: 8px;
-            transition: background .2s, transform .15s, box-shadow .2s;
-            letter-spacing: .01em;
+            transition: color 0.3s;
         }
-        .btn-login:hover {
-            background: var(--rojo-mid);
-            transform: translateY(-1px);
-            box-shadow: 0 6px 20px rgba(155,28,28,.4);
-        }
-        .btn-login:active { transform: translateY(0); box-shadow: none; }
+        .toggle-pass:hover { color: var(--text-main); }
 
+        /* Actions & Buttons */
         .recover-row {
-            margin-bottom: 18px;
-            display: grid;
-            gap: 12px;
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 24px;
         }
-
-        .btn-recover {
-            width: 100%;
-            padding: 12px;
-            background: #f3f4f6;
-            color: var(--texto);
-            border: 1px solid #d1d5db;
-            border-radius: 11px;
-            font-family: 'DM Sans', sans-serif;
-            font-size: .9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: background .2s, border-color .2s, transform .15s;
-        }
-        .btn-recover:hover {
-            background: #ffffff;
-            border-color: var(--rojo-mid);
-            transform: translateY(-1px);
-        }
-
-        .help-text {
-            font-size: .82rem;
-            color: #52525b;
-            line-height: 1.4;
-            margin: 0;
-        }
-        .hidden { display: none; }
-        .help-text.hidden { display: none; }
 
         .recover-link {
             background: none;
             border: none;
-            color: var(--rojo);
-            font-weight: 700;
+            color: var(--primary);
+            font-size: 0.85rem;
+            font-weight: 500;
             cursor: pointer;
             padding: 0;
-            font-size: .82rem;
+            transition: color 0.2s;
         }
-        .recover-link:hover { text-decoration: underline; }
+        .recover-link:hover { color: var(--primary-hover); text-decoration: underline; }
 
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,.55);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 50;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity .2s ease;
-        }
-        .modal-overlay.visible {
-            display: flex;
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .modal {
-            width: min(420px, calc(100% - 32px));
-            background: #fff;
-            border-radius: 20px;
-            overflow: hidden;
-            box-shadow: 0 24px 60px rgba(0,0,0,.35);
-            animation: popIn .2s ease;
-        }
-        .modal-header {
-            padding: 22px 22px 16px;
-            background: linear-gradient(145deg, #7f1d1d, #9b1c1c);
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .modal-header h3 {
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-hover));
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-family: inherit;
             font-size: 1rem;
-            margin: 0;
-        }
-        .modal-close {
-            background: transparent;
-            border: none;
-            color: #f8fafc;
-            font-size: 1.1rem;
-            cursor: pointer;
-        }
-        .modal-body {
-            padding: 22px;
-            display: grid;
-            gap: 16px;
-        }
-        .modal-body .input-wrap input {
-            background: #f9fafb;
-        }
-        .modal-footer {
-            padding: 18px 22px 22px;
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-        }
-        .modal-button {
-            padding: 12px 18px;
-            border-radius: 11px;
-            border: none;
             font-weight: 600;
             cursor: pointer;
-            transition: background .2s;
-        }
-        .modal-button.primary {
-            background: var(--rojo);
-            color: white;
-        }
-        .modal-button.secondary {
-            background: #f3f4f6;
-            color: var(--texto);
-        }
-
-        .strength-meter {
-            display: grid;
-            gap: 8px;
-        }
-        .strength-meter-label {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: .82rem;
-            color: #4b5563;
-        }
-        .meter-bar {
-            width: 100%;
-            height: 10px;
-            background: #e5e7eb;
-            border-radius: 999px;
+            transition: all 0.3s;
+            position: relative;
             overflow: hidden;
+            box-shadow: 0 10px 20px -5px rgba(155, 28, 28, 0.4);
         }
-        .meter-bar-fill {
-            width: 0%;
-            height: 100%;
-            border-radius: 999px;
-            transition: width .2s ease, background .2s ease;
+        
+        .btn-login::after {
+            content: '';
+            position: absolute;
+            top: 0; left: -100%;
+            width: 50%; height: 100%;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.2), transparent);
+            transform: skewX(-20deg);
+            transition: left 0.5s;
         }
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 25px -5px rgba(155, 28, 28, 0.5);
+        }
+        .btn-login:hover::after { left: 150%; }
+
+        /* Card Footer */
+        .card-footer {
+            margin-top: 32px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #475569;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        .card-footer i { color: #10b981; }
+
+        /* Modals (Adaptados a SaaS dark) */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: none; align-items: center; justify-content: center;
+            z-index: 100; opacity: 0; pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+        .modal-overlay.visible {
+            display: flex; opacity: 1; pointer-events: auto;
+        }
+        .modal {
+            width: min(400px, 90%);
+            background: #1b1d1b;
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            animation: modalPop 0.3s ease-out forwards;
+            color: var(--text-main);
+        }
+        @keyframes modalPop {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        .modal-header {
+            padding: 24px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .modal-header h3 { font-size: 1.1rem; font-weight: 600; margin: 0; }
+        .modal-close {
+            background: none; border: none; color: var(--text-muted);
+            font-size: 1.2rem; cursor: pointer; transition: color 0.2s;
+        }
+        .modal-close:hover { color: #fff; }
+        
+        .modal-body { padding: 24px; display: grid; gap: 20px; }
+        .modal-body p { color: var(--text-muted); font-size: 0.9rem; line-height: 1.5; margin: 0; }
+        
+        .modal-footer {
+            padding: 20px 24px;
+            background: rgba(0, 0, 0, 0.2);
+            display: flex; justify-content: flex-end; gap: 12px;
+        }
+        .modal-button {
+            padding: 10px 16px; border-radius: 10px; border: none; font-weight: 500; font-size: 0.9rem; cursor: pointer; transition: all 0.2s;
+        }
+        .modal-button.primary { background: var(--primary); color: #fff; }
+        .modal-button.primary:hover { background: var(--primary-hover); }
+        .modal-button.secondary { background: rgba(255,255,255,0.1); color: #fff; }
+        .modal-button.secondary:hover { background: rgba(255,255,255,0.15); }
+
+        .hidden { display: none !important; }
+
+        .status-message { font-size: 0.85rem; min-height: 1.2em; margin-top: 5px; }
+        .status-message.error { color: #fca5a5; }
+        .status-message.success { color: #86efac; }
+        
+        .strength-meter { display: grid; gap: 8px; margin-top: -10px; }
+        .strength-meter-label { display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-muted); }
+        .meter-bar { width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 999px; overflow: hidden; }
+        .meter-bar-fill { height: 100%; width: 0%; border-radius: 999px; transition: all 0.3s ease; }
         .meter-weak { background: #ef4444; }
-        .meter-medium { background: #f97316; }
-        .meter-strong { background: #22c55e; }
-
-        .feedback-message {
-            font-size: .82rem;
-            color: #52525b;
-            margin: 0;
-        }
-        .status-message {
-            font-size: .88rem;
-            margin-top: 10px;
-            min-height: 1.3em;
-            color: #374151;
-        }
-
-        .status-message.error {
-            color: #b91c1c;
-        }
-        .status-message.success {
-            color: #16a34a;
-        }
+        .meter-medium { background: #f59e0b; }
+        .meter-strong { background: #10b981; }
 
         .success-message {
-            background: #dcfce7;
-            color: #166534;
-            border: 1px solid #bbf7d0;
-            border-radius: 12px;
-            padding: 12px 14px;
-            font-size: .9rem;
-            margin-top: 8px;
-            display: none;
+            background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2);
+            color: #86efac; padding: 12px; border-radius: 10px; font-size: 0.85rem; display: none;
         }
 
-        /* Pie */
-        .card-footer {
-            padding: 16px 36px 24px;
-            text-align: center;
-            border-top: 1px solid #f3f4f6;
-        }
-
-        .secure-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            font-size: .76rem;
-            color: var(--gris);
-        }
-        .secure-badge i { color: var(--rojo-light); font-size: .8rem; }
-
-        /* Animación */
-        @keyframes popIn {
-            from { opacity: 0; transform: scale(.96) translateY(16px); }
-            to   { opacity: 1; transform: scale(1)   translateY(0); }
-        }
-        .card { animation: popIn .5s cubic-bezier(.34,1.56,.64,1) both; }
-
-        @media (max-width: 480px) {
-            .card-header  { padding: 24px 24px 22px; }
-            .card-body    { padding: 28px 24px 24px; }
-            .card-footer  { padding: 14px 24px 20px; }
-        }
+        #forgotPasswordHint { font-size: 0.85rem; text-align: center; color: var(--text-muted); margin-top: 16px; }
     </style>
 </head>
 <body>
 
-<div class="deco-1"></div>
-<div class="deco-2"></div>
+<!-- Efectos de fondo -->
+<div class="glow-orb-1"></div>
+<div class="glow-orb-2"></div>
 
 <div class="card">
-
-    <!-- Cabecera -->
     <div class="card-header">
         <div class="logo-wrap">
-            <img src="{% static 'img/logo.png' %}" alt="Logo Tienda El Despecho">
+            <i class="fa-solid fa-cube"></i>
         </div>
-        <div class="card-title">Tienda <span>El Despecho</span></div>
-        <div class="card-sub">Panel Administrativo · Gestión de Inventario</div>
+        <div class="card-title">Bienvenido de nuevo</div>
+        <div class="card-sub">Panel Administrativo · El Despecho</div>
     </div>
 
-    <!-- Formulario -->
-    <div class="card-body">
-        <div class="form-eyebrow">Acceso seguro</div>
-        <div class="form-title">Bienvenido de nuevo</div>
-
-        {% if messages %}
-        <div class="alerts">
-            {% for message in messages %}
-            <div class="alert-item {% if message.tags == 'error' %}error{% else %}success{% endif %}">
-                <i class="fa-solid {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
-                {{ message }}
-            </div>
-            {% endfor %}
+    {% if messages %}
+    <div class="alerts">
+        {% for message in messages %}
+        <div class="alert-item {% if message.tags == 'error' %}error{% else %}success{% endif %}">
+            <i class="fa-solid {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}"></i>
+            {{ message }}
         </div>
-        {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
 
-        <form method="POST" action="{% url 'login' %}">
-            {% csrf_token %}
+    <form method="POST" action="{% url 'login' %}">
+        {% csrf_token %}
 
-            <div class="form-group">
-                <label class="form-label">Usuario</label>
-                <div class="input-wrap">
-                    <i class="input-icon fa-solid fa-user"></i>
-                    <input type="text" name="username" placeholder="Ingresa tu usuario"
-                           required autofocus autocomplete="username">
-                </div>
+        <div class="form-group">
+            <label class="form-label">Usuario</label>
+            <div class="input-wrap">
+                <input type="text" name="username" placeholder="Ingresa tu usuario" required autofocus autocomplete="username">
+                <i class="input-icon fa-solid fa-user"></i>
             </div>
+        </div>
 
-            <div class="form-group">
-                <label class="form-label">Contraseña</label>
-                <div class="input-wrap">
-                    <i class="input-icon fa-solid fa-lock"></i>
-                    <input type="password" name="password" id="passwordInput"
-                           placeholder="Ingresa tu contraseña" required autocomplete="current-password">
-                    <span class="toggle-pass" onclick="togglePass()">
-                        <i class="fa-solid fa-eye" id="eyeIcon"></i>
-                    </span>
-                </div>
+        <div class="form-group">
+            <label class="form-label">Contraseña</label>
+            <div class="input-wrap">
+                <input type="password" name="password" id="passwordInput" placeholder="••••••••" required autocomplete="current-password">
+                <i class="input-icon fa-solid fa-lock"></i>
+                <span class="toggle-pass" onclick="togglePass()">
+                    <i class="fa-solid fa-eye" id="eyeIcon"></i>
+                </span>
             </div>
+        </div>
 
-            <div class="recover-row">
-                <button type="button" class="btn-recover" id="recoverPasswordBtn" onclick="openModal('recoverModal')">
-                    <i class="fa-solid fa-key" style="margin-right: 8px"></i>
-                    Recuperar contraseña
-                </button>
-                <p id="forgotPasswordHint" class="help-text hidden">
-                    ¿Olvidaste la contraseña? Haz click en <button type="button" class="recover-link" id="recoverPasswordLink" onclick="openModal('recoverModal')">recuperar contraseña</button>.
-                </p>
-            </div>
-
-            <button type="submit" class="btn-login">
-                <i class="fa-solid fa-right-to-bracket" style="margin-right:8px"></i>
-                Ingresar al panel
+        <div class="recover-row">
+            <button type="button" class="recover-link" id="recoverPasswordBtn" onclick="openModal('recoverModal')">
+                ¿Olvidaste tu contraseña?
             </button>
-        </form>
-    </div>
+        </div>
 
-    <!-- Pie -->
+        <button type="submit" class="btn-login">
+            Iniciar sesión
+        </button>
+
+        <p id="forgotPasswordHint" class="hidden">
+            ¿Problemas para acceder? <button type="button" class="recover-link" id="recoverPasswordLink" onclick="openModal('recoverModal')">Recuperar contraseña</button>
+        </p>
+    </form>
+
     <div class="card-footer">
-        <span class="secure-badge">
-            <i class="fa-solid fa-shield-halved"></i>
-            Solo para personal autorizado · Grupo 3
-        </span>
+        <i class="fa-solid fa-shield-halved"></i>
+        Acceso seguro encriptado
     </div>
-
 </div>
 
+<!-- Modal Recuperación -->
 <div class="modal-overlay" id="recoverModal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="recoverModalTitle">
         <div class="modal-header">
-            <h3 id="recoverModalTitle">Recuperar contraseña</h3>
-            <button type="button" class="modal-close" id="closeRecoverModal" aria-label="Cerrar modal" onclick="closeModal('recoverModal')">×</button>
+            <h3 id="recoverModalTitle">Recuperar acceso</h3>
+            <button type="button" class="modal-close" id="closeRecoverModal" onclick="closeModal('recoverModal')">×</button>
         </div>
         <div class="modal-body">
-            <p style="margin:0;color:#374151;font-size:.95rem;line-height:1.5;">
-                Ingresa tu correo de recuperación para recibir el código de verificación.
-            </p>
-            <div class="form-group">
-                <label class="form-label">Correo de recuperación</label>
+            <p>Ingresa el correo electrónico asociado a tu cuenta para recibir un código de verificación.</p>
+            
+            <div class="form-group" style="margin-bottom:0">
+                <label class="form-label">Correo electrónico</label>
                 <div class="input-wrap">
+                    <input type="email" id="recoverEmail" placeholder="ejemplo@correo.com" autocomplete="email">
                     <i class="input-icon fa-solid fa-envelope"></i>
-                    <input type="email" id="recoverEmail" placeholder="Ingresa tu correo de recuperación" autocomplete="email">
                 </div>
             </div>
-            <div class="status-message" id="recoverStatus">&nbsp;</div>
-            <div class="form-group hidden" id="verificationCodeGroup">
-                <label class="form-label">Código de verificación</label>
+            
+            <div class="status-message" id="recoverStatus"></div>
+            
+            <div class="form-group hidden" id="verificationCodeGroup" style="margin-bottom:0; margin-top:10px;">
+                <label class="form-label">Código de seguridad</label>
                 <div class="input-wrap">
+                    <input type="text" id="recoverCode" placeholder="Ingresa el código de 6 dígitos">
                     <i class="input-icon fa-solid fa-key"></i>
-                    <input type="text" id="recoverCode" placeholder="Ingresa el código que recibiste">
                 </div>
             </div>
         </div>
         <div class="modal-footer">
             <button type="button" class="modal-button secondary" id="cancelRecover" onclick="closeModal('recoverModal')">Cancelar</button>
-            <button type="button" class="modal-button secondary" id="sendCodeBtn" onclick="recoverSendCode()">Enviar código</button>
-            <button type="button" class="modal-button primary hidden" id="confirmRecoverBtn" onclick="confirmRecovery()">Confirmar</button>
+            <button type="button" class="modal-button primary" id="sendCodeBtn" onclick="recoverSendCode()">Enviar código</button>
+            <button type="button" class="modal-button primary hidden" id="confirmRecoverBtn" onclick="confirmRecovery()">Verificar</button>
         </div>
     </div>
 </div>
 
+<!-- Modal Nueva Contraseña -->
 <div class="modal-overlay" id="resetPasswordModal" aria-hidden="true">
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="resetPasswordModalTitle">
         <div class="modal-header">
             <h3 id="resetPasswordModalTitle">Nueva contraseña</h3>
-            <button type="button" class="modal-close" id="closeResetModal" aria-label="Cerrar modal" onclick="closeModal('resetPasswordModal')">×</button>
+            <button type="button" class="modal-close" id="closeResetModal" onclick="closeModal('resetPasswordModal')">×</button>
         </div>
         <div class="modal-body">
-            <p style="margin:0;color:#374151;font-size:.95rem;line-height:1.5;">
-                Crea una nueva contraseña y confírmala para completar la actualización.
-            </p>
-            <div class="form-group">
+            <p>Por favor, crea una contraseña fuerte que no hayas usado antes.</p>
+            
+            <div class="form-group" style="margin-bottom:0">
                 <label class="form-label">Nueva contraseña</label>
                 <div class="input-wrap">
+                    <input type="password" id="newPassword" placeholder="••••••••" autocomplete="new-password">
                     <i class="input-icon fa-solid fa-lock"></i>
-                    <input type="password" id="newPassword" placeholder="Nueva contraseña" autocomplete="new-password">
                     <span class="toggle-pass" onclick="togglePassField('newPassword','newEyeIcon')">
                         <i class="fa-solid fa-eye" id="newEyeIcon"></i>
                     </span>
                 </div>
             </div>
-            <div class="form-group">
-                <label class="form-label">Confirmar contraseña</label>
-                <div class="input-wrap">
-                    <i class="input-icon fa-solid fa-lock"></i>
-                    <input type="password" id="confirmPassword" placeholder="Confirmar contraseña" autocomplete="new-password">
-                    <span class="toggle-pass" onclick="togglePassField('confirmPassword','confirmEyeIcon')">
-                        <i class="fa-solid fa-eye" id="confirmEyeIcon"></i>
-                    </span>
-                </div>
-            </div>
+            
             <div class="strength-meter">
                 <div class="strength-meter-label">
-                    <span>Seguridad de la contraseña</span>
-                    <span id="strengthText">Ingresa una contraseña</span>
+                    <span>Nivel de seguridad</span>
+                    <span id="strengthText">Sin contraseña</span>
                 </div>
                 <div class="meter-bar">
                     <div class="meter-bar-fill" id="strengthFill"></div>
                 </div>
             </div>
-            <div class="success-message" id="resetSuccessMessage">Contraseña actualizada correctamente. Redirigiendo al inicio de sesión...</div>
+
+            <div class="form-group" style="margin-bottom:0">
+                <label class="form-label">Confirmar contraseña</label>
+                <div class="input-wrap">
+                    <input type="password" id="confirmPassword" placeholder="••••••••" autocomplete="new-password">
+                    <i class="input-icon fa-solid fa-lock"></i>
+                    <span class="toggle-pass" onclick="togglePassField('confirmPassword','confirmEyeIcon')">
+                        <i class="fa-solid fa-eye" id="confirmEyeIcon"></i>
+                    </span>
+                </div>
+            </div>
+            
+            <div class="success-message" id="resetSuccessMessage">¡Contraseña actualizada! Redirigiendo...</div>
         </div>
         <div class="modal-footer">
             <button type="button" class="modal-button secondary" id="cancelReset">Cancelar</button>
-            <button type="button" class="modal-button primary" id="updatePasswordBtn">Actualizar contraseña</button>
+            <button type="button" class="modal-button primary" id="updatePasswordBtn">Guardar cambios</button>
         </div>
     </div>
 </div>
@@ -627,8 +525,6 @@ function openModal(modalId) {
     if (!modal) return;
     modal.classList.add('visible');
     modal.setAttribute('aria-hidden', 'false');
-    modal.style.opacity = '1';
-    modal.style.pointerEvents = 'auto';
 }
 
 function closeModal(modalId) {
@@ -636,8 +532,6 @@ function closeModal(modalId) {
     if (!modal) return;
     modal.classList.remove('visible');
     modal.setAttribute('aria-hidden', 'true');
-    modal.style.opacity = '';
-    modal.style.pointerEvents = 'none';
 }
 
 function updateStrengthIndicator(password) {

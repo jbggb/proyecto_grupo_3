@@ -200,9 +200,6 @@ $(document).ready(function () {
     });
 
     $('#modalAgregar').on('hidden.bs.modal', function () {
-        // Limpiar backdrop residual
-        $('.modal-backdrop').remove();
-        $('body').removeClass('modal-open').css('overflow', '').css('padding-right', '');
         // Limpiar borrador y form al cerrar
         limpiarBorrador();
         $('#formAgregarProducto')[0].reset();
@@ -227,8 +224,7 @@ $(document).ready(function () {
 
     // ── Auto-abrir modal (error Django o vuelta de Gestionar) ─────
     if (abrirModal || vieneGestionar) {
-        var modal = new bootstrap.Modal(document.getElementById('modalAgregar'));
-        modal.show();
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('modalAgregar')).show();
     }
 
 });

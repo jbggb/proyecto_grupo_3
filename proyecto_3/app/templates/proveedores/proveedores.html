@@ -5,7 +5,7 @@
 
 <link rel="stylesheet" href="{% static 'css/estilos_pagina.css' %}">
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 animate-slide-left">
     <h2><i class="fa-solid fa-truck me-2"></i>Gestión de Proveedores</h2>
     <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCrearProveedor">
         <i class="fa-solid fa-plus me-1"></i> Nuevo Proveedor
@@ -13,7 +13,7 @@
 </div>
 
 <!-- Búsqueda y Filtros -->
-<div class="card border-0 shadow-sm mb-4">
+<div class="card border-0 shadow-sm mb-4 animate-fade-up">
     <div class="card-body">
         <form method="get" class="row g-2 align-items-end">
             <div class="col-md-3">
@@ -59,17 +59,17 @@
 </div>
 
 <!-- Botones de exportar -->
-<div class="contenedor-exportar">
-    <a href="{% url 'exportar_proveedores_pdf' %}" class="btn-pdf">
+<div class="contenedor-exportar animate-fade-up">
+    <a href="{% url 'exportar_proveedores_pdf' %}" class="btn btn-danger">
         <i class="fa-solid fa-file-pdf"></i> Exportar PDF
     </a>
-    <a href="{% url 'exportar_proveedores_excel' %}" class="btn-excel">
+    <a href="{% url 'exportar_proveedores_excel' %}" class="btn btn-success">
         <i class="fa-solid fa-file-excel"></i> Exportar Excel
     </a>
 </div>
 
 <!-- Tabla -->
-<div class="card border-0 shadow-sm">
+<div class="card border-0 shadow-sm animate-fade-up">
     <div class="card-header bg-dark text-white">
         <i class="fa-solid fa-list me-2"></i>Proveedores Registrados
     </div>
@@ -86,9 +86,9 @@
                     <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="animate-stagger">
                 {% for p in proveedores %}
-                <tr>
+                <tr class="animate-item">
                     <td>{{ p.id }}</td>
                     <td><strong>{{ p.nombre }}</strong></td>
                     <td>{{ p.telefono }}</td>
@@ -281,7 +281,7 @@ function verProveedor(id, nombre, telefono, email, envio, fecha) {
     document.getElementById('ver_email').textContent = email;
     document.getElementById('ver_envio').textContent = envio + ' días';
     document.getElementById('ver_fecha').textContent = fecha;
-    new bootstrap.Modal(document.getElementById('modalVerProveedor')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalVerProveedor')).show();
 }
 
 function abrirEditar(id, nombre, telefono, email, envio) {
@@ -290,7 +290,7 @@ function abrirEditar(id, nombre, telefono, email, envio) {
     document.getElementById('edit_email').value = email;
     document.getElementById('edit_envio').value = envio;
     document.getElementById('formEditar').action = '/proveedores/editar/' + id + '/';
-    new bootstrap.Modal(document.getElementById('modalEditarProveedor')).show();
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEditarProveedor')).show();
 }
 
 function confirmarEliminar(id, nombre) {

@@ -4,20 +4,20 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/estilos_pagina.css' %}">
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 animate-slide-left">
     <h2><i class="fa-solid fa-cart-shopping me-2"></i>Panel de Gestión de Ventas</h2>
     <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCrearVenta">
         <i class="fa-solid fa-plus me-1"></i> Nueva Venta
     </button>
 </div>
-<div class="contenedor-exportar">
-    <a href="{% url 'exportar_ventas_pdf' %}" class="btn-pdf"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</a>
-    <a href="{% url 'exportar_ventas_excel' %}" class="btn-excel"><i class="fa-solid fa-file-excel"></i> Exportar Excel</a>
+<div class="contenedor-exportar animate-fade-up">
+    <a href="{% url 'exportar_ventas_pdf' %}" class="btn btn-danger"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</a>
+    <a href="{% url 'exportar_ventas_excel' %}" class="btn btn-success"><i class="fa-solid fa-file-excel"></i> Exportar Excel</a>
 </div>
 
 <!-- Estadísticas -->
-<div class="row mb-4">
-    <div class="col-md-4">
+<div class="row mb-4 animate-stagger">
+    <div class="col-md-4 animate-item">
         <div class="card text-white bg-success">
             <div class="card-body">
                 <h6 class="card-title">Ventas de Hoy</h6>
@@ -25,7 +25,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-4 animate-item">
         <div class="card text-white bg-primary">
             <div class="card-body">
                 <h6 class="card-title">Total del Mes</h6>
@@ -33,7 +33,7 @@
             </div>
         </div>
     </div>
-    <div class="col-md-4">
+    <div class="col-md-4 animate-item">
         <div class="card text-white bg-dark">
             <div class="card-body">
                 <h6 class="card-title">Total Ventas Realizadas</h6>
@@ -43,7 +43,7 @@
     </div>
 </div>
 
-<div class="card border-0 shadow-sm mb-4">
+<div class="card border-0 shadow-sm mb-4 animate-fade-up">
     <div class="card-body">
         <form method="get" class="row g-2 align-items-end">
             <div class="col-md-3">
@@ -75,7 +75,7 @@
 </div>
 
 <!-- Tabla de ventas -->
-<div class="card border-0 shadow-sm">
+<div class="card border-0 shadow-sm animate-fade-up">
     <div class="card-header bg-dark text-white">
         <i class="fa-solid fa-list me-2"></i>Ventas Registradas
     </div>
@@ -92,9 +92,9 @@
                     <th>Acciones</th>
                 </tr>
             </thead>
-            <tbody>
+            <tbody class="animate-stagger">
                 {% for v in ventas %}
-                <tr>
+                <tr class="animate-item">
                     <td>{{ forloop.counter }}</td>
                     <td>{{ v.fecha|date:"d/m/Y H:i" }}</td>
                     <td>{{ v.cliente }}</td>
