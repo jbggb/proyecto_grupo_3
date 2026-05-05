@@ -6,7 +6,7 @@
     <title>Inventario - Grupo 3</title>
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <link rel="stylesheet" href="{% static 'css/all.min.css' %}">
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/estilos_pagina.css' %}">
     <link rel="stylesheet" href="{% static 'css/modulos.css' %}">
     <script src="{% static 'js/sweetalert2.min.js' %}"></script>
     <style>
@@ -75,19 +75,19 @@
             width: 60px;
             height: 60px;
             border-radius: 50%;
-            background: #0d6efd;
-            color: white;
+            background: #f59e0b; /* Dorado */
+            color: #1a1a1a;
             border: none;
             font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            cursor: move; /* Indicar arrastrable */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.4);
             z-index: 9999;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: background 0.2s;
+            transition: transform 0.2s;
         }
-        #chat-btn:hover { background: #0b5ed7; }
+        #chat-btn:hover { transform: scale(1.05); }
 
         /* ── Ventana del chat ── */
         #chat-window {
@@ -96,24 +96,25 @@
             right: 30px;
             width: 370px;
             height: 500px;
-            background: white;
+            background: #1b1d1b;
             border-radius: 16px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.5);
             display: none;
             flex-direction: column;
             z-index: 9998;
             overflow: hidden;
+            border: 1px solid #404040;
         }
         #chat-window.open { display: flex; }
 
         #chat-header {
-            background: #0d6efd;
+            background: linear-gradient(145deg, #7f1d1d, #9b1c1c);
             color: white;
             padding: 14px 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-weight: 500;
+            font-weight: 600;
         }
         #chat-header button {
             background: none;
@@ -130,13 +131,13 @@
             display: flex;
             flex-direction: column;
             gap: 10px;
-            background: #f8f9fa;
+            background: #2a2a2a;
         }
 
         #chat-input-area {
             display: flex;
-            border-top: 1px solid #dee2e6;
-            background: white;
+            border-top: 1px solid #404040;
+            background: #1b1d1b;
         }
         #chat-input-area input {
             flex: 1;
@@ -144,14 +145,20 @@
             padding: 12px;
             outline: none;
             font-size: 14px;
+            background: #1b1d1b;
+            color: white;
+        }
+        #chat-input-area input::placeholder {
+            color: #a3a3a3;
         }
         #chat-input-area button {
-            background: #0d6efd;
+            background: #9b1c1c;
             color: white;
             border: none;
             padding: 12px 16px;
             cursor: pointer;
             font-size: 14px;
+            font-weight: 600;
         }
         #chat-input-area button:hover { background: #0b5ed7; }
     </style>
@@ -170,7 +177,7 @@
     pointer-events: none;
 "></div>
 
-<nav class="navbar navbar-dark bg-dark">
+<nav class="navbar navbar-dark" style="background: linear-gradient(150deg, #3c3b38 0%, #1b1d1b 45%, #161615 100%); border-bottom: 1px solid #404040;">
     <div class="container-fluid">
         <span class="navbar-brand mb-0 h1">
             <i class="fa-solid fa-shop me-2"></i>Sistema de Inventario
@@ -181,7 +188,7 @@
                     <i class="fa-solid fa-user me-1"></i>
                     {{ request.user.get_full_name|default:request.user.username }}
                     {% if request.user.is_superuser %}
-                        <span class="badge bg-warning text-dark ms-1" style="font-size:.65rem;">Superadmin</span>
+                        <span class="badge bg-warning text-dark ms-1" style="font-size:.65rem;"></span>
                     {% endif %}
                 </span>
                 <!-- ══════════ CAMPANITA DE NOTIFICACIONES ══════════ -->
@@ -259,7 +266,7 @@
 
 <div class="d-flex">
     <!-- MENÚ LATERAL -->
-    <aside id="sidebar" class="bg-dark text-light p-3">
+    <aside id="sidebar" class="text-light p-3" style="background: #161615; border-right: 1px solid #404040;">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h4 class="mb-0 sidebar-title">Inventario</h4>
             <button id="toggle-btn" title="Ocultar menú">
@@ -345,7 +352,7 @@
     </main>
 </div>
 
-<footer class="bg-dark text-light text-center py-2">
+<footer class="text-light text-center py-2" style="background: #161615; border-top: 1px solid #404040;">
     <small>Proyecto Inventario - Grupo 3 © 2025</small>
 </footer>
 
@@ -573,8 +580,8 @@ function addMessage(text, isUser) {
     div.style.cssText = `
         max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 14px;
         ${isUser
-            ? 'background:#0d6efd; color:#fff; align-self:flex-end; margin-left:auto;'
-            : 'background:#fff; border:1px solid #dee2e6; align-self:flex-start; color:#212529;'}
+            ? 'background:#f59e0b; color:#1a1a1a; align-self:flex-end; margin-left:auto;'
+            : 'background:#3c3b38; border:1px solid #525252; align-self:flex-start; color:#fff;'}
     `;
     div.textContent = text;
     chatBox.appendChild(div);
@@ -612,6 +619,53 @@ async function sendMessage() {
     } catch (err) {
         document.getElementById('loading')?.remove();
         addMessage('Error de conexión con el servidor.', false);
+    }
+}
+
+// Hacer el botón de IA arrastrable
+if (document.getElementById('chat-btn')) {
+    const btn = document.getElementById('chat-btn');
+    let isDragging = false;
+    let currentX;
+    let currentY;
+    let initialX;
+    let initialY;
+    let xOffset = 0;
+    let yOffset = 0;
+
+    btn.addEventListener("mousedown", dragStart);
+    document.addEventListener("mouseup", dragEnd);
+    document.addEventListener("mousemove", drag);
+
+    function dragStart(e) {
+        initialX = e.clientX - xOffset;
+        initialY = e.clientY - yOffset;
+        if (e.target === btn || btn.contains(e.target)) {
+            isDragging = true;
+            btn.style.transition = 'none';
+        }
+    }
+
+    function dragEnd(e) {
+        initialX = currentX;
+        initialY = currentY;
+        isDragging = false;
+        btn.style.transition = 'transform 0.2s';
+    }
+
+    function drag(e) {
+        if (isDragging) {
+            e.preventDefault();
+            currentX = e.clientX - initialX;
+            currentY = e.clientY - initialY;
+            xOffset = currentX;
+            yOffset = currentY;
+            setTranslate(currentX, currentY, btn);
+        }
+    }
+
+    function setTranslate(xPos, yPos, el) {
+        el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)";
     }
 }
 </script>

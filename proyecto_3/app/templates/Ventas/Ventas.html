@@ -112,9 +112,9 @@
                         </span>
                     </td>
                     <td>
-                        <a href="{% url 'detalle_venta' v.id %}" class="btn btn-sm btn-info" title="Ver detalle">
+                        <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal" data-bs-target="#modalVerVenta{{ v.id }}" title="Ver detalle">
                             <i class="fa-solid fa-eye"></i>
-                        </a>
+                        </button>
                         {% if v.estado == 'Completada' %}
                             <button class="btn btn-sm btn-secondary" disabled><i class="fa-solid fa-pen"></i></button>
                             <button class="btn btn-sm btn-secondary" disabled><i class="fa-solid fa-trash"></i></button>
@@ -434,6 +434,65 @@ function renderCarritoEdit{{ v.id }}() {
 }
 </script>
 {% endif %}
+{% endfor %}
+
+<!-- ==================== MODALES VER DETALLE ==================== -->
+{% for v in ventas %}
+<div class="modal fade modal-detalle" id="modalVerVenta{{ v.id }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-detalle-icon">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                </div>
+                <h4 class="modal-detalle-title">Detalle de Venta #{{ v.id }}</h4>
+                
+                <table class="modal-detalle-table mb-4">
+                    <tr><td style="width: 25%;">Cliente</td><td>{{ v.cliente }}</td></tr>
+                    <tr><td>Fecha</td><td>{{ v.fecha|date:"d/m/Y H:i" }}</td></tr>
+                    <tr>
+                        <td>Estado</td>
+                        <td>
+                            <span class="badge {% if v.estado == 'Completada' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                                {{ v.estado }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr><td>Total</td><td><strong>${{ v.total|floatformat:0|intcomma }}</strong></td></tr>
+                </table>
+                
+                <h6 class="text-start text-light mb-3 fw-bold" style="font-family: 'DM Sans', sans-serif;">Productos en esta venta:</h6>
+                <table class="modal-detalle-table" style="font-size: 0.9rem;">
+                    <thead>
+                        <tr>
+                            <td class="fw-bold" style="color: #f97316; width: 40%;">Producto</td>
+                            <td class="fw-bold text-center" style="color: #f97316;">Cant.</td>
+                            <td class="fw-bold text-end" style="color: #f97316;">Precio</td>
+                            <td class="fw-bold text-end" style="color: #f97316;">Subtotal</td>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for d in v.detalles.all %}
+                        <tr>
+                            <td style="color: #f8fafc; font-weight: normal; text-transform: none;">{{ d.producto_nombre }}</td>
+                            <td class="text-center" style="color: #f8fafc; font-weight: normal;">{{ d.cantidad }}</td>
+                            <td class="text-end" style="color: #f8fafc; font-weight: normal;">${{ d.precio|floatformat:0|intcomma }}</td>
+                            <td class="text-end" style="color: #f8fafc; font-weight: normal;">${{ d.subtotal|floatformat:0|intcomma }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="4" class="text-center text-muted" style="color: #f8fafc; font-weight: normal;">Sin productos</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                
+                <button type="button" class="btn modal-detalle-btn-cerrar mt-4" data-bs-dismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endfor %}
 
 <!-- ==================== MODALES ELIMINAR ==================== -->

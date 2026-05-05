@@ -3,10 +3,8 @@
 
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/estilos_pagina.css' %}">
-<div class="section-header">
-    <h1 class="section-title">
-        <i class="fa-solid fa-shopping-cart me-2"></i>Gestión de Compras
-    </h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0"><i class="fa-solid fa-shopping-cart me-2"></i>Gestión de Compras</h2>
     <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCrearCompra">
         <i class="fa-solid fa-plus me-2"></i>Agregar Compra
     </button>
@@ -75,7 +73,7 @@
         <tbody>
             {% for compra in compras %}
             <tr>
-                <td>{{  compra.idCompra  }}</td>
+                <td>{{ compra.idCompra }}</td>
                 <td>{{ compra.Proveedor.nombre }}</td>
                 <td>{{ compra.Producto.nombre }}</td>
                 <td>{{ compra.cantidad }}</td>
@@ -97,15 +95,12 @@
                 </td>
                 <td>
                     <div class="btn-group">
-                        <!-- Botón Ver (siempre visible) -->
                         <button class="btn btn-sm btn-info"
                                 data-bs-toggle="modal"
                                 data-bs-target="#modalVerCompra{{ compra.idCompra }}"
                                 title="Ver">
                             <i class="fa-solid fa-eye"></i>
                         </button>
-
-                        <!-- Botón Editar (bloqueado si está Completada) -->
                         <button class="btn btn-sm btn-warning"
                                 {% if compra.estado == 'Completada' %}
                                     disabled
@@ -118,8 +113,6 @@
                                 {% endif %}>
                             <i class="fa-solid fa-edit"></i>
                         </button>
-
-                        <!-- Botón Eliminar -->
                         <button class="btn btn-sm btn-danger"
                                 data-bs-toggle="modal"
                                 data-bs-target="#modalEliminarCompra{{ compra.idCompra }}"
@@ -131,7 +124,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="7" class="text-center py-4">No hay compras registradas</td>
+                <td colspan="9" class="text-center py-4">No hay compras registradas</td>
             </tr>
             {% endfor %}
         </tbody>
@@ -208,40 +201,52 @@
     </div>
 </div>
 
-<!-- Modales Editar, Eliminar y Ver por compra -->
+<!-- Modales Ver, Editar y Eliminar por compra -->
 {% for compra in compras %}
 
 <!-- Modal Ver -->
-<div class="modal fade" id="modalVerCompra{{ compra.idCompra }}" tabindex="-1">
-    <div class="modal-dialog">
+<div class="modal fade modal-detalle" id="modalVerCompra{{ compra.idCompra }}" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fa-solid fa-eye me-2"></i>Información de la Compra</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <p><strong>ID:</strong> {{ compra.idCompra }}</p>
-                <p><strong>Proveedor:</strong> {{ compra.Proveedor.nombre }}</p>
-                <p><strong>Producto:</strong> {{ compra.Producto.nombre }}</p>
-                <p>
-                    <strong>Administrador:</strong>
-                    {% if compra.usuario %}
-                        {{ compra.usuario.get_full_name|default:compra.usuario.username }}
-                    {% else %}
-                        -
-                    {% endif %}
-                </p>
-                <p><strong>Fecha:</strong> {{ compra.fechaCompra|date:"d/m/Y" }}</p>
-                <p><strong>Estado:</strong>
-                    {% if compra.estado == 'Completada' %}
-                        <span class="badge badge-success">Completada</span>
-                    {% else %}
-                        <span class="badge badge-warning">Pendiente</span>
-                    {% endif %}
-                </p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <div class="modal-detalle-icon">
+                    <i class="fa-solid fa-shopping-cart"></i>
+                </div>
+                <h4 class="modal-detalle-title">Información de la Compra</h4>
+                
+                <table class="modal-detalle-table">
+                    <tr><td>ID</td><td>{{ compra.idCompra }}</td></tr>
+                    <tr><td>Proveedor</td><td>{{ compra.Proveedor.nombre }}</td></tr>
+                    <tr><td>Producto</td><td>{{ compra.Producto.nombre }}</td></tr>
+                    <tr><td>Cantidad</td><td>{{ compra.cantidad }} unidades</td></tr>
+                    <tr><td>Total</td><td>${{ compra.total|floatformat:2 }}</td></tr>
+                    <tr>
+                        <td>Administrador</td>
+                        <td>
+                            {% if compra.usuario %}
+                                {{ compra.usuario.get_full_name|default:compra.usuario.username }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                    </tr>
+                    <tr><td>Fecha</td><td>{{ compra.fechaCompra|date:"d/m/Y" }}</td></tr>
+                    <tr>
+                        <td>Estado</td>
+                        <td>
+                            {% if compra.estado == 'Completada' %}
+                                <span class="badge badge-success">Completada</span>
+                            {% else %}
+                                <span class="badge badge-warning">Pendiente</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                </table>
+                
+                <button type="button" class="btn modal-detalle-btn-cerrar" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>
@@ -317,17 +322,17 @@
 </div>
 
 <!-- Modal Eliminar -->
-<div class="modal fade" id="modalEliminarCompra{{  compra.idCompra  }}" tabindex="-1">
+<div class="modal fade" id="modalEliminarCompra{{ compra.idCompra }}" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title"><i class="fa-solid fa-trash me-1"></i> Eliminar Compra</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{% url 'modal_eliminar_compra'  compra.idCompra  %}">
+            <form method="POST" action="{% url 'modal_eliminar_compra' compra.idCompra %}">
                 {% csrf_token %}
                 <div class="modal-body">
-                    <p>¿Está seguro de eliminar la compra <strong>#{{  compra.idCompra  }}</strong>?</p>
+                    <p>¿Está seguro de eliminar la compra <strong>#{{ compra.idCompra }}</strong>?</p>
                     <p>
                         Proveedor: <strong>{{ compra.Proveedor.nombre }}</strong> —
                         Producto: <strong>{{ compra.Producto.nombre }}</strong>
@@ -348,4 +353,5 @@
 </div>
 
 {% endfor %}
+
 {% endblock %}

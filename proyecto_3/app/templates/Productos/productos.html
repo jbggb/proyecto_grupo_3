@@ -67,17 +67,11 @@
                     <td>{{ producto.idMarca.nombreMarca }}</td>
                     <td>{{ producto.idTipo.nombre_tipo }}</td>
                     <td>{{ producto.idUnidad.nombre_unidad }}</td>
+                    
                     <td>
                         <button class="btn btn-info btn-sm"
-                            onclick="verProducto(
-                                '{{ producto.idProducto }}',
-                                '{{ producto.nombre }}',
-                                '{{ producto.precio }}',
-                                '{{ producto.stock }}',
-                                '{{ producto.idMarca.nombreMarca }}',
-                                '{{ producto.idTipo.nombre_tipo }}',
-                                '{{ producto.idUnidad.nombre_unidad }}'
-                            )">
+                            data-bs-toggle="modal"
+                            data-bs-target="#modalVerProducto{{ producto.idProducto }}">
                             <i class="fa-solid fa-eye"></i>
                         </button>
                         <button class="btn btn-primary btn-sm"
@@ -102,6 +96,34 @@
 {% include 'Productos/Modal_agregar.html' %}
 {% for producto in productos %}
     {% include 'Productos/Modal_editar.html' %}
+    <!-- Modal Ver Producto -->
+    <div class="modal fade modal-detalle" id="modalVerProducto{{ producto.idProducto }}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="modal-detalle-icon">
+                        <i class="fa-solid fa-box"></i>
+                    </div>
+                    <h4 class="modal-detalle-title">Detalle del Producto</h4>
+                    
+                    <table class="modal-detalle-table">
+                        <tr><td>ID</td><td>{{ producto.idProducto }}</td></tr>
+                        <tr><td>Nombre</td><td>{{ producto.nombre }}</td></tr>
+                        <tr><td>Precio</td><td>${{ producto.precio|floatformat:0 }}</td></tr>
+                        <tr><td>Stock</td><td>{{ producto.stock }} unidades</td></tr>
+                        <tr><td>Marca</td><td>{{ producto.idMarca.nombreMarca }}</td></tr>
+                        <tr><td>Tipo</td><td>{{ producto.idTipo.nombre_tipo }}</td></tr>
+                        <tr><td>Unidad</td><td>{{ producto.idUnidad.nombre_unidad }}</td></tr>
+                    </table>
+                    
+                    <button type="button" class="btn modal-detalle-btn-cerrar" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endfor %}
 
 <!-- Select2 JS -->
@@ -115,8 +137,6 @@
 <script src="{% static 'js/escaner.js' %}"></script>
 
 <script>
-// ── Clave de sessionStorage ───────────────────────────────────────
-const SK = 'prod_modal_draft';
 
 // ── Guardar borrador en sessionStorage ───────────────────────────
 function guardarBorrador() {

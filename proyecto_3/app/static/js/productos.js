@@ -57,10 +57,10 @@ function ocultarError(errorId) {
 
 function verProducto(id, nombre, precio, stock, marca, tipo, unidad) {
     Swal.fire({
-        title: '<strong>' + nombre + '</strong>',
+        title: nombre,
         icon: 'info',
         html:
-            '<table class="table table-bordered text-start">' +
+            '<table class="table text-start mb-0">' +
             '<tr><th>ID</th><td>' + id + '</td></tr>' +
             '<tr><th>Nombre</th><td>' + nombre + '</td></tr>' +
             '<tr><th>Precio</th><td>$' + precio + '</td></tr>' +
@@ -70,7 +70,8 @@ function verProducto(id, nombre, precio, stock, marca, tipo, unidad) {
             '<tr><th>Unidad</th><td>' + unidad + '</td></tr>' +
             '</table>',
         confirmButtonText: 'Cerrar',
-        confirmButtonColor: '#6c757d'
+        showCancelButton: false,
+        width: '420px',
     });
 }
 
@@ -82,8 +83,8 @@ function eliminarProducto(url, nombre) {
         html: 'Estás a punto de eliminar <strong>"' + nombre + '"</strong>.<br>Esta acción no se puede deshacer.',
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#dc3545',
-        cancelButtonColor: '#6c757d',
+        confirmButtonColor: null,
+        cancelButtonColor: null,
         confirmButtonText: 'Sí, eliminar',
         cancelButtonText: 'Cancelar'
     }).then(function (result) {
