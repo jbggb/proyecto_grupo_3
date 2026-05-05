@@ -142,25 +142,28 @@
 </div>
 
 <!-- Modal: Ver Detalles -->
-<div class="modal fade" id="modalVerProveedor" tabindex="-1">
-    <div class="modal-dialog">
+<div class="modal fade modal-detalle" id="modalVerProveedor" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-info text-white">
-                <h5 class="modal-title"><i class="fa-solid fa-eye me-1"></i> Detalle del Proveedor</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            <div class="modal-header">
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <table class="table table-bordered mb-0">
-                    <tr><th>ID</th><td id="ver_id"></td></tr>
-                    <tr><th>Nombre</th><td id="ver_nombre"></td></tr>
-                    <tr><th>Teléfono</th><td id="ver_telefono"></td></tr>
-                    <tr><th>Email</th><td id="ver_email"></td></tr>
-                    <tr><th>Días de envío</th><td id="ver_envio"></td></tr>
-                    <tr><th>Fecha Registro</th><td id="ver_fecha"></td></tr>
+                <div class="modal-detalle-icon">
+                    <i class="fa-solid fa-truck"></i>
+                </div>
+                <h4 class="modal-detalle-title">Detalle del Proveedor</h4>
+                
+                <table class="modal-detalle-table">
+                    <tr><td>ID</td><td id="ver_id"></td></tr>
+                    <tr><td>Nombre</td><td id="ver_nombre"></td></tr>
+                    <tr><td>Teléfono</td><td id="ver_telefono"></td></tr>
+                    <tr><td>Email</td><td id="ver_email"></td></tr>
+                    <tr><td>Días de envío</td><td id="ver_envio"></td></tr>
+                    <tr><td>Fecha Registro</td><td id="ver_fecha"></td></tr>
                 </table>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                
+                <button type="button" class="btn modal-detalle-btn-cerrar" data-bs-dismiss="modal">Cerrar</button>
             </div>
         </div>
     </div>

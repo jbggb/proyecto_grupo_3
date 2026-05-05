@@ -4,10 +4,8 @@
 {% block content %}
 <link rel="stylesheet" href="{% static 'css/estilos_pagina.css' %}">
 
-<div class="section-header">
-    <h1 class="section-title">
-        <i class="fa-solid fa-users me-2"></i>Gestión de Clientes
-    </h1>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0"><i class="fa-solid fa-users me-2"></i>Gestión de Clientes</h2>
     <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregarCliente">
         <i class="fa-solid fa-plus me-2"></i>Agregar Cliente
     </button>
@@ -131,30 +129,38 @@
     {% include 'clientes/modal_eliminar.html' %}
 
     <!-- Modal Ver Cliente -->
-    <div class="modal fade" id="modalVerCliente{{ cliente.id }}" tabindex="-1">
-        <div class="modal-dialog">
+    <div class="modal fade modal-detalle" id="modalVerCliente{{ cliente.id }}" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title"><i class="fa-solid fa-user me-2"></i>Información del Cliente</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p><strong>ID:</strong> {{ cliente.id }}</p>
-                    <p><strong>Nombre:</strong> {{ cliente.nombre }}</p>
-                    <p><strong>Documento:</strong> {{ cliente.documento }}</p>
-                    <p><strong>Teléfono:</strong> {{ cliente.telefono }}</p>
-                    <p><strong>Email:</strong> {{ cliente.email }}</p>
-                    <p><strong>Dirección:</strong> {{ cliente.direccion }}</p>
-                    <p><strong>Estado:</strong> 
-                        {% if cliente.estado == 'activo' %}
-                            <span class="badge badge-success">Activo</span>
-                        {% else %}
-                            <span class="badge badge-danger">Inactivo</span>
-                        {% endif %}
-                    </p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <div class="modal-detalle-icon">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <h4 class="modal-detalle-title">Información del Cliente</h4>
+                    
+                    <table class="modal-detalle-table">
+                        <tr><td>ID</td><td>{{ cliente.id }}</td></tr>
+                        <tr><td>Nombre</td><td>{{ cliente.nombre }}</td></tr>
+                        <tr><td>Documento</td><td>{{ cliente.documento }}</td></tr>
+                        <tr><td>Teléfono</td><td>{{ cliente.telefono }}</td></tr>
+                        <tr><td>Email</td><td>{{ cliente.email }}</td></tr>
+                        <tr><td>Dirección</td><td>{{ cliente.direccion }}</td></tr>
+                        <tr>
+                            <td>Estado</td>
+                            <td>
+                                {% if cliente.estado == 'activo' %}
+                                    <span class="badge badge-success">Activo</span>
+                                {% else %}
+                                    <span class="badge badge-danger">Inactivo</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    </table>
+                    
+                    <button type="button" class="btn modal-detalle-btn-cerrar" data-bs-dismiss="modal">Cerrar</button>
                 </div>
             </div>
         </div>
