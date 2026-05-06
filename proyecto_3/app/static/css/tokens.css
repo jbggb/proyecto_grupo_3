@@ -1,0 +1,115 @@
+/*
+ * tokens.css — Design Tokens globales del sistema
+ * Proyecto: Inventario Grupo 3 (Tienda El Despecho)
+ * Versión: 1.0.0
+ * Autor del refactor: Johan S. Contreras — mayo 2026
+ *
+ * INSTRUCCIONES:
+ *  - Este es el ÚNICO archivo donde se declaran variables :root.
+ *  - NO agregar :root en estilos_pagina.css, modulos.css ni reporte.css.
+ *  - reporte.css usa sus propias variables pero NUNCA en :root global;
+ *    todas están envueltas dentro de .rep-wrap { ... }.
+ *  - Cargar este archivo PRIMERO en base.html, antes de cualquier otro CSS.
+ */
+
+/* ═══════════════════════════════════════════════════════════════
+   1. COLORES — Paleta principal
+   ═══════════════════════════════════════════════════════════════ */
+:root {
+  /* Rojo/primario de marca */
+  --color-primary:        #9b1c1c;
+  --color-primary-hover:  #b91c1c;
+  --color-primary-glow:   rgba(155, 28, 28, 0.12);
+  --color-primary-light:  rgba(155, 28, 28, 0.10);
+
+  /* Acento dorado */
+  --color-accent:         #f59e0b;
+  --color-accent-hover:   #d97706;
+
+  /* Semánticos */
+  --color-success:        #16a34a;
+  --color-success-hover:  #15803d;
+  --color-success-light:  rgba(22, 163, 74, 0.10);
+
+  --color-warning:        #ca8a04;
+  --color-warning-light:  rgba(202, 138, 4, 0.10);
+
+  --color-danger:         #dc2626;
+  --color-danger-light:   rgba(220, 38, 38, 0.10);
+
+  --color-info:           #3b82f6;
+  --color-info-hover:     #2563eb;
+
+  --color-purple:         #7c3aed;
+  --color-cyan:           #0891b2;
+
+/* ═══════════════════════════════════════════════════════════════
+   2. FONDOS
+   ═══════════════════════════════════════════════════════════════ */
+  --bg-base:              #0f172a;   /* fondo global / body */
+  --bg-dark:              #0f172a;
+  --bg-card:              #1e293b;   /* tarjetas, paneles */
+  --bg-hover:             #334155;   /* hover de filas/items */
+  --bg-input:             #161615;   /* inputs */
+  --bg-sidebar:           rgba(15, 23, 42, 0.95);
+
+/* ═══════════════════════════════════════════════════════════════
+   3. TEXTO
+   ═══════════════════════════════════════════════════════════════ */
+--color-text:           #ffffff;
+--color-text-secondary: #ffffff;
+--color-text-white:     #ffffff;
+
+/* ═══════════════════════════════════════════════════════════════
+   4. BORDES
+   ═══════════════════════════════════════════════════════════════ */
+  --color-border:         #404040;
+  --color-border-light:   #525252;
+
+/* ═══════════════════════════════════════════════════════════════
+   5. RADIOS
+   ═══════════════════════════════════════════════════════════════ */
+  --radius-sm:            8px;
+  --radius-md:            12px;
+  --radius-lg:            16px;
+  --radius-xl:            20px;
+  --radius-pill:          50px;
+
+/* ═══════════════════════════════════════════════════════════════
+   6. SOMBRAS
+   ═══════════════════════════════════════════════════════════════ */
+  --shadow-sm:            0 1px 2px 0 rgba(0, 0, 0, 0.05);
+  --shadow-md:            0 4px 6px -1px rgba(0, 0, 0, 0.20),
+                          0 2px 4px -1px rgba(0, 0, 0, 0.10);
+  --shadow-lg:            0 24px 60px rgba(0, 0, 0, 0.40);
+  --shadow-glow-primary:  0 0 20px var(--color-primary-glow);
+
+/* ═══════════════════════════════════════════════════════════════
+   7. TIPOGRAFÍA
+   ═══════════════════════════════════════════════════════════════ */
+  --font-sans:            'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-serif:           'Fraunces', serif;
+  --font-mono:            'Monaco', 'Courier New', monospace;
+
+/* ═══════════════════════════════════════════════════════════════
+   8. ESPACIADO
+   ═══════════════════════════════════════════════════════════════ */
+  --space-xs:             4px;
+  --space-sm:             8px;
+  --space-md:             16px;
+  --space-lg:             24px;
+  --space-xl:             32px;
+
+/* ═══════════════════════════════════════════════════════════════
+   9. LAYOUT
+   ═══════════════════════════════════════════════════════════════ */
+  --sidebar-width:        260px;
+  --header-height:        64px;
+
+/* ═══════════════════════════════════════════════════════════════
+   10. TRANSICIONES
+   ═══════════════════════════════════════════════════════════════ */
+  --transition-fast:      0.15s ease-in-out;
+  --transition-base:      0.20s ease;
+  --transition-slow:      0.30s ease;
+}

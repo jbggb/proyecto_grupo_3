@@ -1,0 +1,217 @@
+/* ═══════════════════════════════════════════════════════════════
+   filtros_realtime.css — Estilos para el sistema de filtros RT
+   Compatible con el tema dark del sistema (modulos.css)
+   Requiere: tokens.css cargado antes que este archivo.
+   NO declara :root. Todas las variables vienen de tokens.css.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── Contenedor principal de la barra de filtros ─────────────── */
+.rt-filter-bar {
+  background: var(--bg-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+  position: relative;
+}
+
+/* Línea superior decorativa */
+.rt-filter-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
+  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  opacity: 0;
+  transition: opacity var(--transition-slow);
+}
+
+/* Estado activo */
+.rt-filter-bar--active {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-glow);
+}
+
+.rt-filter-bar--active::before {
+  opacity: 1;
+}
+
+/* ── Grid de filtros ──────────────────────────────────────────── */
+.rt-filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  align-items: end;
+}
+
+/* ── Grupo individual ─────────────────────────────────────────── */
+.rt-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Labels ───────────────────────────────────────────────────── */
+.rt-filter-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  user-select: none;
+}
+
+.rt-filter-label i {
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+/* ── Inputs y Selects ─────────────────────────────────────────── */
+.rt-filter-input,
+.rt-filter-select {
+  width: 100%;
+  padding: 10px 14px;
+  background: var(--bg-input);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  font-size: 0.875rem;
+  font-family: inherit;
+  transition: border-color var(--transition-base), box-shadow var(--transition-base), background var(--transition-base);
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.rt-filter-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23A3A3A3' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;
+  cursor: pointer;
+}
+
+.rt-filter-input:focus,
+.rt-filter-select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-glow);
+  background: var(--bg-card);
+  color: #fff;
+}
+
+.rt-filter-input::placeholder {
+  color: var(--color-text-muted);
+  font-style: italic;
+  font-size: 0.82rem;
+}
+
+.rt-filter-input:not(:placeholder-shown),
+.rt-filter-select.has-value {
+  border-color: rgba(155, 28, 28, 0.5);
+  background: rgba(155, 28, 28, 0.04);
+}
+
+/* ── Wrapper con icono ────────────────────────────────────────── */
+.rt-input-wrapper {
+  position: relative;
+}
+
+.rt-input-wrapper .rt-input-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+  pointer-events: none;
+  transition: color var(--transition-base);
+}
+
+.rt-input-wrapper .rt-filter-input {
+  padding-left: 36px;
+}
+
+.rt-input-wrapper:focus-within .rt-input-icon {
+  color: var(--color-primary);
+}
+
+/* ── Acciones ─────────────────────────────────────────────────── */
+.rt-filter-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.rt-btn-clear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 18px;
+  background: transparent;
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all var(--transition-base);
+  white-space: nowrap;
+}
+
+.rt-btn-clear:hover {
+  border-color: var(--color-danger);
+  color: var(--color-danger);
+  background: var(--color-danger-light);
+  transform: translateY(-1px);
+}
+
+.rt-btn-clear:focus-visible {
+  outline: 2px solid var(--color-danger);
+  outline-offset: 2px;
+}
+
+.rt-btn-clear:active { transform: translateY(0); }
+
+.rt-filter-count {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  text-align: center;
+  font-weight: 500;
+  min-height: 18px;
+  transition: color var(--transition-base);
+}
+
+.rt-filter-bar--active .rt-filter-count {
+  color: var(--color-accent);
+}
+
+/* ── Animación de filas ───────────────────────────────────────── */
+tbody tr[data-filter-row]  { transition: opacity 0.18s ease; }
+tbody tr.filter-hidden     { opacity: 0; }
+tbody tr.filter-visible    { opacity: 1; }
+
+/* ── Fila sin resultados ──────────────────────────────────────── */
+tr[data-filter-empty] td {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  .rt-filter-bar   { padding: 16px; }
+  .rt-filter-grid  { grid-template-columns: 1fr; gap: 12px; }
+  .rt-filter-actions { flex-direction: row; align-items: center; }
+  .rt-btn-clear    { flex: 1; }
+}

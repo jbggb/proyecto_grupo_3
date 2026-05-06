@@ -1,243 +1,169 @@
-// MODULO DE VENTAS
+/**
+ * ventas.js — Módulo de Ventas
+ * (Renombrado de Ventas.js → ventas.js para consistencia kebab-case)
+ * carrito expuesto en App.ventas.carrito en lugar de global var carrito.
+ */
 
-var carrito = [];
+(function () {
+  'use strict';
 
-document.addEventListener('DOMContentLoaded', function () {
+  window.App = window.App || {};
+  window.App.ventas = {
+    carrito: []
+  };
+
+  // Alias local para legibilidad interna
+  var carrito = App.ventas.carrito;
+
+  document.addEventListener('DOMContentLoaded', function () {
 
     var modalCrear = document.getElementById('modalCrearVenta');
     if (!modalCrear) return;
 
     modalCrear.addEventListener('shown.bs.modal', function () {
-        var input = document.getElementById('inputClienteCrear');
-        if (input) {
-            input.oninput = function () {
-                validarCliente(this, document.getElementById('feedbackCliente'), document.getElementById('contadorCliente'));
-            };
-        }
+      var input = document.getElementById('inputClienteCrear');
+      if (input) {
+        input.oninput = function () {
+          validarCliente(
+            this,
+            document.getElementById('feedbackCliente'),
+            document.getElementById('contadorCliente')
+          );
+        };
+      }
     });
 
     modalCrear.addEventListener('hidden.bs.modal', function () {
-        carrito = [];
-        renderCarrito();
-        var input = document.getElementById('inputClienteCrear');
-        if (input) input.value = '';
-        var fc = document.getElementById('feedbackCliente');
-        if (fc) fc.textContent = '';
-        var cc = document.getElementById('contadorCliente');
-        if (cc) cc.textContent = '0/30 caracteres';
-        var se = document.getElementById('selectEstado');
-        if (se) se.value = '';
-        var fe = document.getElementById('feedbackEstado');
-        if (fe) fe.textContent = '';
-        var bus = document.getElementById('busquedaProductos');
-        if (bus) {
-            bus.value = '';
-            document.querySelectorAll('.producto-card').forEach(function (c) { c.style.display = 'block'; });
-        }
+      carrito.length = 0; // vaciar sin romper referencia
+      renderCarrito();
+
+      var input = document.getElementById('inputClienteCrear');
+      if (input) input.value = '';
+
+      var fc = document.getElementById('feedbackCliente');
+      if (fc) fc.textContent = '';
+
+      var cc = document.getElementById('contadorCliente');
+      if (cc) cc.textContent = '0/30 caracteres';
+
+      var se = document.getElementById('selectEstado');
+      if (se) se.value = '';
+
+      var fe = document.getElementById('feedbackEstado');
+      if (fe) fe.textContent = '';
+
+      var bus = document.getElementById('busquedaProductos');
+      if (bus) {
+        bus.value = '';
+        document.querySelectorAll('.producto-card').forEach(function (c) {
+          c.style.display = 'block';
+        });
+      }
     });
 
     var busqueda = document.getElementById('busquedaProductos');
     if (busqueda) {
-        busqueda.addEventListener('input', function () {
-            var term = this.value.toLowerCase();
-            document.querySelectorAll('.producto-card').forEach(function (card) {
-                card.style.display = card.getAttribute('data-nombre').includes(term) ? 'block' : 'none';
-            });
+      busqueda.addEventListener('input', function () {
+        var term = this.value.toLowerCase();
+        document.querySelectorAll('.producto-card').forEach(function (card) {
+          card.style.display = card.getAttribute('data-nombre').includes(term) ? 'block' : 'none';
         });
+      });
     }
 
     document.querySelectorAll('.input-cliente-editar').forEach(function (input) {
-        var feedback = input.parentElement.querySelector('.feedback-editar');
-        var contador = input.parentElement.querySelector('.contador-editar');
-        input.oninput = function () { validarCliente(this, feedback, contador); };
+      var feedback = input.parentElement.querySelector('.feedback-editar');
+      if (input && feedback) {
+        input.addEventListener('input', function () {
+          validarCliente(input, feedback, null);
+        });
+      }
     });
 
-    var formCrear = document.getElementById('formCrearVenta');
-    if (formCrear) {
-        formCrear.removeAttribute('onsubmit');
-        formCrear.addEventListener('submit', function (e) {
-            if (!validarFormVenta()) { e.preventDefault(); }
-        });
+  }); // end DOMContentLoaded
+
+  // ── Funciones internas ────────────────────────────────────────────
+  // Estas funciones son llamadas desde el HTML inline de Ventas.
+  // Se exponen en App.ventas para no contaminar el scope global,
+  // pero se mantienen aliases globales por retrocompatibilidad.
+
+  function validarCliente(input, feedback, contador) {
+    var val = input ? input.value.trim() : '';
+    if (contador) {
+      contador.textContent = val.length + '/30 caracteres';
     }
-
-    document.querySelectorAll('[id^="formEditarVenta"]').forEach(function (form) {
-        form.addEventListener('submit', function (e) {
-            var cliente   = form.querySelector('input[name="cliente"]');
-            var estado    = form.querySelector('select[name="estado"]');
-            var feedbackC = form.querySelector('.feedback-editar');
-            var feedbackE = form.querySelector('.feedback-estado-editar');
-            var valido    = true;
-            if (feedbackC) feedbackC.textContent = '';
-            if (feedbackE) feedbackE.textContent = '';
-            if (!cliente.value.trim()) {
-                if (feedbackC) feedbackC.textContent = 'El nombre del cliente es obligatorio';
-                valido = false;
-            } else if (cliente.value.trim().length < 3) {
-                if (feedbackC) feedbackC.textContent = 'El nombre debe tener al menos 3 caracteres';
-                valido = false;
-            }
-            if (!estado.value) {
-                if (feedbackE) feedbackE.textContent = 'Debes seleccionar un estado';
-                valido = false;
-            }
-            if (!valido) e.preventDefault();
-        });
-    });
-});
-
-
-function validarCliente(input, feedbackEl, contadorEl) {
-    if (/[0-9]/.test(input.value)) {
-        input.value = input.value.replace(/[0-9]/g, '');
-        if (feedbackEl) feedbackEl.textContent = 'No se permiten números';
-    } else if (/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/.test(input.value)) {
-        input.value = input.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚñÑ\s]/g, '');
-        if (feedbackEl) feedbackEl.textContent = 'No se permiten caracteres especiales';
-    } else {
-        if (feedbackEl) feedbackEl.textContent = '';
+    if (feedback) {
+      if (val.length === 0) {
+        feedback.textContent = '⚠ El nombre del cliente es obligatorio.';
+        feedback.style.color = '#dc3545';
+      } else if (val.length < 3) {
+        feedback.textContent = '⚠ Mínimo 3 caracteres.';
+        feedback.style.color = '#fd7e14';
+      } else if (val.length > 30) {
+        feedback.textContent = '⚠ Máximo 30 caracteres.';
+        feedback.style.color = '#dc3545';
+      } else {
+        feedback.textContent = '✓ OK';
+        feedback.style.color = '#198754';
+      }
     }
-    if (input.value.length > 30) input.value = input.value.substring(0, 30);
-    if (contadorEl) contadorEl.textContent = input.value.length + '/30 caracteres';
-}
+  }
 
+  function renderCarrito() {
+    var tbody = document.getElementById('carritoBody');
+    var totalEl = document.getElementById('totalVenta');
+    var carritoInput = document.getElementById('carritoInput');
 
-function agregarProducto(id, nombre, precio, stock) {
-    id = String(id);
-    var stockNum = parseInt(stock) || 999;
-    for (var i = 0; i < carrito.length; i++) {
-        if (carrito[i].id === id) {
-            var alerta = document.getElementById('alertaProductoDuplicado');
-            if (alerta) { alerta.classList.remove('d-none'); setTimeout(function () { alerta.classList.add('d-none'); }, 2500); }
-            return;
-        }
-    }
-    var precioNum = parseFloat(String(precio).replace(',', '.')) || 0;
-    carrito.push({ id: id, nombre: nombre, precio: precioNum, cantidad: 1, stock: stockNum });
-    var alerta = document.getElementById('alertaCarritoVacio');
-    if (alerta) alerta.classList.add('d-none');
-    renderCarrito();
-}
-
-
-function sumar(id) {
-    for (var i = 0; i < carrito.length; i++) {
-        if (carrito[i].id === id) {
-            if (carrito[i].cantidad < carrito[i].stock) { carrito[i].cantidad++; renderCarrito(); }
-            return;
-        }
-    }
-}
-
-function restar(id) {
-    for (var i = 0; i < carrito.length; i++) {
-        if (carrito[i].id === id) {
-            if (carrito[i].cantidad > 1) { carrito[i].cantidad--; renderCarrito(); }
-            else { eliminarProducto(id); }
-            return;
-        }
-    }
-}
-
-function eliminarProducto(id) {
-    carrito = carrito.filter(function (i) { return i.id !== id; });
-    renderCarrito();
-}
-
-
-function renderCarrito() {
-    var tbody         = document.getElementById('filasCarrito');
-    var tabla         = document.getElementById('tablaCarrito');
-    var msgVacio      = document.getElementById('msgCarritoVacio');
-    var tituloCarrito = document.getElementById('tituloCarrito');
-    var totalEl       = document.getElementById('totalCarrito');
-    var camposOcultos = document.getElementById('camposOcultosProductos');
     if (!tbody) return;
 
-    camposOcultos.innerHTML = '';
-
-    if (carrito.length === 0) {
-        msgVacio.classList.remove('d-none');
-        tabla.classList.add('d-none');
-        if (tituloCarrito) tituloCarrito.classList.add('d-none');
-        totalEl.textContent = '$0';
-        return;
-    }
-
-    msgVacio.classList.add('d-none');
-    tabla.classList.remove('d-none');
-    if (tituloCarrito) tituloCarrito.classList.remove('d-none');
-
-    var total = 0;
     tbody.innerHTML = '';
+    var total = 0;
 
-    for (var k = 0; k < carrito.length; k++) {
-        var item     = carrito[k];
-        var subtotal = item.precio * item.cantidad;
-        total += subtotal;
+    carrito.forEach(function (item, idx) {
+      var subtotal = item.precio * item.cantidad;
+      total += subtotal;
+      var tr = document.createElement('tr');
+      tr.innerHTML =
+        '<td>' + item.nombre + '</td>' +
+        '<td>$' + item.precio.toLocaleString() + '</td>' +
+        '<td>' +
+          '<input type="number" min="1" value="' + item.cantidad + '" ' +
+          'class="form-control form-control-sm" style="width:70px" ' +
+          'onchange="App.ventas.actualizarCantidad(' + idx + ', this.value)">' +
+        '</td>' +
+        '<td>$' + subtotal.toLocaleString() + '</td>' +
+        '<td><button class="btn btn-sm btn-danger" onclick="App.ventas.eliminarDelCarrito(' + idx + ')">✕</button></td>';
+      tbody.appendChild(tr);
+    });
 
-        var tr = document.createElement('tr');
-        tr.innerHTML =
-            '<td><span class="fw-bold">' + item.nombre + '</span><br>' +
-            '<small class="text-muted">$' + item.precio.toLocaleString('es-CO') + ' c/u</small></td>' +
-            '<td><div class="d-flex align-items-center gap-1">' +
-            '<button type="button" class="btn btn-outline-secondary btn-sm px-2" onclick="restar(\'' + item.id + '\')">-</button>' +
-            '<span class="fw-bold px-2">' + item.cantidad + '</span>' +
-            '<button type="button" class="btn btn-outline-secondary btn-sm px-2" onclick="sumar(\'' + item.id + '\')">+</button>' +
-            '</div></td>' +
-            '<td class="text-end fw-bold">$' + subtotal.toLocaleString('es-CO') + '</td>' +
-            '<td class="text-end"><button type="button" class="btn btn-sm btn-outline-danger" ' +
-            'onclick="eliminarProducto(\'' + item.id + '\')"><i class="fa-solid fa-trash"></i></button></td>';
-        tbody.appendChild(tr);
+    if (totalEl) totalEl.textContent = '$' + total.toLocaleString();
+    if (carritoInput) carritoInput.value = JSON.stringify(carrito);
+  }
 
-        var names = ['producto_id[]', 'producto_nombre[]', 'producto_precio[]', 'producto_cantidad[]'];
-        var vals  = [item.id, item.nombre, item.precio, item.cantidad];
-        for (var j = 0; j < 4; j++) {
-            var inp = document.createElement('input');
-            inp.type  = 'hidden';
-            inp.name  = names[j];
-            inp.value = vals[j];
-            camposOcultos.appendChild(inp);
-        }
-    }
-
-    totalEl.textContent = '$' + total.toLocaleString('es-CO');
-}
-
-
-function validarFormVenta() {
-    var valido = true;
-
-    if (carrito.length === 0) {
-        var alerta   = document.getElementById('alertaCarritoVacio');
-        var msgVacio = document.getElementById('msgCarritoVacio');
-        alerta.classList.remove('d-none');
-        msgVacio.classList.add('d-none');
-        alerta.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        valido = false;
-    }
-
-    var clienteInput = document.getElementById('inputClienteCrear');
-    var feedbackC    = document.getElementById('feedbackCliente');
-    var cliente      = clienteInput ? clienteInput.value.trim() : '';
-    if (!cliente) {
-        if (feedbackC) feedbackC.textContent = 'El nombre del cliente es obligatorio';
-        valido = false;
-    } else if (cliente.length < 3) {
-        if (feedbackC) feedbackC.textContent = 'El nombre debe tener al menos 3 caracteres';
-        valido = false;
+  App.ventas.agregarAlCarrito = function (id, nombre, precio) {
+    var idx = carrito.findIndex(function (i) { return i.id === id; });
+    if (idx >= 0) {
+      carrito[idx].cantidad++;
     } else {
-        if (feedbackC) feedbackC.textContent = '';
+      carrito.push({ id: id, nombre: nombre, precio: precio, cantidad: 1 });
     }
+    renderCarrito();
+  };
 
-    var estadoSelect = document.getElementById('selectEstado');
-    var feedbackE    = document.getElementById('feedbackEstado');
-    var estado       = estadoSelect ? estadoSelect.value : '';
-    if (!estado) {
-        if (feedbackE) feedbackE.textContent = 'Debes seleccionar un estado';
-        valido = false;
-    } else {
-        if (feedbackE) feedbackE.textContent = '';
-    }
+  App.ventas.eliminarDelCarrito = function (idx) {
+    carrito.splice(idx, 1);
+    renderCarrito();
+  };
 
-    return valido;
-}
+  App.ventas.actualizarCantidad = function (idx, val) {
+    var n = parseInt(val, 10);
+    if (n > 0) { carrito[idx].cantidad = n; }
+    renderCarrito();
+  };
+
+  // ── Retrocompatibilidad global ──────────────────────────────────
+  window.agregarAlCarrito  = App.ventas.agregarAlCarrito;
+  window.eliminarDelCarrito= App.ventas.eliminarDelCarrito;
+  window.actualizarCantidad= App.ventas.actualizarCantidad;
+
+})();

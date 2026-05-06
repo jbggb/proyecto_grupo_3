@@ -1,67 +1,40 @@
 /*
  * modulos.css — Estilos unificados para TODOS los módulos del sistema
  * Tema: Dark El Despecho (Rojos, Dorados, Grises Oscuros)
+ * Requiere: tokens.css cargado antes que este archivo.
+ * NO declara :root. Todas las variables vienen de tokens.css.
  */
-
-:root {
-  --primary-red: #9b1c1c;
-  --primary-red-hover: #b91c1c;
-  --primary-red-light: rgba(155, 28, 28, 0.1);
-  --accent-gold: #f59e0b;
-  --accent-gold-hover: #d97706;
-  --success-green: #16A34A;
-  --success-green-hover: #15803D;
-  --success-green-light: rgba(22, 163, 74, 0.1);
-  --neutral-black: #161615;
-  --neutral-dark: #1b1d1b;
-  --neutral-gray: #3c3b38;
-  --neutral-light: #525252;
-  --neutral-border: #404040;
-  --text-white: #FFFFFF;
-  --text-light: #F5F5F5;
-  --text-muted: #A3A3A3;
-  --border-radius: 8px;
-  --border-radius-lg: 12px;
-  --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.4);
-  --transition-fast: 0.15s ease-in-out;
-}
 
 /* ── Encabezado de página ─────────────────────────────────────── */
 .page-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: var(--spacing-xl);
-    padding-bottom: var(--spacing-md);
-    border-bottom: 1px solid var(--neutral-border);
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-md);
+    border-bottom: 1px solid var(--color-border);
 }
 .page-header h2 {
-    font-family: 'Fraunces', serif;
+    font-family: var(--font-serif);
     font-size: 1.8rem;
     font-weight: 700;
-    color: var(--text-white);
+    color: var(--color-text-white);
     margin: 0;
     display: flex;
     align-items: center;
-    gap: var(--spacing-sm);
+    gap: var(--space-sm);
 }
 .page-header h2 i {
-    color: var(--primary-red);
+    color: var(--color-primary);
 }
 
 /* ── Tarjetas ─────────────────────────────────────────────────── */
 .card {
-    background: var(--neutral-dark) !important;
-    border: 1px solid var(--neutral-border) !important;
-    border-radius: var(--border-radius-lg) !important;
+    background: var(--bg-card) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: var(--radius-lg) !important;
     box-shadow: var(--shadow-md) !important;
-    margin-bottom: var(--spacing-lg);
+    margin-bottom: var(--space-lg);
     transition: var(--transition-fast);
     overflow: hidden;
     position: relative;
@@ -74,39 +47,39 @@
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, var(--primary-red), var(--accent-gold));
+    background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
 }
 
 .card:hover {
     transform: translateY(-2px);
     box-shadow: var(--shadow-lg);
-    border-color: var(--neutral-light);
+    border-color: var(--color-border-light);
 }
 
 .card-header {
-    background: var(--neutral-gray) !important;
-    border-bottom: 1px solid var(--neutral-border) !important;
-    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0 !important;
+    background: #3c3b38 !important;
+    border-bottom: 1px solid var(--color-border) !important;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0 !important;
     font-weight: 600;
     font-size: 0.95rem;
     padding: 18px 24px !important;
-    color: var(--text-white) !important;
+    color: var(--color-text-white) !important;
 }
 
 .card-body {
-    padding: var(--spacing-xl) !important;
-    color: var(--text-light);
+    padding: var(--space-xl) !important;
+    color: var(--color-text);
 }
 
 /* ── Tablas ───────────────────────────────────────────────────── */
 .table {
     font-size: 0.875rem;
-    color: var(--text-light);
+    color: var(--color-text);
 }
 
 .table thead th {
-    background: linear-gradient(145deg, #7f1d1d, #9b1c1c) !important;
-    color: var(--text-white) !important;
+    background: linear-gradient(145deg, #7f1d1d, var(--color-primary)) !important;
+    color: var(--color-text-white) !important;
     font-weight: 600;
     font-size: 0.8rem;
     letter-spacing: 0.05em;
@@ -120,36 +93,38 @@
     padding: 14px 16px;
     vertical-align: middle;
     font-size: 0.875rem;
-    color: var(--text-light);
-    border-bottom: 1px solid var(--neutral-border);
+    color: var(--color-text);
+    border-bottom: 1px solid var(--color-border);
 }
 
 .table tbody tr:hover td {
     background: rgba(255, 255, 255, 0.03);
 }
 
-/* ── Formularios de búsqueda ──────────────────────────────────── */
-.form-control, .form-select {
-    background: var(--neutral-black) !important;
-    border: 1px solid var(--neutral-border) !important;
-    border-radius: var(--border-radius) !important;
-    color: var(--text-light) !important;
+/* ── Formularios ──────────────────────────────────────────────── */
+.form-control,
+.form-select {
+    background: var(--bg-input) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: var(--radius-sm) !important;
+    color: var(--color-text) !important;
     font-size: 0.875rem !important;
     padding: 10px 14px !important;
     transition: var(--transition-fast);
 }
 
-.form-control:focus, .form-select:focus {
-    border-color: var(--primary-red) !important;
-    box-shadow: 0 0 0 3px var(--primary-red-light) !important;
-    background: var(--neutral-dark) !important;
-    color: var(--text-white) !important;
+.form-control:focus,
+.form-select:focus {
+    border-color: var(--color-primary) !important;
+    box-shadow: 0 0 0 3px var(--color-primary-glow) !important;
+    background: var(--bg-card) !important;
+    color: var(--color-text-white) !important;
 }
 
 .form-label {
     font-size: 0.8rem;
     font-weight: 600;
-    color: var(--text-muted) !important;
+    color: var(--color-text-muted) !important;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 6px;
@@ -157,7 +132,7 @@
 
 /* ── Botones ──────────────────────────────────────────────────── */
 .btn {
-    border-radius: var(--border-radius) !important;
+    border-radius: var(--radius-sm) !important;
     font-weight: 600 !important;
     font-size: 0.875rem !important;
     transition: all 0.2s ease !important;
@@ -169,58 +144,58 @@
 }
 
 .btn-primary {
-    background: var(--primary-red) !important;
-    color: var(--text-white) !important;
+    background: var(--color-primary) !important;
+    color: var(--color-text-white) !important;
 }
 .btn-primary:hover {
-    background: var(--primary-red-hover) !important;
+    background: var(--color-primary-hover) !important;
     transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(155, 28, 28, 0.4);
+    box-shadow: 0 6px 15px rgba(155, 28, 28, 0.40);
 }
 
 .btn-success {
-    background: var(--success-green) !important;
-    color: var(--text-white) !important;
+    background: var(--color-success) !important;
+    color: var(--color-text-white) !important;
 }
 .btn-success:hover {
-    background: var(--success-green-hover) !important;
+    background: var(--color-success-hover) !important;
     transform: translateY(-2px);
 }
 
 .btn-danger {
-    background: #ef4444 !important;
-    color: var(--text-white) !important;
+    background: var(--color-danger) !important;
+    color: var(--color-text-white) !important;
 }
 .btn-danger:hover {
-    background: #dc2626 !important;
+    background: #b91c1c !important;
     transform: translateY(-2px);
 }
 
 .btn-info {
-    background: #3B82F6 !important;
-    color: var(--text-white) !important;
+    background: var(--color-info) !important;
+    color: var(--color-text-white) !important;
 }
 .btn-info:hover {
-    background: #2563EB !important;
+    background: var(--color-info-hover) !important;
     transform: translateY(-2px);
 }
 
 .btn-warning {
-    background: var(--accent-gold) !important;
-    color: var(--text-black) !important;
+    background: var(--color-accent) !important;
+    color: #1a1a1a !important;
 }
 .btn-warning:hover {
-    background: var(--accent-gold-hover) !important;
+    background: var(--color-accent-hover) !important;
     transform: translateY(-2px);
 }
 
 .btn-secondary {
-    background: var(--neutral-gray) !important;
-    color: var(--text-light) !important;
+    background: #3c3b38 !important;
+    color: var(--color-text) !important;
 }
 .btn-secondary:hover {
-    background: var(--neutral-light) !important;
-    color: var(--text-white) !important;
+    background: var(--color-border-light) !important;
+    color: var(--color-text-white) !important;
 }
 
 .btn-sm {
@@ -237,50 +212,62 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
 }
-.badge.bg-success, .badge-success { background: var(--success-green-light) !important; color: var(--success-green) !important; border: 1px solid var(--success-green); }
-.badge.bg-danger, .badge-danger { background: rgba(239, 68, 68, 0.1) !important; color: #ef4444 !important; border: 1px solid #ef4444; }
-.badge.bg-warning, .badge-warning { background: rgba(245, 158, 11, 0.1) !important; color: var(--accent-gold) !important; border: 1px solid var(--accent-gold); }
+.badge.bg-success, .badge-success {
+    background: var(--color-success-light) !important;
+    color: var(--color-success) !important;
+    border: 1px solid var(--color-success);
+}
+.badge.bg-danger, .badge-danger {
+    background: var(--color-danger-light) !important;
+    color: var(--color-danger) !important;
+    border: 1px solid var(--color-danger);
+}
+.badge.bg-warning, .badge-warning {
+    background: var(--color-warning-light) !important;
+    color: var(--color-accent) !important;
+    border: 1px solid var(--color-accent);
+}
 
-/* ── Modales estándar (Agregar/Editar) ────────────────────────── */
+/* ── Modales estándar ─────────────────────────────────────────── */
 .modal-content {
-    background: var(--neutral-dark) !important;
-    border: 1px solid var(--neutral-border) !important;
-    border-radius: var(--border-radius-lg) !important;
+    background: var(--bg-card) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: var(--radius-lg) !important;
     box-shadow: var(--shadow-lg) !important;
-    color: var(--text-light) !important;
+    color: var(--color-text) !important;
     overflow: hidden;
 }
 
 .modal-header {
-    background: linear-gradient(145deg, #7f1d1d, #9b1c1c) !important;
+    background: linear-gradient(145deg, #7f1d1d, var(--color-primary)) !important;
     border-bottom: none !important;
     padding: 18px 24px !important;
     color: white !important;
 }
 
 .modal-title {
-    font-family: 'Fraunces', serif;
+    font-family: var(--font-serif);
     font-size: 1.25rem !important;
     font-weight: 700 !important;
-    color: var(--text-white) !important;
+    color: var(--color-text-white) !important;
 }
 
 .modal-body {
     padding: 24px !important;
-    background: var(--neutral-dark) !important;
+    background: var(--bg-card) !important;
 }
 
 .modal-footer {
-    background: var(--neutral-black) !important;
-    border-top: 1px solid var(--neutral-border) !important;
+    background: var(--bg-input) !important;
+    border-top: 1px solid var(--color-border) !important;
     padding: 16px 24px !important;
 }
 
-/* ── Modal "Ver Detalles" (Estilo Premium Imagen 1) ───────────── */
+/* ── Modal "Ver Detalles" ─────────────────────────────────────── */
 .modal-detalle .modal-content {
     background: #1e1e1e !important;
     border: none !important;
-    border-radius: 16px !important;
+    border-radius: var(--radius-lg) !important;
     box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5) !important;
 }
 
@@ -295,9 +282,7 @@
     filter: invert(1) grayscale(100%) brightness(200%);
     opacity: 0.5;
 }
-.modal-detalle .btn-close:hover {
-    opacity: 1;
-}
+.modal-detalle .btn-close:hover { opacity: 1; }
 
 .modal-detalle .modal-body {
     padding: 0 32px 32px !important;
@@ -309,8 +294,8 @@
     height: 80px;
     border-radius: 50%;
     background: transparent;
-    border: 3px solid #0ea5e9;
-    color: #0ea5e9;
+    border: 3px solid var(--color-cyan);
+    color: var(--color-cyan);
     font-size: 32px;
     display: flex;
     align-items: center;
@@ -345,7 +330,7 @@
 .modal-detalle-table td:first-child {
     font-weight: 700;
     font-size: 0.8rem;
-    color: #f97316; /* Naranja/Dorado */
+    color: var(--color-accent);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     width: 35%;
@@ -358,9 +343,9 @@
 }
 
 .modal-detalle-btn-cerrar {
-    background: #8b5cf6 !important;
+    background: var(--color-purple) !important;
     color: white !important;
-    border-radius: 8px !important;
+    border-radius: var(--radius-sm) !important;
     padding: 12px 32px !important;
     font-weight: 600 !important;
     font-size: 1rem !important;
@@ -369,7 +354,42 @@
     margin: 0 auto;
 }
 .modal-detalle-btn-cerrar:hover {
-    background: #7c3aed !important;
+    background: #6d28d9 !important;
     transform: translateY(-2px);
-    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.4);
+    box-shadow: 0 4px 15px rgba(139, 92, 246, 0.40);
+}
+
+/* Fix: forzar color de texto en tablas contra Bootstrap */
+.table td,
+.table th,
+.table tbody tr td {
+    color: #ffffff !important;
+}
+
+/* ── Fix: tarjetas del dashboard ─────────────────────────────── */
+.card {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--color-border) !important;
+    color: var(--color-text) !important;
+}
+
+.card-body {
+    background: var(--bg-card) !important;
+    color: var(--color-text) !important;
+}
+
+.card p,
+.card span,
+.card h1,
+.card h2,
+.card h3,
+.card h4,
+.card h5 {
+    color: var(--color-text) !important;
+}
+
+/* Fix tabla de productos — fila vacía blanca */
+tbody tr td {
+    background: transparent !important;
+    color: var(--color-text) !important;
 }
