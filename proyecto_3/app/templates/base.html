@@ -1,3 +1,5 @@
+
+
 {% load static %}
 <!DOCTYPE html>
 <html lang="es">
@@ -44,8 +46,22 @@
         .sub-link:hover {
             background-color: rgba(255,255,255,0.08) !important;
         }
-        .sub-link.active {
-            background-color: rgba(255,255,255,0.15) !important;
+        .sub-link.active,
+        #sidebar a.active {
+            position: relative;
+            color: #dbeafe !important;
+        }
+        .sub-link.active::after,
+        #sidebar a.active::after {
+            content: '';
+            position: absolute;
+            left: 8px;
+            right: 8px;
+            bottom: 6px;
+            height: 3px;
+            background: rgba(96, 165, 250, 0.25);
+            border-radius: 999px;
+            pointer-events: none;
         }
         #sidebar a i {
             min-width: 24px;
@@ -66,6 +82,18 @@
         #main-content {
             transition: margin-left 0.3s ease;
             flex: 1;
+        }
+
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
         }
 
         /* ── Botón flotante IA ── */
@@ -162,6 +190,144 @@
             font-weight: 600;
         }
         #chat-input-area button:hover { background: #0b5ed7; }
+        /* ── Botón flotante Accesibilidad ── */
+#accessibility-btn {
+    position: fixed !important;
+    bottom: 100px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: #1d4ed8;
+    color: white;
+    border: none;
+    font-size: 22px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+    z-index: 11001;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+}
+#accessibility-btn:hover { transform: scale(1.05); }
+
+/* ── Panel de Accesibilidad ── */
+#accessibility-panel {
+    position: fixed !important;
+    bottom: 170px;
+    right: 30px;
+    width: 280px;
+    background: #1b1d1b;
+    border: 1px solid #404040;
+    border-radius: 16px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    display: none;
+    flex-direction: column;
+    z-index: 11000;
+    overflow: hidden;
+}
+#accessibility-panel.open { display: flex; }
+
+#accessibility-panel-header {
+    background: linear-gradient(145deg, #1e3a8a, #1d4ed8);
+    color: white;
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 14px;
+}
+#accessibility-panel-header button {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+}
+#accessibility-panel-body {
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #2a2a2a;
+}
+.acc-option-btn {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #3c3b38;
+    color: white;
+    border: 1px solid #525252;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    text-align: left;
+    transition: background 0.2s;
+}
+.acc-option-btn:hover { background: #525252; }
+.acc-option-btn.active { background: #1d4ed8; border-color: #3b82f6; }
+.acc-option-btn i { min-width: 18px; text-align: center; font-size: 15px; }
+#acc-font-size-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    justify-content: space-between;
+}
+#acc-font-size-row span {
+    color: #a3a3a3;
+    font-size: 13px;
+    flex: 1;
+}
+#acc-font-size-row button {
+    background: #3c3b38;
+    color: white;
+    border: 1px solid #525252;
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+#acc-font-size-row button:hover { background: #525252; }
+#acc-reset-btn {
+    background: none;
+    color: #f87171;
+    border: 1px solid #f87171;
+    border-radius: 8px;
+    padding: 8px;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+    text-align: center;
+}
+#acc-reset-btn:hover { background: rgba(248,113,113,0.15); }
+
+/* ── Modos de accesibilidad aplicados al body ── */
+body.acc-alto-contraste {
+    filter: contrast(2) !important;
+}
+body.acc-escala-grises {
+    filter: grayscale(1) !important;
+}
+body.acc-subrayar-links a {
+    text-decoration: underline !important;
+    text-underline-offset: 3px;
+}
+body.acc-fuente-grande * {
+    font-size: calc(1em + 2px) !important;
+    line-height: 1.6 !important;
+}
+body.acc-reducir-movimiento * {
+    animation: none !important;
+    transition: none !important;
+}
     </style>
 </head>
 <body>
@@ -356,10 +522,51 @@
 <footer class="text-light text-center py-2" style="background: #161615; border-top: 1px solid #404040;">
     <small>Proyecto Inventario - Grupo 3 © 2025</small>
 </footer>
+<!-- ── Botón flotante Accesibilidad ── -->
+{% if request.user.is_authenticated %}
+<button id="accessibility-btn" onclick="toggleAccessibility()" title="Opciones de Accesibilidad" aria-label="Opciones de accesibilidad" aria-controls="accessibility-panel" aria-expanded="false">
+    <i class="fa-solid fa-universal-access"></i>
+</button>
 
+<div id="accessibility-panel" role="dialog" aria-modal="true" aria-labelledby="accessibility-panel-header" tabindex="-1">
+    <div id="accessibility-panel-header">
+        <span><i class="fa-solid fa-universal-access me-2"></i>Accesibilidad</span>
+        <button onclick="toggleAccessibility()">✕</button>
+    </div>
+    <div id="accessibility-panel-body">
+        <button class="acc-option-btn" id="acc-contraste" onclick="toggleAccFeature('acc-alto-contraste', 'acc-contraste')">
+            <i class="fa-solid fa-circle-half-stroke"></i> Alto contraste
+        </button>
+        <button class="acc-option-btn" id="acc-grises" onclick="toggleAccFeature('acc-escala-grises', 'acc-grises')">
+            <i class="fa-solid fa-droplet-slash"></i> Escala de grises
+        </button>
+        <button class="acc-option-btn" id="acc-links" onclick="toggleAccFeature('acc-subrayar-links', 'acc-links')">
+            <i class="fa-solid fa-link"></i> Subrayar enlaces
+        </button>
+        <button class="acc-option-btn" id="acc-movimiento" onclick="toggleAccFeature('acc-reducir-movimiento', 'acc-movimiento')">
+            <i class="fa-solid fa-pause"></i> Reducir movimiento
+        </button>
+        <button class="acc-option-btn" id="acc-sonido" onclick="toggleAccSound()" aria-pressed="false">
+            <i class="fa-solid fa-volume-high"></i> <span class="btn-text">Sonido</span>
+        </button>
+        <button class="acc-option-btn" id="acc-lectura" onclick="readPageContent()">
+            <i class="fa-solid fa-ear-listen"></i> Leer página
+        </button>
+        <div id="acc-font-size-row">
+            <span><i class="fa-solid fa-text-height me-1"></i> Tamaño texto</span>
+            <button onclick="changeFontSize(-1)" title="Reducir texto">−</button>
+            <button onclick="changeFontSize(1)" title="Aumentar texto">+</button>
+        </div>
+        <button id="acc-reset-btn" onclick="resetAccesibilidad()">
+            <i class="fa-solid fa-rotate-left me-1"></i> Restablecer todo
+        </button>
+    </div>
+</div>
+<div id="acc-aria-live" aria-live="polite" aria-atomic="true" class="visually-hidden"></div>
+{% endif %}
 <!-- ── Botón flotante Asistente IA ── -->
 {% if request.user.is_authenticated %}
-<button id="chat-btn" onclick="toggleChat()" title="Asistente IA">
+<button id="chat-btn" onclick="toggleChat()" title="Asistente IA" aria-label="Asistente inteligente" aria-controls="chat-window" aria-expanded="false">
     <i class="fa-solid fa-robot"></i>
 </button>
 
@@ -734,7 +941,116 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 })();
 </script>
+{% if request.user.is_authenticated %}
+<script>
+(function() {
+    var accState = {
+        'acc-alto-contraste': false,
+        'acc-escala-grises': false,
+        'acc-subrayar-links': false,
+        'acc-reducir-movimiento': false,
+        'acc-sonido': false,
+        fontSize: 0
+    };
 
+    try {
+        var saved = localStorage.getItem('acc_settings');
+        if (saved) accState = Object.assign(accState, JSON.parse(saved));
+    } catch(e) {}
+
+    function applyState() {
+        var classes = ['acc-alto-contraste','acc-escala-grises','acc-subrayar-links','acc-reducir-movimiento'];
+        classes.forEach(function(cls) {
+            document.body.classList.toggle(cls, !!accState[cls]);
+            var btn = document.getElementById(cls.replace('acc-', 'acc-').replace('acc-alto-contraste','acc-contraste').replace('acc-escala-grises','acc-grises').replace('acc-subrayar-links','acc-links').replace('acc-reducir-movimiento','acc-movimiento'));
+            if (btn) btn.classList.toggle('active', !!accState[cls]);
+        });
+        var soundBtn = document.getElementById('acc-sonido');
+        if (soundBtn) {
+            var enabled = !!accState['acc-sonido'];
+            soundBtn.classList.toggle('active', enabled);
+            soundBtn.setAttribute('aria-pressed', enabled);
+            var text = soundBtn.querySelector('.btn-text');
+            if (text) text.textContent = enabled ? 'Sonido activado' : 'Sonido';
+        }
+        document.documentElement.style.fontSize = accState.fontSize !== 0
+            ? (100 + accState.fontSize * 10) + '%'
+            : '';
+    }
+
+    function saveState() {
+        try { localStorage.setItem('acc_settings', JSON.stringify(accState)); } catch(e) {}
+    }
+
+    document.addEventListener('DOMContentLoaded', applyState);
+
+    window.toggleAccessibility = function() {
+        var panel = document.getElementById('accessibility-panel');
+        var btn = document.getElementById('accessibility-btn');
+        if (!panel) return;
+        panel.classList.toggle('open');
+        var expanded = panel.classList.contains('open');
+        if (btn) btn.setAttribute('aria-expanded', expanded);
+        if (expanded) panel.focus();
+    };
+
+    window.toggleAccFeature = function(bodyClass, btnId) {
+        accState[bodyClass] = !accState[bodyClass];
+        saveState();
+        applyState();
+    };
+
+    window.toggleAccSound = function() {
+        accState['acc-sonido'] = !accState['acc-sonido'];
+        saveState();
+        applyState();
+        speakText(accState['acc-sonido'] ? 'Modo de sonido activado' : 'Modo de sonido desactivado');
+    };
+
+    window.readPageContent = function() {
+        var title = document.title || 'Página';
+        var heading = document.querySelector('main h1')?.textContent || '';
+        var paragraph = document.querySelector('main p')?.textContent || '';
+        var text = title;
+        if (heading) text += '. ' + heading;
+        if (paragraph) text += '. ' + paragraph;
+        speakText(text || 'Contenido de la página.');
+    };
+
+    function speakText(text) {
+        var live = document.getElementById('acc-aria-live');
+        if (live) live.textContent = text;
+        if (!window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        var utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'es-ES';
+        utterance.rate = 1;
+        window.speechSynthesis.speak(utterance);
+    }
+
+    window.changeFontSize = function(delta) {
+        accState.fontSize = Math.max(-2, Math.min(4, (accState.fontSize || 0) + delta));
+        saveState();
+        applyState();
+    };
+
+    window.resetAccesibilidad = function() {
+        accState = { 'acc-alto-contraste': false, 'acc-escala-grises': false, 'acc-subrayar-links': false, 'acc-reducir-movimiento': false, 'acc-sonido': false, fontSize: 0 };
+        saveState();
+        applyState();
+    };
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Escape') {
+            var panel = document.getElementById('accessibility-panel');
+            if (panel && panel.classList.contains('open')) {
+                toggleAccessibility();
+            }
+        }
+    });
+})();
+</script>
+{% endif %}
 <script src="{% static 'js/animaciones.js' %}"></script>
 
 {% block extra_js %}{% endblock %}

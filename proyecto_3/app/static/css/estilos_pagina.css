@@ -32,7 +32,7 @@
   
   /* Texto */
   --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
+  --text-secondary: #026cff;
   --text-muted: #64748b;
   
   /* Bordes */
@@ -383,7 +383,7 @@ th {
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--text-secondary);
+  color: var(--text-primary);
 }
 
 td {

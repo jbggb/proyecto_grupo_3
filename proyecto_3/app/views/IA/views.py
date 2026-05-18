@@ -88,6 +88,17 @@ def ia_chat(request):
         contexto = obtener_contexto()
 
         GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
+        if not GROQ_API_KEY:
+            return JsonResponse({
+                'reply': 'Error de IA: falta la configuración de la clave GROQ_API_KEY en el entorno.',
+                'status': 'error'
+            })
+
+        if not user_message:
+            return JsonResponse({
+                'reply': 'Por favor escribe una pregunta o instrucción para la IA.',
+                'status': 'error'
+            })
 
         headers = {
             'Authorization': f'Bearer {GROQ_API_KEY}',
@@ -111,14 +122,22 @@ def ia_chat(request):
                 json=payload,
                 timeout=30
             )
+            response.raise_for_status()
             result = response.json()
 
-            if 'choices' not in result:
-                return JsonResponse({'reply': str(result), 'status': 'error'})
+            if 'choices' not in result or not result['choices']:
+                return JsonResponse({
+                    'reply': f'Error con la IA: respuesta inesperada del proveedor ({result}).',
+                    'status': 'error'
+                })
 
             reply = result['choices'][0]['message']['content']
             return JsonResponse({'reply': reply, 'status': 'ok'})
 
+        except requests.RequestException as e:
+            return JsonResponse({'reply': f'Error con la IA: {str(e)}', 'status': 'error'})
+        except ValueError as e:
+            return JsonResponse({'reply': f'Error con la IA: respuesta no JSON ({str(e)})', 'status': 'error'})
         except Exception as e:
             return JsonResponse({'reply': f'Error con la IA: {str(e)}', 'status': 'error'})
 

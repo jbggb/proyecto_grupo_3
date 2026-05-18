@@ -32,6 +32,9 @@
   --transition-fast: 0.15s ease-in-out;
 }
 
+/* Minimal: subrayado para módulo seleccionado */
+.sub-link.active { text-decoration: underline !important; }
+
 /* ── Encabezado de página ─────────────────────────────────────── */
 .page-header {
     display: flex;
@@ -100,59 +103,87 @@
 
 /* ── Tablas ───────────────────────────────────────────────────── */
 .table {
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     color: var(--text-light);
+    border-collapse: separate;
+    border-spacing: 0;
+    min-width: 100%;
 }
 
 .table thead th {
-    background: linear-gradient(145deg, #7f1d1d, #9b1c1c) !important;
-    color: var(--text-white) !important;
-    font-weight: 600;
-    font-size: 0.8rem;
-    letter-spacing: 0.05em;
+    background: linear-gradient(145deg, #111827, #1f2937) !important;
+    color: var(--text-primary) !important;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 0.08em;
     text-transform: uppercase;
     padding: 14px 16px;
-    border-bottom: none;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
     white-space: nowrap;
 }
 
 .table tbody td {
     padding: 14px 16px;
     vertical-align: middle;
-    font-size: 0.875rem;
+    font-size: 0.9rem;
     color: var(--text-light);
-    border-bottom: 1px solid var(--neutral-border);
+    border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
 .table tbody tr:hover td {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(255, 255, 255, 0.05);
 }
 
-/* ── Formularios de búsqueda ──────────────────────────────────── */
-.form-control, .form-select {
-    background: var(--neutral-black) !important;
-    border: 1px solid var(--neutral-border) !important;
+/* ── Formularios de búsqueda y controles ──────────────────────────────────── */
+.form-control,
+.form-select,
+input:not([type='button']):not([type='submit']):not([type='reset']):not([type='checkbox']):not([type='radio']),
+textarea {
+    background: #111827 !important;
+    border: 1px solid rgba(255,255,255,0.12) !important;
     border-radius: var(--border-radius) !important;
-    color: var(--text-light) !important;
-    font-size: 0.875rem !important;
+    color: #ffffff !important;
+    font-size: 0.9rem !important;
     padding: 10px 14px !important;
     transition: var(--transition-fast);
 }
 
-.form-control:focus, .form-select:focus {
+.form-control::placeholder,
+textarea::placeholder,
+input::placeholder {
+    color: rgba(255, 255, 255, 0.65) !important;
+}
+
+.form-control:focus,
+.form-select:focus,
+input:focus,
+textarea:focus {
     border-color: var(--primary-red) !important;
     box-shadow: 0 0 0 3px var(--primary-red-light) !important;
-    background: var(--neutral-dark) !important;
+    background: #111827 !important;
     color: var(--text-white) !important;
 }
 
 .form-label {
     font-size: 0.8rem;
     font-weight: 600;
-    color: var(--text-muted) !important;
+    color: var(--text-white) !important;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 6px;
+}
+
+.filter-bar {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 20px;
+    border-radius: var(--border-radius);
+    margin-bottom: 24px;
+}
+
+/* Mejor contraste para títulos de filtros en todos los módulos */
+.filter-bar .form-label {
+    color: var(--text-white) !important;
 }
 
 /* ── Botones ──────────────────────────────────────────────────── */
