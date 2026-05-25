@@ -982,7 +982,11 @@ document.addEventListener('DOMContentLoaded', function() {
         try { localStorage.setItem('acc_settings', JSON.stringify(accState)); } catch(e) {}
     }
 
-    document.addEventListener('DOMContentLoaded', applyState);
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', applyState);
+    } else {
+        applyState();
+    }
 
     window.toggleAccessibility = function() {
         var panel = document.getElementById('accessibility-panel');
@@ -1007,6 +1011,22 @@ document.addEventListener('DOMContentLoaded', function() {
         speakText(accState['acc-sonido'] ? 'Modo de sonido activado' : 'Modo de sonido desactivado');
     };
 
+    function isAccessibleInteractive(element) {
+        return !!element && !!element.closest('a, button, input, textarea, select, [role="button"], [role="link"], .productos-toggle, .sub-link');
+    }
+
+    function bindHoverSpeak() {
+        document.addEventListener('mouseover', function(event) {
+            if (!accState['acc-sonido']) return;
+            var interactive = event.target.closest('a, button, input, textarea, select, [role="button"], [role="link"], .productos-toggle, .sub-link');
+            if (!interactive) return;
+            var text = getAccessibilityLabel(interactive);
+            if (text) speakText(text);
+        });
+    }
+
+    bindHoverSpeak();
+
     window.readPageContent = function() {
         var title = document.title || 'Página';
         var heading = document.querySelector('main h1')?.textContent || '';
@@ -1017,7 +1037,25 @@ document.addEventListener('DOMContentLoaded', function() {
         speakText(text || 'Contenido de la página.');
     };
 
+    function getAccessibilityLabel(element) {
+        if (!element) return '';
+        if (element.getAttribute('aria-label')) return element.getAttribute('aria-label');
+        if (element.getAttribute('aria-labelledby')) {
+            var id = element.getAttribute('aria-labelledby');
+            var labelEl = document.getElementById(id);
+            if (labelEl) return labelEl.textContent.trim();
+        }
+        if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+            return element.placeholder || element.value || element.name || '';
+        }
+        if (element.tagName === 'IMG') {
+            return element.alt || element.title || '';
+        }
+        return element.textContent.trim();
+    }
+
     function speakText(text) {
+        if (!text) return;
         var live = document.getElementById('acc-aria-live');
         if (live) live.textContent = text;
         if (!window.speechSynthesis) return;
@@ -1025,8 +1063,37 @@ document.addEventListener('DOMContentLoaded', function() {
         var utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'es-ES';
         utterance.rate = 1;
+        utterance.pitch = 1;
+        utterance.volume = 1;
+        var voices = window.speechSynthesis.getVoices();
+        var voice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('es')) || voices[0];
+        if (voice) utterance.voice = voice;
         window.speechSynthesis.speak(utterance);
     }
+
+    document.addEventListener('focusin', function(event) {
+        if (!accState['acc-sonido']) return;
+        var target = event.target;
+        if (!target) return;
+        var interactive = /^(BUTTON|A|INPUT|SELECT|TEXTAREA|LABEL|SUMMARY|DETAILS)$/.test(target.tagName) || target.hasAttribute('role');
+        if (!interactive) return;
+        var text = getAccessibilityLabel(target);
+        if (text) speakText(text);
+    });
+
+    document.addEventListener('selectionchange', function() {
+        if (!accState['acc-sonido']) return;
+        var selection = window.getSelection().toString().trim();
+        if (selection) speakText(selection);
+    });
+
+    document.addEventListener('click', function(event) {
+        if (!accState['acc-sonido']) return;
+        var interactive = event.target.closest('a, button, input, textarea, select, [role="button"], [role="link"]');
+        if (!interactive) return;
+        var text = getAccessibilityLabel(interactive);
+        if (text) speakText(text);
+    });
 
     window.changeFontSize = function(delta) {
         accState.fontSize = Math.max(-2, Math.min(4, (accState.fontSize || 0) + delta));

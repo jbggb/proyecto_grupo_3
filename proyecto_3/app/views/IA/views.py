@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -87,10 +88,10 @@ def ia_chat(request):
 
         contexto = obtener_contexto()
 
-        GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
+        GROQ_API_KEY = getattr(settings, 'GROQ_API_KEY', '') or os.environ.get('GROQ_API_KEY', '')
         if not GROQ_API_KEY:
             return JsonResponse({
-                'reply': 'Error de IA: falta la configuración de la clave GROQ_API_KEY en el entorno.',
+                'reply': 'La IA no está configurada. Agrega GROQ_API_KEY a tu archivo .env o a la variable de entorno.',
                 'status': 'error'
             })
 

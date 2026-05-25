@@ -26,6 +26,7 @@ SECRET_KEY = _env(
     required=not DEBUG,
 )
 ALLOWED_HOSTS = [host.strip() for host in _env('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if host.strip()]
+GROQ_API_KEY = _env('GROQ_API_KEY', '')
 
 INSTALLED_APPS = [
     'app',
