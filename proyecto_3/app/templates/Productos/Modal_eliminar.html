@@ -2,9 +2,9 @@
 <div class="modal fade" id="modalEliminar{{ producto.idProducto }}" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
+            <div class="modal-header">
                 <h5 class="modal-title">Eliminar Producto</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="POST" action="{% url 'eliminar_producto' producto.idProducto %}">
                 {% csrf_token %}

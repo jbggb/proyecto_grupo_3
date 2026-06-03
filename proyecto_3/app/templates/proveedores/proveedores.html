@@ -1,178 +1,145 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block content %}
-<link rel="stylesheet" href="{% static 'css/estilos_pagina.css' %}">
-<link rel="stylesheet" href="{% static 'css/filtros_realtime.css' %}">
+{% block title %}Proveedores{% endblock %}
 
-<div class="d-flex justify-content-between align-items-center mb-4 animate-slide-left">
-  <h2><i class="fa-solid fa-truck me-2"></i>Gestión de Proveedores</h2>
-  <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCrearProveedor">
-    <i class="fa-solid fa-plus me-1"></i> Nuevo Proveedor
+{% block content %}
+
+<div class="page-header animate-slide-right">
+  <div class="page-header-left">
+    <div class="page-title">
+      <div class="page-title-icon"><i class="fa-solid fa-truck"></i></div>
+      Proveedores
+    </div>
+    <div class="page-subtitle">Gestión de proveedores del sistema</div>
+  </div>
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCrearProveedor">
+    <i class="fa-solid fa-plus"></i> Nuevo Proveedor
   </button>
 </div>
 
-<!-- ══════════════════════════════════════════════════════════════
-     FILTROS EN TIEMPO REAL — PROVEEDORES
-     ══════════════════════════════════════════════════════════════ -->
 <div data-filter-container class="animate-fade-up">
 
+  <!-- Filtros -->
   <div class="rt-filter-bar" role="search" aria-label="Filtros de proveedores">
     <div class="rt-filter-grid">
-
-      <!-- Buscar por nombre -->
       <div class="rt-filter-group">
-        <label for="filtro-nombre-prov" class="rt-filter-label">
-          <i class="fa-solid fa-magnifying-glass"></i> Buscar proveedor
-        </label>
+        <label for="filtro-nombre-prov" class="rt-filter-label"><i class="fa-solid fa-magnifying-glass"></i> Buscar proveedor</label>
         <div class="rt-input-wrapper">
-          <i class="fa-solid fa-truck rt-input-icon" aria-hidden="true"></i>
-          <input
-            id="filtro-nombre-prov"
-            type="search"
-            class="rt-filter-input"
-            data-filter-col="nombre"
-            placeholder="Buscar por nombre..."
-            autocomplete="off"
-            aria-label="Buscar proveedor por nombre"
-          >
+          <i class="fa-solid fa-truck rt-input-icon"></i>
+          <input id="filtro-nombre-prov" type="search" class="rt-filter-input" data-filter-col="nombre" placeholder="Buscar por nombre..." autocomplete="off">
         </div>
       </div>
-
-      <!-- Buscar por email -->
       <div class="rt-filter-group">
-        <label for="filtro-email-prov" class="rt-filter-label">
-          <i class="fa-solid fa-envelope"></i> Email
-        </label>
+        <label for="filtro-email-prov" class="rt-filter-label"><i class="fa-solid fa-envelope"></i> Email</label>
         <div class="rt-input-wrapper">
-          <i class="fa-solid fa-envelope rt-input-icon" aria-hidden="true"></i>
-          <input
-            id="filtro-email-prov"
-            type="search"
-            class="rt-filter-input"
-            data-filter-col="email"
-            placeholder="Filtrar por email..."
-            autocomplete="off"
-            aria-label="Filtrar proveedor por email"
-          >
+          <i class="fa-solid fa-envelope rt-input-icon"></i>
+          <input id="filtro-email-prov" type="search" class="rt-filter-input" data-filter-col="email" placeholder="Filtrar por email..." autocomplete="off">
         </div>
       </div>
-
-      <!-- Filtrar por velocidad de envío -->
       <div class="rt-filter-group">
-        <label for="filtro-envio-prov" class="rt-filter-label">
-          <i class="fa-solid fa-gauge"></i> Velocidad de envío
-        </label>
-        <select
-          id="filtro-envio-prov"
-          class="rt-filter-select"
-          data-filter-col="envio-cat"
-          aria-label="Filtrar proveedor por velocidad de envío"
-        >
+        <label for="filtro-envio-prov" class="rt-filter-label"><i class="fa-solid fa-gauge"></i> Velocidad de envío</label>
+        <select id="filtro-envio-prov" class="rt-filter-select" data-filter-col="envio-cat">
           <option value="">Todas las velocidades</option>
           <option value="rapido">🟢 Rápido (1-7 días)</option>
           <option value="normal">🟡 Normal (8-15 días)</option>
           <option value="lento">🔴 Lento (15+ días)</option>
         </select>
       </div>
-
-      <!-- Acciones -->
       <div class="rt-filter-actions">
-        <button
-          type="button"
-          class="rt-btn-clear"
-          data-filter-clear
-          aria-label="Limpiar todos los filtros de proveedores"
-          title="Limpiar filtros"
-        >
-          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-          Limpiar filtros
+        <button type="button" class="rt-btn-clear" data-filter-clear>
+          <i class="fa-solid fa-xmark"></i> Limpiar filtros
         </button>
-        <span class="rt-filter-count" data-filter-count aria-live="polite" aria-atomic="true"></span>
+        <span class="rt-filter-count" data-filter-count aria-live="polite"></span>
       </div>
-
     </div>
   </div>
 
-  <!-- Botones exportar -->
-  <div class="contenedor-exportar mb-3">
-    <a href="{% url 'exportar_proveedores_pdf' %}" class="btn btn-danger">
+  <!-- Exportar -->
+  <div class="contenedor-exportar">
+    <a href="{% url 'exportar_proveedores_pdf' %}" class="btn btn-danger btn-sm">
       <i class="fa-solid fa-file-pdf"></i> Exportar PDF
     </a>
-    <a href="{% url 'exportar_proveedores_excel' %}" class="btn btn-success">
+    <a href="{% url 'exportar_proveedores_excel' %}" class="btn btn-success btn-sm">
       <i class="fa-solid fa-file-excel"></i> Exportar Excel
     </a>
   </div>
 
-  <!-- ── Tabla de proveedores ────────────────────────────────── -->
-  <div class="card border-0 shadow-sm">
-    <div class="card-header bg-dark text-white">
-      <i class="fa-solid fa-list me-2"></i>Proveedores Registrados
+  <!-- Tabla -->
+  <div class="glass-card">
+    <div class="glass-card-header">
+      <div class="glass-card-title"><i class="fa-solid fa-list"></i> Proveedores Registrados</div>
     </div>
-    <div class="card-body p-0">
-      <table class="table table-hover mb-0" aria-label="Listado de proveedores">
-        <thead class="table-dark">
+    <div class="tbl-wrap" style="border:none;border-radius:0;">
+      <table class="table" aria-label="Listado de proveedores">
+        <thead>
           <tr>
-            <th scope="col">ID</th>
-            <th scope="col">Nombre</th>
-            <th scope="col">Teléfono</th>
-            <th scope="col">Email</th>
-            <th scope="col">Envío (días)</th>
-            <th scope="col">Fecha Registro</th>
-            <th scope="col">Acciones</th>
+            <th>ID</th>
+            <th>Proveedor</th>
+            <th>Teléfono</th>
+            <th>Email</th>
+            <th>Envío</th>
+            <th>Fecha</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody class="animate-stagger">
           {% for p in proveedores %}
           <tr class="animate-item" data-filter-row>
-            <td data-col="id">{{ p.id }}</td>
-            <td data-col="nombre"><strong>{{ p.nombre }}</strong></td>
-            <td data-col="telefono">{{ p.telefono }}</td>
-            <td data-col="email">{{ p.email }}</td>
+            <td data-col="id" style="color:var(--tx-muted);font-size:.8rem;">#{{ p.id }}</td>
+            <td data-col="nombre">
+              <div class="tbl-name-cell">
+                <div class="tbl-avatar">{{ p.nombre|slice:":2"|upper }}</div>
+                <span style="font-weight:600;">{{ p.nombre }}</span>
+              </div>
+            </td>
+            <td data-col="telefono" style="font-family:var(--font-mono);font-size:.85rem;">{{ p.telefono }}</td>
+            <td data-col="email" style="font-size:.85rem;color:var(--tx-secondary);">{{ p.email }}</td>
             <td data-col="envio">
               {% if p.envio <= 7 %}
-                <span class="badge bg-success">{{ p.envio }} días</span>
+                <span class="badge badge-success"><i class="fa-solid fa-circle" style="font-size:.5rem;"></i> {{ p.envio }} días</span>
               {% elif p.envio <= 15 %}
-                <span class="badge bg-warning text-dark">{{ p.envio }} días</span>
+                <span class="badge badge-warning">{{ p.envio }} días</span>
               {% else %}
-                <span class="badge bg-danger">{{ p.envio }} días</span>
+                <span class="badge badge-danger">{{ p.envio }} días</span>
               {% endif %}
             </td>
-            <!-- Columna oculta para filtro de categoría de envío -->
-            <td data-col="envio-cat" style="display:none;">
-              {% if p.envio <= 7 %}rapido{% elif p.envio <= 15 %}normal{% else %}lento{% endif %}
-            </td>
-            <td data-col="fecha">{{ p.fechaRegistro }}</td>
+            <td data-col="envio-cat" style="display:none;">{% if p.envio <= 7 %}rapido{% elif p.envio <= 15 %}normal{% else %}lento{% endif %}</td>
+            <td data-col="fecha" style="font-size:.82rem;color:var(--tx-muted);">{{ p.fechaRegistro }}</td>
             <td>
-              <button class="btn btn-info btn-sm me-1"
-                aria-label="Ver detalle de {{ p.nombre }}"
-                onclick="verProveedor('{{ p.id }}','{{ p.nombre|escapejs }}','{{ p.telefono|escapejs }}','{{ p.email|escapejs }}','{{ p.envio }}','{{ p.fechaRegistro }}')">
-                <i class="fa-solid fa-eye" aria-hidden="true"></i>
-              </button>
-              <button class="btn btn-primary btn-sm me-1"
-                aria-label="Editar proveedor {{ p.nombre }}"
-                onclick="abrirEditar({{ p.id }},'{{ p.nombre|escapejs }}','{{ p.telefono|escapejs }}','{{ p.email|escapejs }}',{{ p.envio }})">
-                <i class="fa-solid fa-pen" aria-hidden="true"></i>
-              </button>
-              <form method="post" action="{% url 'eliminar_proveedor' p.id %}" id="formEliminar{{ p.id }}" style="display:none;">
-                {% csrf_token %}
-              </form>
-              <button class="btn btn-danger btn-sm"
-                aria-label="Eliminar proveedor {{ p.nombre }}"
-                onclick="confirmarEliminar({{ p.id }},'{{ p.nombre|escapejs }}')">
-                <i class="fa-solid fa-trash" aria-hidden="true"></i>
-              </button>
+              <div class="tbl-actions">
+                <button class="btn btn-sm btn-info btn-icon-sq"
+                  onclick="verProveedor('{{ p.id }}','{{ p.nombre|escapejs }}','{{ p.telefono|escapejs }}','{{ p.email|escapejs }}','{{ p.envio }}','{{ p.fechaRegistro }}')"
+                  title="Ver detalle">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-secondary btn-icon-sq"
+                  onclick="abrirEditar({{ p.id }},'{{ p.nombre|escapejs }}','{{ p.telefono|escapejs }}','{{ p.email|escapejs }}',{{ p.envio }})"
+                  title="Editar">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <form method="post" action="{% url 'eliminar_proveedor' p.id %}" id="formEliminar{{ p.id }}" style="display:none;">
+                  {% csrf_token %}
+                </form>
+                <button class="btn btn-sm btn-danger btn-icon-sq"
+                  onclick="confirmarEliminar({{ p.id }},'{{ p.nombre|escapejs }}')"
+                  title="Eliminar">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
             </td>
           </tr>
           {% empty %}
           <tr data-filter-row>
-            <td colspan="7" class="text-center text-muted py-4">No hay proveedores registrados</td>
+            <td colspan="7" style="text-align:center;padding:48px;color:var(--tx-muted);">
+              <i class="fa-solid fa-truck" style="font-size:2rem;display:block;margin-bottom:10px;opacity:.3;"></i>
+              No hay proveedores registrados
+            </td>
           </tr>
           {% endfor %}
           <tr data-filter-empty style="display:none;">
-            <td colspan="7">
-              <i class="fa-solid fa-filter-circle-xmark me-2" aria-hidden="true"></i>
-              Ningún proveedor coincide con los filtros aplicados.
+            <td colspan="7" style="text-align:center;padding:32px;color:var(--tx-muted);">
+              <i class="fa-solid fa-filter-circle-xmark me-2"></i> Ningún proveedor coincide con los filtros.
             </td>
           </tr>
         </tbody>
@@ -180,19 +147,18 @@
     </div>
   </div>
 
-</div><!-- /[data-filter-container] -->
+</div>
 
-<!-- Modal Ver Detalles -->
-<div class="modal fade modal-detalle" id="modalVerProveedor" tabindex="-1"
-     aria-labelledby="tituloVerProveedor" aria-modal="true" role="dialog">
+<!-- Modal Ver -->
+<div class="modal fade modal-detalle" id="modalVerProveedor" tabindex="-1" aria-modal="true" role="dialog">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
-        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <div class="modal-detalle-icon"><i class="fa-solid fa-truck" aria-hidden="true"></i></div>
-        <h4 class="modal-detalle-title" id="tituloVerProveedor">Detalle del Proveedor</h4>
+        <div class="modal-detalle-icon"><i class="fa-solid fa-truck"></i></div>
+        <h4 class="modal-detalle-title">Detalle del Proveedor</h4>
         <table class="modal-detalle-table">
           <tr><td>ID</td><td id="ver_id"></td></tr>
           <tr><td>Nombre</td><td id="ver_nombre"></td></tr>
@@ -207,103 +173,85 @@
   </div>
 </div>
 
-<!-- Modal Crear Proveedor -->
-<div class="modal fade" id="modalCrearProveedor" tabindex="-1"
-     aria-labelledby="tituloCrearProveedor" aria-modal="true" role="dialog">
+<!-- Modal Crear -->
+<div class="modal fade" id="modalCrearProveedor" tabindex="-1" aria-modal="true" role="dialog">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header bg-success text-white">
-        <h5 class="modal-title" id="tituloCrearProveedor">
-          <i class="fa-solid fa-plus me-1"></i> Nuevo Proveedor
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fa-solid fa-plus"></i> Nuevo Proveedor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form method="post" action="{% url 'crear_proveedor' %}">
         {% csrf_token %}
         <div class="modal-body">
           <div class="mb-3">
-            <label for="crear-nombre" class="form-label">Nombre <span class="text-danger" aria-hidden="true">*</span></label>
-            <input id="crear-nombre" type="text" name="nombre" class="form-control"
+            <label class="form-label">Nombre <span style="color:var(--c-danger);">*</span></label>
+            <input type="text" name="nombre" class="form-control"
               oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '')"
-              placeholder="Nombre del proveedor" required aria-required="true">
+              placeholder="Nombre del proveedor" required>
           </div>
           <div class="mb-3">
-            <label for="crear-telefono" class="form-label">Teléfono <span class="text-danger" aria-hidden="true">*</span></label>
-            <input id="crear-telefono" type="text" name="telefono" class="form-control"
-              maxlength="10" pattern="[0-9]+" title="Solo números (entre 7 y 10 dígitos)"
-              oninput="this.value = this.value.replace(/[^\d]/g, ''); if(this.value.length === 1 && this.value[0] !== '3') this.value = '';"
-              placeholder="3001234567" required aria-required="true">
+            <label class="form-label">Teléfono <span style="color:var(--c-danger);">*</span></label>
+            <input type="text" name="telefono" class="form-control"
+              maxlength="10" pattern="[0-9]+" title="Solo números (7-10 dígitos)"
+              oninput="this.value = this.value.replace(/[^\d]/g, '');"
+              placeholder="3001234567" required>
           </div>
           <div class="mb-3">
-            <label for="crear-email" class="form-label">Email <span class="text-danger" aria-hidden="true">*</span></label>
-            <input id="crear-email" type="text" name="email" class="form-control"
+            <label class="form-label">Email <span style="color:var(--c-danger);">*</span></label>
+            <input type="text" name="email" class="form-control"
               placeholder="proveedor@empresa.com"
               pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
-              title="Ingrese un email válido" required aria-required="true">
+              required>
           </div>
           <div class="mb-3">
-            <label for="crear-envio" class="form-label">Días de envío <span class="text-danger" aria-hidden="true">*</span></label>
-            <input id="crear-envio" type="number" name="envio" class="form-control"
-              min="1" max="30" placeholder="Mínimo 1, máximo 30 días" required aria-required="true">
-            <div class="form-text">🟢 Rápido: 1-7 días &nbsp;|&nbsp; 🟡 Normal: 8-15 días &nbsp;|&nbsp; 🔴 Lento: 16-30 días</div>
+            <label class="form-label">Días de envío <span style="color:var(--c-danger);">*</span></label>
+            <input type="number" name="envio" class="form-control" min="1" max="30" placeholder="1–30" required>
+            <div class="form-text">🟢 Rápido: 1–7 &nbsp;|&nbsp; 🟡 Normal: 8–15 &nbsp;|&nbsp; 🔴 Lento: 16–30</div>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-success">
-            <i class="fa-solid fa-save me-1"></i> Guardar
-          </button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Guardar</button>
         </div>
       </form>
     </div>
   </div>
 </div>
 
-<!-- Modal Editar Proveedor -->
-<div class="modal fade" id="modalEditarProveedor" tabindex="-1"
-     aria-labelledby="tituloEditarProveedor" aria-modal="true" role="dialog">
+<!-- Modal Editar -->
+<div class="modal fade" id="modalEditarProveedor" tabindex="-1" aria-modal="true" role="dialog">
   <div class="modal-dialog">
     <div class="modal-content">
-      <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title" id="tituloEditarProveedor">
-          <i class="fa-solid fa-pen me-1"></i> Editar Proveedor
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fa-solid fa-pen"></i> Editar Proveedor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form method="post" id="formEditar">
         {% csrf_token %}
         <div class="modal-body">
           <div class="mb-3">
-            <label for="edit_nombre" class="form-label">Nombre <span class="text-danger" aria-hidden="true">*</span></label>
+            <label class="form-label">Nombre <span style="color:var(--c-danger);">*</span></label>
             <input id="edit_nombre" type="text" name="nombre" class="form-control"
-              oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '')"
-              required aria-required="true">
+              oninput="this.value = this.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s]/g, '')" required>
           </div>
           <div class="mb-3">
-            <label for="edit_telefono" class="form-label">Teléfono <span class="text-danger" aria-hidden="true">*</span></label>
+            <label class="form-label">Teléfono <span style="color:var(--c-danger);">*</span></label>
             <input id="edit_telefono" type="text" name="telefono" class="form-control"
-              maxlength="10" pattern="[0-9]+"
-              oninput="this.value = this.value.replace(/[^\d]/g, '');"
-              placeholder="3001234567" required aria-required="true">
+              maxlength="10" oninput="this.value = this.value.replace(/[^\d]/g, '');" required>
           </div>
           <div class="mb-3">
-            <label for="edit_email" class="form-label">Email <span class="text-danger" aria-hidden="true">*</span></label>
-            <input id="edit_email" type="text" name="email" class="form-control"
-              pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
-              required aria-required="true">
+            <label class="form-label">Email <span style="color:var(--c-danger);">*</span></label>
+            <input id="edit_email" type="text" name="email" class="form-control" required>
           </div>
           <div class="mb-3">
-            <label for="edit_envio" class="form-label">Días de envío <span class="text-danger" aria-hidden="true">*</span></label>
-            <input id="edit_envio" type="number" name="envio" class="form-control"
-              min="1" max="30" required aria-required="true">
-            <div class="form-text">🟢 Rápido: 1-7 días &nbsp;|&nbsp; 🟡 Normal: 8-15 días &nbsp;|&nbsp; 🔴 Lento: 16-30 días</div>
+            <label class="form-label">Días de envío <span style="color:var(--c-danger);">*</span></label>
+            <input id="edit_envio" type="number" name="envio" class="form-control" min="1" max="30" required>
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-          <button type="submit" class="btn btn-primary">
-            <i class="fa-solid fa-save me-1"></i> Guardar cambios
-          </button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Guardar cambios</button>
         </div>
       </form>
     </div>
@@ -332,12 +280,11 @@ function abrirEditar(id, nombre, telefono, email, envio) {
 function confirmarEliminar(id, nombre) {
   Swal.fire({
     icon: 'warning', title: '¿Eliminar proveedor?',
-    text: '¿Estás seguro de eliminar a "' + nombre + '"? Esta acción no se puede deshacer.',
+    text: '¿Eliminar a "' + nombre + '"? Esta acción no se puede deshacer.',
     showCancelButton: true, confirmButtonText: 'Sí, eliminar', cancelButtonText: 'Cancelar',
-    confirmButtonColor: '#dc3545', cancelButtonColor: '#6c757d',
-  }).then(function (result) {
-    if (result.isConfirmed) { document.getElementById('formEliminar' + id).submit(); }
-  });
+    confirmButtonColor: '#c0392b', cancelButtonColor: '#555',
+    background: '#0e1420', color: '#f0f4ff',
+  }).then(r => { if (r.isConfirmed) document.getElementById('formEliminar' + id).submit(); });
 }
 </script>
 {% endblock %}

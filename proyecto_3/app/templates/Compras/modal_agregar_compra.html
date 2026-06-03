@@ -20,7 +20,7 @@
                    placeholder="Buscar por proveedor o producto..."
                    value="{{ request.GET.busqueda }}">
         </div>
-        <select name="estado" class="form-control" style="width: auto;">
+        <select name="estado" class="form-select" style="width: auto;">
             <option value="">Filtrar por estado</option>
             <option value="Completada" {% if request.GET.estado == "Completada" %}selected{% endif %}>Completada</option>
             <option value="Pendiente" {% if request.GET.estado == "Pendiente" %}selected{% endif %}>Pendiente</option>
@@ -99,9 +99,9 @@
 <div class="modal fade" id="modalCrearCompra" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-success text-white">
+            <div class="modal-header">
                 <h5 class="modal-title"><i class="fa-solid fa-plus me-1"></i> Nueva Compra</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post" action="{% url 'crear_compra' %}">
                 {% csrf_token %}
@@ -113,14 +113,14 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Estado</label>
-                        <select name="estado" class="form-control">
+                        <select name="estado" class="form-select">
                             <option value="Pendiente">Pendiente</option>
                             <option value="Completada">Completada</option>
                         </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Producto <span class="text-danger">*</span></label>
-                        <select name="producto_id" class="form-control" required>
+                        <select name="producto_id" class="form-select" required>
                             <option value="">Seleccione un producto</option>
                             {% for producto in productos %}
                                 <option value="{{ producto.idProducto }}">{{ producto.nombre }}</option>
@@ -129,7 +129,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Proveedor <span class="text-danger">*</span></label>
-                        <select name="proveedor_id" class="form-control" required>
+                        <select name="proveedor_id" class="form-select" required>
                             <option value="">Seleccione un proveedor</option>
                             {% for proveedor in proveedores %}
                                 <option value="{{ proveedor.id }}">{{ proveedor.nombre }}</option>
@@ -153,7 +153,7 @@
 <div class="modal fade" id="modalEditarCompra{{ compra.id }}" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-warning">
+            <div class="modal-header">
                 <h5 class="modal-title"><i class="fa-solid fa-edit me-1"></i> Editar Compra</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
@@ -168,14 +168,14 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Estado</label>
-                        <select name="estado" class="form-control">
+                        <select name="estado" class="form-select">
                             <option value="Pendiente" {% if compra.estado == 'Pendiente' %}selected{% endif %}>Pendiente</option>
                             <option value="Completada" {% if compra.estado == 'Completada' %}selected{% endif %}>Completada</option>
                         </select>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Producto <span class="text-danger">*</span></label>
-                        <select name="producto_id" class="form-control" required>
+                        <select name="producto_id" class="form-select" required>
                             {% for producto in productos %}
                                 <option value="{{ producto.idProducto }}"
                                     {% if compra.Producto.idProducto == producto.idProducto %}selected{% endif %}>
@@ -186,7 +186,7 @@
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Proveedor <span class="text-danger">*</span></label>
-                        <select name="proveedor_id" class="form-control" required>
+                        <select name="proveedor_id" class="form-select" required>
                             {% for proveedor in proveedores %}
                                 <option value="{{ proveedor.id }}"
                                     {% if compra.Proveedor.id == proveedor.id %}selected{% endif %}>
@@ -210,9 +210,9 @@
 <div class="modal fade" id="modalEliminarCompra{{ compra.idCompra }}" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
+            <div class="modal-header">
                 <h5 class="modal-title"><i class="fa-solid fa-trash me-1"></i> Eliminar Compra</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <button type="button" class="btn-close btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form method="post" action="{% url 'eliminar_compra' compra.idCompra %}">
                 {% csrf_token %}

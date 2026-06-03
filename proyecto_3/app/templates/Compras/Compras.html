@@ -1,290 +1,231 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static humanize %}
+
+{% block title %}Compras{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/estilos_pagina.css' %}">
-<link rel="stylesheet" href="{% static 'css/filtros_realtime.css' %}">
 
-<div class="d-flex justify-content-between align-items-center mb-4 animate-slide-left">
-  <h2><i class="fa-solid fa-cart-shopping me-2"></i>Gestión de Compras</h2>
-  <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCrearCompra">
-    <i class="fa-solid fa-plus me-1"></i> Nueva Compra
+<div class="page-header animate-slide-right">
+  <div class="page-header-left">
+    <div class="page-title">
+      <div class="page-title-icon"><i class="fa-solid fa-bag-shopping"></i></div>
+      Gestión de Compras
+    </div>
+    <div class="page-subtitle">Registro y control de compras a proveedores</div>
+  </div>
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCrearCompra">
+    <i class="fa-solid fa-plus"></i> Nueva Compra
   </button>
 </div>
 
-<div class="contenedor-exportar animate-fade-up">
-  <a href="{% url 'exportar_compras_pdf' %}" class="btn btn-danger">
-    <i class="fa-solid fa-file-pdf"></i> Exportar PDF
-  </a>
-  <a href="{% url 'exportar_compras_excel' %}" class="btn btn-success">
-    <i class="fa-solid fa-file-excel"></i> Exportar Excel
-  </a>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════════
-     FILTROS EN TIEMPO REAL — COMPRAS
-     ══════════════════════════════════════════════════════════════ -->
 <div data-filter-container class="animate-fade-up">
 
+  <!-- Filtros -->
   <div class="rt-filter-bar" role="search" aria-label="Filtros de compras">
     <div class="rt-filter-grid">
-
-      <!-- Buscar por proveedor -->
       <div class="rt-filter-group">
-        <label for="filtro-prov-compra" class="rt-filter-label">
-          <i class="fa-solid fa-truck"></i> Proveedor
-        </label>
+        <label for="filtro-prov-compra" class="rt-filter-label"><i class="fa-solid fa-truck"></i> Proveedor</label>
         <div class="rt-input-wrapper">
-          <i class="fa-solid fa-truck rt-input-icon" aria-hidden="true"></i>
-          <input
-            id="filtro-prov-compra"
-            type="search"
-            class="rt-filter-input"
-            data-filter-col="proveedor"
-            placeholder="Buscar por proveedor..."
-            autocomplete="off"
-            aria-label="Filtrar compras por proveedor"
-          >
+          <i class="fa-solid fa-truck rt-input-icon"></i>
+          <input id="filtro-prov-compra" type="search" class="rt-filter-input"
+                 data-filter-col="proveedor" placeholder="Buscar por proveedor..." autocomplete="off">
         </div>
       </div>
-
-      <!-- Buscar por producto -->
       <div class="rt-filter-group">
-        <label for="filtro-prod-compra" class="rt-filter-label">
-          <i class="fa-solid fa-box"></i> Producto
-        </label>
+        <label for="filtro-prod-compra" class="rt-filter-label"><i class="fa-solid fa-box"></i> Producto</label>
         <div class="rt-input-wrapper">
-          <i class="fa-solid fa-box rt-input-icon" aria-hidden="true"></i>
-          <input
-            id="filtro-prod-compra"
-            type="search"
-            class="rt-filter-input"
-            data-filter-col="producto"
-            placeholder="Buscar por producto..."
-            autocomplete="off"
-            aria-label="Filtrar compras por producto"
-          >
+          <i class="fa-solid fa-box rt-input-icon"></i>
+          <input id="filtro-prod-compra" type="search" class="rt-filter-input"
+                 data-filter-col="producto" placeholder="Buscar por producto..." autocomplete="off">
         </div>
       </div>
-
-      <!-- Filtrar por estado -->
       <div class="rt-filter-group">
-        <label for="filtro-estado-compra" class="rt-filter-label">
-          <i class="fa-solid fa-circle-half-stroke"></i> Estado
-        </label>
-        <select
-          id="filtro-estado-compra"
-          class="rt-filter-select"
-          data-filter-col="estado"
-          aria-label="Filtrar compras por estado"
-        >
+        <label for="filtro-estado-compra" class="rt-filter-label"><i class="fa-solid fa-circle-half-stroke"></i> Estado</label>
+        <select id="filtro-estado-compra" class="rt-filter-select" data-filter-col="estado">
           <option value="">Todos los estados</option>
           <option value="completada">Completada</option>
           <option value="pendiente">Pendiente</option>
         </select>
       </div>
-
-      <!-- Filtrar desde fecha -->
       <div class="rt-filter-group">
-        <label for="filtro-desde-compra" class="rt-filter-label">
-          <i class="fa-solid fa-calendar-days"></i> Desde
-        </label>
-        <input
-          id="filtro-desde-compra"
-          type="date"
-          class="rt-filter-input"
-          data-filter-col="fecha-desde"
-          aria-label="Filtrar compras desde esta fecha"
-        >
+        <label for="filtro-desde-compra" class="rt-filter-label"><i class="fa-solid fa-calendar-days"></i> Desde</label>
+        <input id="filtro-desde-compra" type="date" class="rt-filter-input" data-filter-col="fecha-desde">
       </div>
-
-      <!-- Filtrar hasta fecha -->
       <div class="rt-filter-group">
-        <label for="filtro-hasta-compra" class="rt-filter-label">
-          <i class="fa-solid fa-calendar-check"></i> Hasta
-        </label>
-        <input
-          id="filtro-hasta-compra"
-          type="date"
-          class="rt-filter-input"
-          data-filter-col="fecha-hasta"
-          aria-label="Filtrar compras hasta esta fecha"
-        >
+        <label for="filtro-hasta-compra" class="rt-filter-label"><i class="fa-solid fa-calendar-check"></i> Hasta</label>
+        <input id="filtro-hasta-compra" type="date" class="rt-filter-input" data-filter-col="fecha-hasta">
       </div>
-
-      <!-- Acciones -->
       <div class="rt-filter-actions">
-        <button
-          type="button"
-          class="rt-btn-clear"
-          data-filter-clear
-          aria-label="Limpiar todos los filtros de compras"
-          title="Limpiar filtros"
-        >
-          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-          Limpiar filtros
+        <button type="button" class="rt-btn-clear" data-filter-clear>
+          <i class="fa-solid fa-xmark"></i> Limpiar filtros
         </button>
-        <span class="rt-filter-count" data-filter-count aria-live="polite" aria-atomic="true"></span>
+        <span class="rt-filter-count" data-filter-count aria-live="polite"></span>
       </div>
-
     </div>
   </div>
 
-  <!-- ── Tabla de compras ────────────────────────────────────── -->
-  <div class="table-container">
-    <table class="table" aria-label="Listado de compras">
-      <thead>
-        <tr>
-          <th scope="col">ID</th>
-          <th scope="col">Proveedor</th>
-          <th scope="col">Producto</th>
-          <th scope="col">Cant.</th>
-          <th scope="col">Total</th>
-          <th scope="col">Administrador</th>
-          <th scope="col">Fecha</th>
-          <th scope="col">Estado</th>
-          <th scope="col">Acciones</th>
-        </tr>
-      </thead>
-      <tbody class="animate-stagger">
-        {% for compra in compras %}
-        <tr class="animate-item" data-filter-row>
-          <td data-col="id">{{ compra.idCompra }}</td>
-          <td data-col="proveedor">{{ compra.Proveedor.nombre }}</td>
-          <td data-col="producto">{{ compra.Producto.nombre }}</td>
-          <td data-col="cantidad">{{ compra.cantidad }}</td>
-          <td data-col="total">${{ compra.total|floatformat:0 }}</td>
-          <td data-col="admin">
-            {% if compra.usuario %}
-              {{ compra.usuario.get_full_name|default:compra.usuario.username }}
-            {% else %}-{% endif %}
-          </td>
-          <td data-col="fecha">{{ compra.fechaCompra|date:"d/m/Y" }}</td>
-          <!-- Columnas ocultas para filtros de fecha y estado -->
-          <td data-col="fecha-desde" style="display:none;">{{ compra.fechaCompra|date:"Y-m-d" }}</td>
-          <td data-col="fecha-hasta" style="display:none;">{{ compra.fechaCompra|date:"Y-m-d" }}</td>
-          <td data-col="estado">
-            {% if compra.estado == 'Completada' %}
-              <span class="badge badge-success">Completada</span>
-            {% else %}
-              <span class="badge badge-warning">Pendiente</span>
-            {% endif %}
-          </td>
-          <td>
-            <div class="btn-group" role="group" aria-label="Acciones compra #{{ compra.idCompra }}">
-              <button class="btn btn-sm btn-info"
-                data-bs-toggle="modal"
-                data-bs-target="#modalVerCompra{{ compra.idCompra }}"
-                aria-label="Ver compra #{{ compra.idCompra }}">
-                <i class="fa-solid fa-eye" aria-hidden="true"></i>
-              </button>
-              <button class="btn btn-sm btn-warning"
-                {% if compra.estado == 'Completada' %}
-                  disabled style="background-color: #6c757d; border-color: #6c757d;"
-                  aria-label="No se puede editar una compra completada"
-                  title="No se puede editar una compra completada"
-                {% else %}
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalEditarCompra{{ compra.idCompra }}"
-                  aria-label="Editar compra #{{ compra.idCompra }}"
-                {% endif %}>
-                <i class="fa-solid fa-edit" aria-hidden="true"></i>
-              </button>
-              <button class="btn btn-sm btn-danger"
-                data-bs-toggle="modal"
-                data-bs-target="#modalEliminarCompra{{ compra.idCompra }}"
-                aria-label="Eliminar compra #{{ compra.idCompra }}">
-                <i class="fa-solid fa-trash" aria-hidden="true"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr data-filter-row>
-          <td colspan="9" class="text-center py-4">No hay compras registradas</td>
-        </tr>
-        {% endfor %}
-        <tr data-filter-empty style="display:none;">
-          <td colspan="9">
-            <i class="fa-solid fa-filter-circle-xmark me-2" aria-hidden="true"></i>
-            Ninguna compra coincide con los filtros aplicados.
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <!-- Exportar -->
+  <div class="contenedor-exportar">
+    <a href="{% url 'exportar_compras_pdf' %}" class="btn btn-danger btn-sm">
+      <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+    </a>
+    <a href="{% url 'exportar_compras_excel' %}" class="btn btn-success btn-sm">
+      <i class="fa-solid fa-file-excel"></i> Exportar Excel
+    </a>
   </div>
 
-</div><!-- /[data-filter-container] -->
+  <!-- Tabla -->
+  <div class="glass-card">
+    <div class="glass-card-header">
+      <div class="glass-card-title"><i class="fa-solid fa-list"></i> Compras Registradas</div>
+    </div>
+    <div class="tbl-wrap" style="border:none;border-radius:0;">
+      <table class="table" aria-label="Listado de compras">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Proveedor</th>
+            <th>Producto</th>
+            <th>Cant.</th>
+            <th>Total</th>
+            <th>Administrador</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="animate-stagger">
+          {% for compra in compras %}
+          <tr class="animate-item" data-filter-row>
+            <td data-col="id" style="color:var(--tx-muted);font-size:.8rem;">#{{ compra.idCompra }}</td>
+            <td data-col="proveedor" style="font-weight:600;">{{ compra.Proveedor.nombre }}</td>
+            <td data-col="producto" style="color:var(--tx-secondary);">{{ compra.Producto.nombre }}</td>
+            <td data-col="cantidad" style="font-family:var(--font-mono);">{{ compra.cantidad }}</td>
+            <td data-col="total" style="font-family:var(--font-mono);font-weight:700;color:var(--c-gold);">
+              ${{ compra.total|floatformat:0|intcomma }}
+            </td>
+            <td data-col="admin" style="font-size:.84rem;color:var(--tx-secondary);">
+              {% if compra.usuario %}{{ compra.usuario.get_full_name|default:compra.usuario.username }}{% else %}—{% endif %}
+            </td>
+            <td data-col="fecha" style="font-size:.84rem;color:var(--tx-secondary);">{{ compra.fechaCompra|date:"d/m/Y" }}</td>
+            <td data-col="fecha-desde" style="display:none;">{{ compra.fechaCompra|date:"Y-m-d" }}</td>
+            <td data-col="fecha-hasta" style="display:none;">{{ compra.fechaCompra|date:"Y-m-d" }}</td>
+            <td data-col="estado">
+              {% if compra.estado == 'Completada' %}
+                <span class="badge badge-success"><i class="fa-solid fa-check"></i> Completada</span>
+              {% else %}
+                <span class="badge badge-warning"><i class="fa-solid fa-clock"></i> Pendiente</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="tbl-actions">
+                <button class="btn btn-sm btn-info btn-icon-sq"
+                        data-bs-toggle="modal" data-bs-target="#modalVerCompra{{ compra.idCompra }}"
+                        title="Ver detalle">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-icon-sq
+                  {% if compra.estado == 'Completada' %}btn-secondary{% else %}btn-warning{% endif %}"
+                  {% if compra.estado == 'Completada' %}
+                    disabled title="No editable"
+                  {% else %}
+                    data-bs-toggle="modal" data-bs-target="#modalEditarCompra{{ compra.idCompra }}" title="Editar"
+                  {% endif %}>
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button class="btn btn-sm btn-danger btn-icon-sq"
+                        data-bs-toggle="modal" data-bs-target="#modalEliminarCompra{{ compra.idCompra }}"
+                        title="Eliminar">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr data-filter-row>
+            <td colspan="9" style="text-align:center;padding:48px;color:var(--tx-muted);">
+              <i class="fa-solid fa-bag-shopping" style="font-size:2rem;display:block;margin-bottom:10px;opacity:.3;"></i>
+              No hay compras registradas
+            </td>
+          </tr>
+          {% endfor %}
+          <tr data-filter-empty style="display:none;">
+            <td colspan="9" style="text-align:center;padding:32px;color:var(--tx-muted);">
+              <i class="fa-solid fa-filter-circle-xmark me-2"></i> Ninguna compra coincide con los filtros.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-<!-- ══ MODALES (sin cambios funcionales) ══════════════════════════ -->
-<!-- Modal: Crear Compra -->
-<div class="modal fade" id="modalCrearCompra" tabindex="-1"
-     aria-labelledby="tituloCrearCompra" aria-modal="true" role="dialog">
-  <div class="modal-dialog">
+</div>
+
+<!-- Modal Crear Compra -->
+<div class="modal fade" id="modalCrearCompra" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
-      <div class="modal-header bg-success text-white">
-        <h5 class="modal-title" id="tituloCrearCompra">
-          <i class="fa-solid fa-plus me-1"></i> Nueva Compra
-        </h5>
-        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fa-solid fa-plus"></i> Nueva Compra</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <form method="POST" action="{% url 'crear_compra' %}">
         {% csrf_token %}
         <div class="modal-body">
           <div class="mb-3">
-            <label for="crear-fecha-compra" class="form-label">Fecha <span class="text-danger" aria-hidden="true">*</span></label>
-            <input id="crear-fecha-compra" type="date" name="fecha" class="form-control"
-              min="{{ fecha_min }}" max="{{ fecha_max }}" required aria-required="true">
+            <label class="form-label">Fecha <span style="color:var(--c-danger);">*</span></label>
+            <input type="date" name="fecha" class="form-control"
+                   min="{{ fecha_min }}" max="{{ fecha_max }}" required>
           </div>
           <div class="mb-3">
-            <label for="crear-estado-compra" class="form-label">Estado</label>
-            <select id="crear-estado-compra" name="estado" class="form-control">
+            <label class="form-label">Estado</label>
+            <select name="estado" class="form-select">
               <option value="Pendiente">Pendiente</option>
               <option value="Completada">Completada</option>
             </select>
           </div>
           <div class="mb-3">
-            <label for="crear-producto-compra" class="form-label">Producto <span class="text-danger" aria-hidden="true">*</span></label>
-            <select id="crear-producto-compra" name="producto_id" class="form-control" required aria-required="true">
+            <label class="form-label">Producto <span style="color:var(--c-danger);">*</span></label>
+            <select name="producto_id" class="form-select" required>
               <option value="">Seleccione un producto</option>
               {% for producto in productos %}
                 <option value="{{ producto.idProducto }}">{{ producto.nombre }} (stock: {{ producto.stock }})</option>
               {% endfor %}
             </select>
           </div>
-          <div class="row">
+          <div class="row g-3">
             <div class="col-6 mb-3">
-              <label for="crear-cantidad-compra" class="form-label">Cantidad <span class="text-danger" aria-hidden="true">*</span></label>
-              <input id="crear-cantidad-compra" type="number" name="cantidad" class="form-control"
-                min="1" value="1" required aria-required="true">
+              <label class="form-label">Cantidad <span style="color:var(--c-danger);">*</span></label>
+              <input type="number" name="cantidad" class="form-control" min="1" value="1" required>
             </div>
             <div class="col-6 mb-3">
-              <label for="crear-precio-compra" class="form-label">Precio unitario <span class="text-danger" aria-hidden="true">*</span></label>
-              <input id="crear-precio-compra" type="number" name="precio_unitario" class="form-control"
-                min="0.01" step="0.01" placeholder="0.00" required aria-required="true">
+              <label class="form-label">Precio unitario <span style="color:var(--c-danger);">*</span></label>
+              <input type="number" name="precio_unitario" class="form-control"
+                     min="0.01" step="0.01" placeholder="0.00" required>
             </div>
           </div>
           <div class="mb-3">
-            <label for="crear-proveedor-compra" class="form-label">Proveedor <span class="text-danger" aria-hidden="true">*</span></label>
-            <select id="crear-proveedor-compra" name="proveedor_id" class="form-control" required aria-required="true">
+            <label class="form-label">Proveedor <span style="color:var(--c-danger);">*</span></label>
+            <select name="proveedor_id" class="form-select" required>
               <option value="">Seleccione un proveedor</option>
               {% for proveedor in proveedores %}
                 <option value="{{ proveedor.id }}">{{ proveedor.nombre }}</option>
               {% endfor %}
             </select>
-            <a href="{% url 'proveedores' %}" class="text-success" style="font-size: 13px;">
+            <a href="{% url 'proveedores' %}" class="form-text"
+               style="color:var(--c-success);font-size:.8rem;display:inline-flex;align-items:center;gap:4px;margin-top:6px;">
               <i class="fa-solid fa-plus"></i> Gestionar Proveedores
             </a>
           </div>
-          <div class="alert alert-info py-2 mb-0" style="font-size:.85rem;">
+          <div class="alert alert-info py-2 mb-0">
             <i class="fa-solid fa-circle-info me-1"></i>
-            El stock solo aumenta cuando el estado es <strong>Completada</strong>.
+            El stock aumenta solo cuando el estado es <strong>Completada</strong>.
           </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
           <button type="submit" class="btn btn-success">
-            <i class="fa-solid fa-save me-1"></i> Guardar
+            <i class="fa-solid fa-floppy-disk"></i> Guardar
           </button>
         </div>
       </form>
@@ -292,41 +233,35 @@
   </div>
 </div>
 
+<!-- Modales por compra -->
 {% for compra in compras %}
   {% include 'Compras/modal_editar_compra.html' %}
   {% include 'Compras/modal_eliminar_compra.html' %}
-  <!-- Modal Ver Compra -->
-  <div class="modal fade modal-detalle" id="modalVerCompra{{ compra.idCompra }}" tabindex="-1"
-       aria-labelledby="tituloVerCompra{{ compra.idCompra }}" aria-modal="true" role="dialog">
+
+  <div class="modal fade modal-detalle" id="modalVerCompra{{ compra.idCompra }}" tabindex="-1" aria-modal="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <div class="modal-detalle-icon"><i class="fa-solid fa-shopping-cart" aria-hidden="true"></i></div>
-          <h4 class="modal-detalle-title" id="tituloVerCompra{{ compra.idCompra }}">Información de la Compra</h4>
+          <div class="modal-detalle-icon"><i class="fa-solid fa-bag-shopping"></i></div>
+          <h4 class="modal-detalle-title">Compra #{{ compra.idCompra }}</h4>
           <table class="modal-detalle-table">
-            <tr><td>ID</td><td>{{ compra.idCompra }}</td></tr>
             <tr><td>Proveedor</td><td>{{ compra.Proveedor.nombre }}</td></tr>
             <tr><td>Producto</td><td>{{ compra.Producto.nombre }}</td></tr>
             <tr><td>Cantidad</td><td>{{ compra.cantidad }} unidades</td></tr>
-            <tr><td>Total</td><td>${{ compra.total|floatformat:2 }}</td></tr>
-            <tr>
-              <td>Administrador</td>
-              <td>{% if compra.usuario %}{{ compra.usuario.get_full_name|default:compra.usuario.username }}{% else %}-{% endif %}</td>
-            </tr>
+            <tr><td>Precio unitario</td><td style="font-family:var(--font-mono);">${{ compra.precio_unitario|floatformat:2|intcomma }}</td></tr>
+            <tr><td>Total</td><td style="font-family:var(--font-mono);font-weight:800;color:var(--c-gold);">${{ compra.total|floatformat:2|intcomma }}</td></tr>
+            <tr><td>Administrador</td><td>{% if compra.usuario %}{{ compra.usuario.get_full_name|default:compra.usuario.username }}{% else %}—{% endif %}</td></tr>
             <tr><td>Fecha</td><td>{{ compra.fechaCompra|date:"d/m/Y" }}</td></tr>
-            <tr>
-              <td>Estado</td>
-              <td>
-                {% if compra.estado == 'Completada' %}
-                  <span class="badge badge-success">Completada</span>
-                {% else %}
-                  <span class="badge badge-warning">Pendiente</span>
-                {% endif %}
-              </td>
-            </tr>
+            <tr><td>Estado</td><td>
+              {% if compra.estado == 'Completada' %}
+                <span class="badge badge-success">Completada</span>
+              {% else %}
+                <span class="badge badge-warning">Pendiente</span>
+              {% endif %}
+            </td></tr>
           </table>
           <button type="button" class="btn modal-detalle-btn-cerrar" data-bs-dismiss="modal">Cerrar</button>
         </div>
@@ -336,34 +271,23 @@
 {% endfor %}
 
 <script src="{% static 'js/filtros_realtime.js' %}"></script>
-
 <script>
-/* ── Filtro de fechas personalizado para compras ─────────────── */
 (function () {
-  var container = document.querySelector('[data-filter-container]');
+  var container  = document.querySelector('[data-filter-container]');
   if (!container) return;
-
   var inputDesde = container.querySelector('[data-filter-col="fecha-desde"]');
   var inputHasta = container.querySelector('[data-filter-col="fecha-hasta"]');
-
   function filtrarFechas() {
     var desde = inputDesde ? inputDesde.value : '';
     var hasta = inputHasta ? inputHasta.value : '';
-    var filas = Array.from(container.querySelectorAll('tr[data-filter-row]'));
-
-    filas.forEach(function (fila) {
-      if (fila.style.display === 'none' && !fila.dataset.fechaVisible) return;
-      var celdaFecha = fila.querySelector('[data-col="fecha-desde"]');
-      if (!celdaFecha) return;
-      var fechaFila = celdaFecha.textContent.trim();
-      var ok = true;
-      if (desde && fechaFila < desde) ok = false;
-      if (hasta && fechaFila > hasta) ok = false;
-      fila.dataset.fechaVisible = ok ? '1' : '0';
+    container.querySelectorAll('tr[data-filter-row]').forEach(function (fila) {
+      var celda = fila.querySelector('[data-col="fecha-desde"]');
+      if (!celda) return;
+      var f = celda.textContent.trim();
+      var ok = (!desde || f >= desde) && (!hasta || f <= hasta);
       if (!ok) fila.style.display = 'none';
     });
   }
-
   if (inputDesde) inputDesde.addEventListener('change', filtrarFechas);
   if (inputHasta) inputHasta.addEventListener('change', filtrarFechas);
 })();

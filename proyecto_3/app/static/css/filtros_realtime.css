@@ -1,152 +1,127 @@
-/* ═══════════════════════════════════════════════════════════════
-   filtros_realtime.css — Estilos para el sistema de filtros RT
-   Compatible con el tema dark del sistema (modulos.css)
-   Requiere: tokens.css cargado antes que este archivo.
-   NO declara :root. Todas las variables vienen de tokens.css.
-   ═══════════════════════════════════════════════════════════════ */
+/*
+ * filtros_realtime.css — Filtros en tiempo real
+ * Requiere: tokens.css
+ * NO declara :root.
+ */
 
-/* ── Contenedor principal de la barra de filtros ─────────────── */
 .rt-filter-bar {
   background: var(--bg-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--bd-default);
+  border-radius: var(--r-md);
   padding: 20px 24px;
-  margin-bottom: 24px;
-  transition: border-color var(--transition-base), box-shadow var(--transition-base);
+  margin-bottom: 20px;
   position: relative;
+  transition: border-color var(--tr-base), box-shadow var(--tr-base);
 }
 
-/* Línea superior decorativa */
 .rt-filter-bar::before {
   content: '';
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, var(--color-primary), var(--color-accent));
-  border-radius: var(--radius-md) var(--radius-md) 0 0;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--c-red), var(--c-gold));
+  border-radius: var(--r-md) var(--r-md) 0 0;
   opacity: 0;
-  transition: opacity var(--transition-slow);
+  transition: opacity var(--tr-slow);
 }
 
-/* Estado activo */
 .rt-filter-bar--active {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-glow);
+  border-color: var(--bd-active);
+  box-shadow: 0 0 0 3px var(--c-red-glow);
 }
 
-.rt-filter-bar--active::before {
-  opacity: 1;
-}
+.rt-filter-bar--active::before { opacity: 1; }
 
-/* ── Grid de filtros ──────────────────────────────────────────── */
 .rt-filter-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(175px, 1fr));
+  gap: 14px;
   align-items: end;
 }
 
-/* ── Grupo individual ─────────────────────────────────────────── */
 .rt-filter-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-/* ── Labels ───────────────────────────────────────────────────── */
 .rt-filter-label {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  color: var(--color-text-muted);
+  color: var(--tx-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.07em;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   user-select: none;
 }
 
-.rt-filter-label i {
-  font-size: 0.7rem;
-  opacity: 0.7;
-}
+.rt-filter-label i { font-size: 0.68rem; color: var(--c-red); }
 
-/* ── Inputs y Selects ─────────────────────────────────────────── */
 .rt-filter-input,
 .rt-filter-select {
   width: 100%;
-  padding: 10px 14px;
+  padding: 9px 13px;
   background: var(--bg-input);
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-text);
-  font-size: 0.875rem;
-  font-family: inherit;
-  transition: border-color var(--transition-base), box-shadow var(--transition-base), background var(--transition-base);
+  border: 1px solid var(--bd-default);
+  border-radius: var(--r-sm);
+  color: var(--tx-primary);
+  font-size: 0.85rem;
+  font-family: var(--font-body);
+  transition: all var(--tr-base);
   outline: none;
   -webkit-appearance: none;
-  appearance: none;
 }
 
 .rt-filter-select {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23A3A3A3' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%238899bb' d='M0 0l5 5 5-5z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;
-  padding-right: 36px;
+  padding-right: 34px;
   cursor: pointer;
 }
 
+.rt-filter-select option { background: #0e1420; color: var(--tx-primary); }
+
 .rt-filter-input:focus,
 .rt-filter-select:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-glow);
-  background: var(--bg-card);
-  color: #fff;
+  border-color: var(--c-red);
+  box-shadow: 0 0 0 3px var(--c-red-l);
+  background: rgba(8,14,24,0.95);
 }
 
 .rt-filter-input::placeholder {
-  color: var(--color-text-muted);
+  color: var(--tx-muted);
   font-style: italic;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
 }
 
-.rt-filter-input:not(:placeholder-shown),
-.rt-filter-select.has-value {
-  border-color: rgba(155, 28, 28, 0.5);
-  background: rgba(155, 28, 28, 0.04);
+.rt-filter-input:not(:placeholder-shown) {
+  border-color: rgba(192,57,43,0.40);
+  background: rgba(192,57,43,0.04);
 }
 
-/* ── Wrapper con icono ────────────────────────────────────────── */
-.rt-input-wrapper {
-  position: relative;
-}
+.rt-input-wrapper { position: relative; }
 
 .rt-input-wrapper .rt-input-icon {
   position: absolute;
   left: 12px;
   top: 50%;
   transform: translateY(-50%);
-  color: var(--color-text-muted);
-  font-size: 0.8rem;
+  color: var(--tx-muted);
+  font-size: 0.78rem;
   pointer-events: none;
-  transition: color var(--transition-base);
+  transition: color var(--tr-base);
 }
 
-.rt-input-wrapper .rt-filter-input {
-  padding-left: 36px;
-}
+.rt-input-wrapper .rt-filter-input { padding-left: 34px; }
+.rt-input-wrapper:focus-within .rt-input-icon { color: var(--c-red); }
 
-.rt-input-wrapper:focus-within .rt-input-icon {
-  color: var(--color-primary);
-}
-
-/* ── Acciones ─────────────────────────────────────────────────── */
 .rt-filter-actions {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 7px;
   justify-content: flex-end;
 }
 
@@ -154,64 +129,52 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 18px;
+  gap: 7px;
+  padding: 9px 16px;
   background: transparent;
-  border: 1.5px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  color: var(--color-text-muted);
-  font-size: 0.82rem;
+  border: 1px solid var(--bd-default);
+  border-radius: var(--r-sm);
+  color: var(--tx-secondary);
+  font-size: 0.8rem;
   font-weight: 600;
-  font-family: inherit;
+  font-family: var(--font-body);
   cursor: pointer;
-  transition: all var(--transition-base);
+  transition: all var(--tr-base);
   white-space: nowrap;
 }
 
 .rt-btn-clear:hover {
-  border-color: var(--color-danger);
-  color: var(--color-danger);
-  background: var(--color-danger-light);
+  border-color: var(--c-danger);
+  color: var(--c-danger);
+  background: var(--c-danger-l);
   transform: translateY(-1px);
 }
 
-.rt-btn-clear:focus-visible {
-  outline: 2px solid var(--color-danger);
-  outline-offset: 2px;
-}
-
-.rt-btn-clear:active { transform: translateY(0); }
-
 .rt-filter-count {
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  color: var(--tx-muted);
   text-align: center;
   font-weight: 500;
-  min-height: 18px;
-  transition: color var(--transition-base);
+  min-height: 16px;
+  transition: color var(--tr-base);
 }
 
-.rt-filter-bar--active .rt-filter-count {
-  color: var(--color-accent);
-}
+.rt-filter-bar--active .rt-filter-count { color: var(--c-gold); }
 
-/* ── Animación de filas ───────────────────────────────────────── */
-tbody tr[data-filter-row]  { transition: opacity 0.18s ease; }
-tbody tr.filter-hidden     { opacity: 0; }
+tbody tr[data-filter-row]  { transition: opacity 0.16s ease; }
+tbody tr.filter-hidden     { opacity: 0; pointer-events: none; }
 tbody tr.filter-visible    { opacity: 1; }
 
-/* ── Fila sin resultados ──────────────────────────────────────── */
 tr[data-filter-empty] td {
   text-align: center;
-  padding: 32px 16px;
-  color: var(--color-text-muted);
-  font-style: italic;
+  padding: 40px 16px;
+  color: var(--tx-muted);
+  font-size: 0.875rem;
 }
 
-/* ── Responsive ───────────────────────────────────────────────── */
 @media (max-width: 768px) {
-  .rt-filter-bar   { padding: 16px; }
-  .rt-filter-grid  { grid-template-columns: 1fr; gap: 12px; }
-  .rt-filter-actions { flex-direction: row; align-items: center; }
-  .rt-btn-clear    { flex: 1; }
+  .rt-filter-bar    { padding: 14px; }
+  .rt-filter-grid   { grid-template-columns: 1fr; gap: 10px; }
+  .rt-filter-actions { flex-direction: row; }
+  .rt-btn-clear     { flex: 1; }
 }

@@ -1,215 +1,188 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block content %}
-<link rel="stylesheet" href="{% static 'css/estilos_pagina.css' %}">
-<link rel="stylesheet" href="{% static 'css/filtros_realtime.css' %}">
+{% block title %}Clientes{% endblock %}
 
-<div class="d-flex justify-content-between align-items-center mb-4 animate-slide-left">
-  <h2 class="mb-0"><i class="fa-solid fa-users me-2"></i>Gestión de Clientes</h2>
+{% block content %}
+
+<div class="page-header animate-slide-right">
+  <div class="page-header-left">
+    <div class="page-title">
+      <div class="page-title-icon"><i class="fa-solid fa-users"></i></div>
+      Gestión de Clientes
+    </div>
+    <div class="page-subtitle">Base de clientes registrados en el sistema</div>
+  </div>
   <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregarCliente">
-    <i class="fa-solid fa-plus me-2"></i>Agregar Cliente
+    <i class="fa-solid fa-user-plus"></i> Agregar Cliente
   </button>
 </div>
 
-<div class="contenedor-exportar animate-fade-up">
-  <a href="{% url 'exportar_clientes_pdf' %}" class="btn btn-danger">
-    <i class="fa-solid fa-file-pdf"></i> Exportar PDF
-  </a>
-  <a href="{% url 'exportar_clientes_excel' %}" class="btn btn-success">
-    <i class="fa-solid fa-file-excel"></i> Exportar Excel
-  </a>
-</div>
-
-<!-- ══════════════════════════════════════════════════════════════
-     FILTROS EN TIEMPO REAL — CLIENTES
-     ══════════════════════════════════════════════════════════════ -->
 <div data-filter-container class="animate-fade-up">
 
+  <!-- Filtros -->
   <div class="rt-filter-bar" role="search" aria-label="Filtros de clientes">
     <div class="rt-filter-grid">
-
-      <!-- Buscar por nombre -->
       <div class="rt-filter-group">
-        <label for="filtro-nombre-cliente" class="rt-filter-label">
-          <i class="fa-solid fa-magnifying-glass"></i> Buscar cliente
-        </label>
+        <label for="filtro-nombre-cliente" class="rt-filter-label"><i class="fa-solid fa-magnifying-glass"></i> Buscar cliente</label>
         <div class="rt-input-wrapper">
-          <i class="fa-solid fa-user rt-input-icon" aria-hidden="true"></i>
-          <input
-            id="filtro-nombre-cliente"
-            type="search"
-            class="rt-filter-input"
-            data-filter-col="nombre"
-            placeholder="Buscar por nombre..."
-            autocomplete="off"
-            aria-label="Buscar cliente por nombre"
-          >
+          <i class="fa-solid fa-user rt-input-icon"></i>
+          <input id="filtro-nombre-cliente" type="search" class="rt-filter-input"
+                 data-filter-col="nombre" placeholder="Buscar por nombre..." autocomplete="off">
         </div>
       </div>
-
-      <!-- Buscar por documento -->
       <div class="rt-filter-group">
-        <label for="filtro-doc-cliente" class="rt-filter-label">
-          <i class="fa-solid fa-id-card"></i> Documento
-        </label>
+        <label for="filtro-doc-cliente" class="rt-filter-label"><i class="fa-solid fa-id-card"></i> Documento</label>
         <div class="rt-input-wrapper">
-          <i class="fa-solid fa-id-card rt-input-icon" aria-hidden="true"></i>
-          <input
-            id="filtro-doc-cliente"
-            type="search"
-            class="rt-filter-input"
-            data-filter-col="documento"
-            placeholder="Buscar por documento..."
-            autocomplete="off"
-            aria-label="Buscar cliente por número de documento"
-          >
+          <i class="fa-solid fa-id-card rt-input-icon"></i>
+          <input id="filtro-doc-cliente" type="search" class="rt-filter-input"
+                 data-filter-col="documento" placeholder="Buscar por documento..." autocomplete="off">
         </div>
       </div>
-
-      <!-- Filtrar por estado -->
       <div class="rt-filter-group">
-        <label for="filtro-estado-cliente" class="rt-filter-label">
-          <i class="fa-solid fa-circle-half-stroke"></i> Estado
-        </label>
-        <select
-          id="filtro-estado-cliente"
-          class="rt-filter-select"
-          data-filter-col="estado"
-          aria-label="Filtrar clientes por estado"
-        >
+        <label for="filtro-estado-cliente" class="rt-filter-label"><i class="fa-solid fa-circle-half-stroke"></i> Estado</label>
+        <select id="filtro-estado-cliente" class="rt-filter-select" data-filter-col="estado">
           <option value="">Todos los estados</option>
           <option value="activo">Activos</option>
           <option value="inactivo">Inactivos</option>
         </select>
       </div>
-
-      <!-- Acciones -->
       <div class="rt-filter-actions">
-        <button
-          type="button"
-          class="rt-btn-clear"
-          data-filter-clear
-          aria-label="Limpiar todos los filtros de clientes"
-          title="Limpiar filtros"
-        >
-          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
-          Limpiar filtros
+        <button type="button" class="rt-btn-clear" data-filter-clear>
+          <i class="fa-solid fa-xmark"></i> Limpiar filtros
         </button>
-        <span class="rt-filter-count" data-filter-count aria-live="polite" aria-atomic="true"></span>
+        <span class="rt-filter-count" data-filter-count aria-live="polite"></span>
       </div>
-
     </div>
   </div>
 
-  <!-- ── Tabla de clientes ───────────────────────────────────── -->
-  <div class="table-container">
-    <table class="table" aria-label="Listado de clientes">
-      <thead>
-        <tr>
-          <th scope="col">ID</th>
-          <th scope="col">Nombre</th>
-          <th scope="col">Documento</th>
-          <th scope="col">Teléfono</th>
-          <th scope="col">Email</th>
-          <th scope="col">Dirección</th>
-          <th scope="col">Estado</th>
-          <th scope="col">Acciones</th>
-        </tr>
-      </thead>
-      <tbody class="animate-stagger">
-        {% for cliente in clientes %}
-        <tr class="animate-item" data-filter-row>
-          <td data-col="id">{{ cliente.id }}</td>
-          <td data-col="nombre">{{ cliente.nombre }}</td>
-          <td data-col="documento">{{ cliente.documento }}</td>
-          <td data-col="telefono">{{ cliente.telefono }}</td>
-          <td data-col="email">{{ cliente.email }}</td>
-          <td data-col="direccion">{{ cliente.direccion }}</td>
-          <td data-col="estado">
-            {% if cliente.estado == 'activo' %}
-              <span class="badge badge-success">Activo</span>
-            {% else %}
-              <span class="badge badge-danger">Inactivo</span>
-            {% endif %}
-          </td>
-          <td>
-            <div class="btn-group" role="group" aria-label="Acciones para {{ cliente.nombre }}">
-              <button type="button" class="btn btn-sm btn-info"
-                data-bs-toggle="modal"
-                data-bs-target="#modalVerCliente{{ cliente.id }}"
-                aria-label="Ver detalle de {{ cliente.nombre }}">
-                <i class="fa-solid fa-eye" aria-hidden="true"></i>
-              </button>
-              <button type="button" class="btn btn-sm btn-warning"
-                {% if cliente.estado == 'activo' %}
-                  style="background-color: darkgrey;" disabled
-                  aria-label="No se puede editar un cliente activo"
-                  title="No se puede editar un cliente activo"
-                {% else %}
-                  data-bs-toggle="modal"
-                  data-bs-target="#modalEditarCliente{{ cliente.id }}"
-                  aria-label="Editar cliente {{ cliente.nombre }}"
-                {% endif %}>
-                <i class="fa-solid fa-edit" aria-hidden="true"></i>
-              </button>
-              <button type="button" class="btn btn-sm btn-danger"
-                data-bs-toggle="modal"
-                data-bs-target="#modalEliminarCliente{{ cliente.id }}"
-                aria-label="Eliminar cliente {{ cliente.nombre }}">
-                <i class="fa-solid fa-trash" aria-hidden="true"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-        {% empty %}
-        <tr data-filter-row>
-          <td colspan="8" class="text-center py-4">No hay clientes registrados</td>
-        </tr>
-        {% endfor %}
-        <tr data-filter-empty style="display:none;">
-          <td colspan="8">
-            <i class="fa-solid fa-filter-circle-xmark me-2" aria-hidden="true"></i>
-            Ningún cliente coincide con los filtros aplicados.
-          </td>
-        </tr>
-      </tbody>
-    </table>
+  <!-- Exportar -->
+  <div class="contenedor-exportar">
+    <a href="{% url 'exportar_clientes_pdf' %}" class="btn btn-danger btn-sm">
+      <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+    </a>
+    <a href="{% url 'exportar_clientes_excel' %}" class="btn btn-success btn-sm">
+      <i class="fa-solid fa-file-excel"></i> Exportar Excel
+    </a>
   </div>
 
-</div><!-- /[data-filter-container] -->
+  <!-- Tabla -->
+  <div class="glass-card">
+    <div class="glass-card-header">
+      <div class="glass-card-title"><i class="fa-solid fa-list"></i> Clientes Registrados</div>
+    </div>
+    <div class="tbl-wrap" style="border:none;border-radius:0;">
+      <table class="table" aria-label="Listado de clientes">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Documento</th>
+            <th>Teléfono</th>
+            <th>Email</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="animate-stagger">
+          {% for cliente in clientes %}
+          <tr class="animate-item" data-filter-row>
+            <td data-col="id" style="color:var(--tx-muted);font-size:.8rem;">#{{ cliente.id }}</td>
+            <td data-col="nombre">
+              <div class="tbl-name-cell">
+                <div class="tbl-avatar" style="background:linear-gradient(135deg,var(--c-success),#1e8449);">
+                  {{ cliente.nombre|slice:":2"|upper }}
+                </div>
+                <div>
+                  <div style="font-weight:600;">{{ cliente.nombre }}</div>
+                  <div style="font-size:.75rem;color:var(--tx-muted);">{{ cliente.direccion|truncatechars:28 }}</div>
+                </div>
+              </div>
+            </td>
+            <td data-col="documento" style="font-family:var(--font-mono);font-size:.85rem;">{{ cliente.documento }}</td>
+            <td data-col="telefono" style="font-family:var(--font-mono);font-size:.85rem;">{{ cliente.telefono }}</td>
+            <td data-col="email" style="font-size:.84rem;color:var(--tx-secondary);">{{ cliente.email }}</td>
+            <td data-col="estado">
+              {% if cliente.estado == 'activo' %}
+                <span class="badge badge-success"><i class="fa-solid fa-circle" style="font-size:.45rem;vertical-align:middle;"></i> Activo</span>
+              {% else %}
+                <span class="badge badge-danger"><i class="fa-solid fa-circle" style="font-size:.45rem;vertical-align:middle;"></i> Inactivo</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="tbl-actions">
+                <button type="button" class="btn btn-sm btn-info btn-icon-sq"
+                        data-bs-toggle="modal" data-bs-target="#modalVerCliente{{ cliente.id }}"
+                        title="Ver detalle">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-icon-sq
+                  {% if cliente.estado == 'activo' %}btn-secondary{% else %}btn-warning{% endif %}"
+                  {% if cliente.estado == 'activo' %}
+                    disabled title="No se puede editar un cliente activo"
+                  {% else %}
+                    data-bs-toggle="modal" data-bs-target="#modalEditarCliente{{ cliente.id }}" title="Editar"
+                  {% endif %}>
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-danger btn-icon-sq"
+                        data-bs-toggle="modal" data-bs-target="#modalEliminarCliente{{ cliente.id }}"
+                        title="Eliminar">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr data-filter-row>
+            <td colspan="7" style="text-align:center;padding:48px;color:var(--tx-muted);">
+              <i class="fa-solid fa-users" style="font-size:2rem;display:block;margin-bottom:10px;opacity:.3;"></i>
+              No hay clientes registrados
+            </td>
+          </tr>
+          {% endfor %}
+          <tr data-filter-empty style="display:none;">
+            <td colspan="7" style="text-align:center;padding:32px;color:var(--tx-muted);">
+              <i class="fa-solid fa-filter-circle-xmark me-2"></i> Ningún cliente coincide con los filtros.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-{% include 'clientes/modal_agregar_cliente.html' %}
+</div>
+
+<!-- Modales -->
+{% include 'Clientes/modal_agregar_cliente.html' %}
 {% for cliente in clientes %}
-  {% include 'clientes/modal_editar.html' %}
-  {% include 'clientes/modal_eliminar.html' %}
-  <div class="modal fade modal-detalle" id="modalVerCliente{{ cliente.id }}" tabindex="-1"
-       aria-labelledby="tituloVerCliente{{ cliente.id }}" aria-modal="true" role="dialog">
+  {% include 'Clientes/modal_editar.html' %}
+  {% include 'Clientes/modal_eliminar.html' %}
+  <div class="modal fade modal-detalle" id="modalVerCliente{{ cliente.id }}" tabindex="-1" aria-modal="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <div class="modal-header">
-          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
         <div class="modal-body">
-          <div class="modal-detalle-icon"><i class="fa-solid fa-user" aria-hidden="true"></i></div>
-          <h4 class="modal-detalle-title" id="tituloVerCliente{{ cliente.id }}">Información del Cliente</h4>
+          <div class="modal-detalle-icon" style="background:var(--c-success-l);border-color:var(--c-success);color:var(--c-success);">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <h4 class="modal-detalle-title">{{ cliente.nombre }}</h4>
           <table class="modal-detalle-table">
-            <tr><td>ID</td><td>{{ cliente.id }}</td></tr>
-            <tr><td>Nombre</td><td>{{ cliente.nombre }}</td></tr>
+            <tr><td>ID</td><td>#{{ cliente.id }}</td></tr>
             <tr><td>Documento</td><td>{{ cliente.documento }}</td></tr>
             <tr><td>Teléfono</td><td>{{ cliente.telefono }}</td></tr>
             <tr><td>Email</td><td>{{ cliente.email }}</td></tr>
             <tr><td>Dirección</td><td>{{ cliente.direccion }}</td></tr>
-            <tr>
-              <td>Estado</td>
-              <td>
-                {% if cliente.estado == 'activo' %}
-                  <span class="badge badge-success">Activo</span>
-                {% else %}
-                  <span class="badge badge-danger">Inactivo</span>
-                {% endif %}
-              </td>
-            </tr>
+            <tr><td>Estado</td><td>
+              {% if cliente.estado == 'activo' %}
+                <span class="badge badge-success">Activo</span>
+              {% else %}
+                <span class="badge badge-danger">Inactivo</span>
+              {% endif %}
+            </td></tr>
+            <tr><td>Registro</td><td>{{ cliente.fechaRegistro }}</td></tr>
           </table>
           <button type="button" class="btn modal-detalle-btn-cerrar" data-bs-dismiss="modal">Cerrar</button>
         </div>

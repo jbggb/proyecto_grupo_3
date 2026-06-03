@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function () {
     var btnSubirImagen  = el('btn-subir-imagen');
     var previewImagen   = el('scanner-preview-imagen');
 
-    var modalStock          = bootstrap.Modal.getOrCreateInstance(el('modalActualizarStock'));
+    var modalStock = el('modalActualizarStock') ? bootstrap.Modal.getOrCreateInstance(el('modalActualizarStock')) : null;
     var stockNombre         = el('stock-modal-nombre');
     var stockActual         = el('stock-modal-actual');
     var stockCantidad       = el('stock-modal-cantidad');
@@ -43,10 +43,10 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ── CAMARA EN VIVO ────────────────────────────────────────────
-    btnActivar.addEventListener('click', iniciarQuagga);
-    btnDetener.addEventListener('click', detenerQuagga);
-    btnLimpiar.addEventListener('click', resetScanner);
-    btnBuscarManual.addEventListener('click', function () {
+    if (btnActivar) btnActivar.addEventListener('click', iniciarQuagga);
+    if (btnDetener) btnDetener.addEventListener('click', detenerQuagga);
+    if (btnLimpiar) btnLimpiar.addEventListener('click', resetScanner);
+    if (btnBuscarManual) btnBuscarManual.addEventListener('click', function () {
         if (ultimoCodigo) buscarCodigo(ultimoCodigo);
     });
 
@@ -132,12 +132,12 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ── ESCANEAR DESDE IMAGEN ─────────────────────────────────────
-    btnSubirImagen.addEventListener('click', function () {
+    if (btnSubirImagen) btnSubirImagen.addEventListener('click', function () {
         inputImagen.value = '';
         inputImagen.click();
     });
 
-    inputImagen.addEventListener('change', function () {
+    if (inputImagen) inputImagen.addEventListener('change', function () {
         var file = this.files[0];
         if (!file || !file.type.startsWith('image/')) return;
 
@@ -293,10 +293,10 @@ document.addEventListener('DOMContentLoaded', function () {
         document.body.style.removeProperty("overflow");
         document.body.style.removeProperty("padding-right");
     }
-    btnCancelarStock.addEventListener('click', cerrarModalStock);
-    btnCerrarStockModal.addEventListener('click', cerrarModalStock);
+    if (btnCancelarStock) btnCancelarStock.addEventListener('click', cerrarModalStock);
+    if (btnCerrarStockModal) btnCerrarStockModal.addEventListener('click', cerrarModalStock);
 
-    btnGuardarStock.addEventListener('click', function () {
+    if (btnGuardarStock) btnGuardarStock.addEventListener('click', function () {
         var cantidad = parseInt(stockCantidad.value, 10);
         if (!cantidad || cantidad < 1) {
             stockError.textContent = '⚠ Ingresa una cantidad válida (mínimo 1).';

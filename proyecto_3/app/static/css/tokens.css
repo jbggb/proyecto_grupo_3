@@ -1,115 +1,107 @@
 /*
- * tokens.css — Design Tokens globales del sistema
- * Proyecto: Inventario Grupo 3 (Tienda El Despecho)
- * Versión: 1.0.0
- * Autor del refactor: Johan S. Contreras — mayo 2026
+ * tokens.css — Design Tokens globales
+ * Tema: SaaS Pro Dark — Tienda El Despecho
+ * Versión: 2.0.0  |  Autor: Johan S. Contreras — mayo 2026
  *
- * INSTRUCCIONES:
- *  - Este es el ÚNICO archivo donde se declaran variables :root.
- *  - NO agregar :root en estilos_pagina.css, modulos.css ni reporte.css.
- *  - reporte.css usa sus propias variables pero NUNCA en :root global;
- *    todas están envueltas dentro de .rep-wrap { ... }.
- *  - Cargar este archivo PRIMERO en base.html, antes de cualquier otro CSS.
+ * REGLA: ÚNICO archivo con :root. No repetir en otros CSS.
+ * Cargar PRIMERO en base.html.
  */
 
-/* ═══════════════════════════════════════════════════════════════
-   1. COLORES — Paleta principal
-   ═══════════════════════════════════════════════════════════════ */
+
+
+/* Fuentes del sistema — sin dependencia externa */
 :root {
-  /* Rojo/primario de marca */
-  --color-primary:        #9b1c1c;
-  --color-primary-hover:  #b91c1c;
-  --color-primary-glow:   rgba(155, 28, 28, 0.12);
-  --color-primary-light:  rgba(155, 28, 28, 0.10);
+  /* ── Paleta principal ── */
+  --c-red:          #c0392b;
+  --c-red-d:        #96281b;
+  --c-red-l:        rgba(192, 57, 43, 0.14);
+  --c-red-glow:     rgba(192, 57, 43, 0.22);
 
-  /* Acento dorado */
-  --color-accent:         #f59e0b;
-  --color-accent-hover:   #d97706;
+  --c-gold:         #e8a838;
+  --c-gold-d:       #c4891e;
+  --c-gold-l:       rgba(232, 168, 56, 0.13);
 
-  /* Semánticos */
-  --color-success:        #16a34a;
-  --color-success-hover:  #15803d;
-  --color-success-light:  rgba(22, 163, 74, 0.10);
+  /* ── Semánticos ── */
+  --c-success:      #27ae60;
+  --c-success-d:    #1e8449;
+  --c-success-l:    rgba(39, 174, 96, 0.13);
 
-  --color-warning:        #ca8a04;
-  --color-warning-light:  rgba(202, 138, 4, 0.10);
+  --c-warning:      #d4ac0d;
+  --c-warning-l:    rgba(212, 172, 13, 0.13);
 
-  --color-danger:         #dc2626;
-  --color-danger-light:   rgba(220, 38, 38, 0.10);
+  --c-danger:       #e74c3c;
+  --c-danger-l:     rgba(231, 76, 60, 0.13);
 
-  --color-info:           #3b82f6;
-  --color-info-hover:     #2563eb;
+  --c-info:         #2980b9;
+  --c-info-d:       #1a5276;
+  --c-info-l:       rgba(41, 128, 185, 0.13);
 
-  --color-purple:         #7c3aed;
-  --color-cyan:           #0891b2;
+  --c-purple:       #8e44ad;
+  --c-cyan:         #0097a7;
 
-/* ═══════════════════════════════════════════════════════════════
-   2. FONDOS
-   ═══════════════════════════════════════════════════════════════ */
-  --bg-base:              #0f172a;   /* fondo global / body */
-  --bg-dark:              #0f172a;
-  --bg-card:              #1e293b;   /* tarjetas, paneles */
-  --bg-hover:             #334155;   /* hover de filas/items */
-  --bg-input:             #161615;   /* inputs */
-  --bg-sidebar:           rgba(15, 23, 42, 0.95);
+  /* ── Fondos ── */
+  --bg-body:        #080c12;
+  --bg-surface:     rgba(14, 20, 32, 0.85);
+  --bg-card:        rgba(16, 24, 38, 0.90);
+  --bg-card-hover:  rgba(20, 30, 48, 0.95);
+  --bg-input:       rgba(8, 14, 24, 0.80);
+  --bg-sidebar:     rgba(6, 10, 18, 0.96);
+  --bg-header:      rgba(8, 12, 20, 0.95);
+  --bg-glass:       rgba(255, 255, 255, 0.03);
+  --bg-glass-hover: rgba(255, 255, 255, 0.06);
 
-/* ═══════════════════════════════════════════════════════════════
-   3. TEXTO
-   ═══════════════════════════════════════════════════════════════ */
---color-text:           #ffffff;
---color-text-secondary: #ffffff;
---color-text-white:     #ffffff;
+  /* ── Textos ── */
+  --tx-primary:     #f0f4ff;
+  --tx-secondary:   #8899bb;
+  --tx-muted:       #4a5568;
+  --tx-accent:      var(--c-gold);
 
-/* ═══════════════════════════════════════════════════════════════
-   4. BORDES
-   ═══════════════════════════════════════════════════════════════ */
-  --color-border:         #404040;
-  --color-border-light:   #525252;
+  /* ── Bordes ── */
+  --bd-default:     rgba(255,255,255,0.07);
+  --bd-subtle:      rgba(255,255,255,0.04);
+  --bd-active:      rgba(192, 57, 43, 0.50);
+  --bd-gold:        rgba(232, 168, 56, 0.30);
 
-/* ═══════════════════════════════════════════════════════════════
-   5. RADIOS
-   ═══════════════════════════════════════════════════════════════ */
-  --radius-sm:            8px;
-  --radius-md:            12px;
-  --radius-lg:            16px;
-  --radius-xl:            20px;
-  --radius-pill:          50px;
+  /* ── Tipografía ── */
+  --font-display:   'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-body:      'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
 
-/* ═══════════════════════════════════════════════════════════════
-   6. SOMBRAS
-   ═══════════════════════════════════════════════════════════════ */
-  --shadow-sm:            0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md:            0 4px 6px -1px rgba(0, 0, 0, 0.20),
-                          0 2px 4px -1px rgba(0, 0, 0, 0.10);
-  --shadow-lg:            0 24px 60px rgba(0, 0, 0, 0.40);
-  --shadow-glow-primary:  0 0 20px var(--color-primary-glow);
+  /* ── Radios ── */
+  --r-xs:   6px;
+  --r-sm:   10px;
+  --r-md:   14px;
+  --r-lg:   20px;
+  --r-xl:   28px;
+  --r-full: 999px;
 
-/* ═══════════════════════════════════════════════════════════════
-   7. TIPOGRAFÍA
-   ═══════════════════════════════════════════════════════════════ */
-  --font-sans:            'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-  --font-serif:           'Fraunces', serif;
-  --font-mono:            'Monaco', 'Courier New', monospace;
+  /* ── Sombras ── */
+  --sh-sm:   0 2px 8px rgba(0,0,0,0.30);
+  --sh-md:   0 8px 24px rgba(0,0,0,0.40);
+  --sh-lg:   0 20px 60px rgba(0,0,0,0.55);
+  --sh-xl:   0 32px 80px rgba(0,0,0,0.65);
+  --sh-red:  0 0 30px rgba(192,57,43,0.25);
+  --sh-gold: 0 0 24px rgba(232,168,56,0.20);
 
-/* ═══════════════════════════════════════════════════════════════
-   8. ESPACIADO
-   ═══════════════════════════════════════════════════════════════ */
-  --space-xs:             4px;
-  --space-sm:             8px;
-  --space-md:             16px;
-  --space-lg:             24px;
-  --space-xl:             32px;
+  /* ── Layout ── */
+  --sidebar-w:   255px;
+  --header-h:    70px;
+  --content-pad: 32px;
 
-/* ═══════════════════════════════════════════════════════════════
-   9. LAYOUT
-   ═══════════════════════════════════════════════════════════════ */
-  --sidebar-width:        260px;
-  --header-height:        64px;
+  /* ── Espaciado ── */
+  --sp-xs:  4px;
+  --sp-sm:  8px;
+  --sp-md:  16px;
+  --sp-lg:  24px;
+  --sp-xl:  36px;
+  --sp-2xl: 52px;
 
-/* ═══════════════════════════════════════════════════════════════
-   10. TRANSICIONES
-   ═══════════════════════════════════════════════════════════════ */
-  --transition-fast:      0.15s ease-in-out;
-  --transition-base:      0.20s ease;
-  --transition-slow:      0.30s ease;
+  /* ── Transiciones ── */
+  --tr-fast:   0.13s ease;
+  --tr-base:   0.22s ease;
+  --tr-slow:   0.38s cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* ── Glassmorphism ── */
+  --glass-blur:   blur(20px) saturate(160%);
+  --glass-blur-sm: blur(10px) saturate(140%);
 }

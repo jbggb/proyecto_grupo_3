@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+from dotenv import load_dotenv 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -25,7 +26,7 @@ SECRET_KEY = _env(
     'dev-only-change-me',
     required=not DEBUG,
 )
-ALLOWED_HOSTS = [host.strip() for host in _env('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if host.strip()]
+ALLOWED_HOSTS = [host.strip() for host in _env('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost,*').split(',') if host.strip()]
 
 INSTALLED_APPS = [
     'app',

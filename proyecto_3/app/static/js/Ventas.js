@@ -1,169 +1,172 @@
 /**
- * ventas.js — Módulo de Ventas
- * (Renombrado de Ventas.js → ventas.js para consistencia kebab-case)
- * carrito expuesto en App.ventas.carrito en lugar de global var carrito.
+ * ventas.js — Carrito de ventas
+ * Compatible con Ventas.html v2
  */
-
 (function () {
   'use strict';
 
-  window.App = window.App || {};
-  window.App.ventas = {
-    carrito: []
-  };
+  /* ── Carrito crear ── */
+  var carrito = [];
 
-  // Alias local para legibilidad interna
-  var carrito = App.ventas.carrito;
-
-  document.addEventListener('DOMContentLoaded', function () {
-
-    var modalCrear = document.getElementById('modalCrearVenta');
-    if (!modalCrear) return;
-
-    modalCrear.addEventListener('shown.bs.modal', function () {
-      var input = document.getElementById('inputClienteCrear');
-      if (input) {
-        input.oninput = function () {
-          validarCliente(
-            this,
-            document.getElementById('feedbackCliente'),
-            document.getElementById('contadorCliente')
-          );
-        };
-      }
-    });
-
-    modalCrear.addEventListener('hidden.bs.modal', function () {
-      carrito.length = 0; // vaciar sin romper referencia
-      renderCarrito();
-
-      var input = document.getElementById('inputClienteCrear');
-      if (input) input.value = '';
-
-      var fc = document.getElementById('feedbackCliente');
-      if (fc) fc.textContent = '';
-
-      var cc = document.getElementById('contadorCliente');
-      if (cc) cc.textContent = '0/30 caracteres';
-
-      var se = document.getElementById('selectEstado');
-      if (se) se.value = '';
-
-      var fe = document.getElementById('feedbackEstado');
-      if (fe) fe.textContent = '';
-
-      var bus = document.getElementById('busquedaProductos');
-      if (bus) {
-        bus.value = '';
-        document.querySelectorAll('.producto-card').forEach(function (c) {
-          c.style.display = 'block';
-        });
-      }
-    });
-
-    var busqueda = document.getElementById('busquedaProductos');
-    if (busqueda) {
-      busqueda.addEventListener('input', function () {
-        var term = this.value.toLowerCase();
-        document.querySelectorAll('.producto-card').forEach(function (card) {
-          card.style.display = card.getAttribute('data-nombre').includes(term) ? 'block' : 'none';
-        });
-      });
-    }
-
-    document.querySelectorAll('.input-cliente-editar').forEach(function (input) {
-      var feedback = input.parentElement.querySelector('.feedback-editar');
-      if (input && feedback) {
-        input.addEventListener('input', function () {
-          validarCliente(input, feedback, null);
-        });
-      }
-    });
-
-  }); // end DOMContentLoaded
-
-  // ── Funciones internas ────────────────────────────────────────────
-  // Estas funciones son llamadas desde el HTML inline de Ventas.
-  // Se exponen en App.ventas para no contaminar el scope global,
-  // pero se mantienen aliases globales por retrocompatibilidad.
-
-  function validarCliente(input, feedback, contador) {
-    var val = input ? input.value.trim() : '';
-    if (contador) {
-      contador.textContent = val.length + '/30 caracteres';
-    }
-    if (feedback) {
-      if (val.length === 0) {
-        feedback.textContent = '⚠ El nombre del cliente es obligatorio.';
-        feedback.style.color = '#dc3545';
-      } else if (val.length < 3) {
-        feedback.textContent = '⚠ Mínimo 3 caracteres.';
-        feedback.style.color = '#fd7e14';
-      } else if (val.length > 30) {
-        feedback.textContent = '⚠ Máximo 30 caracteres.';
-        feedback.style.color = '#dc3545';
-      } else {
-        feedback.textContent = '✓ OK';
-        feedback.style.color = '#198754';
-      }
-    }
-  }
+  function fmt(n) { return '$' + Number(n).toLocaleString('es-CO'); }
 
   function renderCarrito() {
-    var tbody = document.getElementById('carritoBody');
-    var totalEl = document.getElementById('totalVenta');
-    var carritoInput = document.getElementById('carritoInput');
-
+    var tbody   = document.getElementById('filasCarrito');
+    var ocultos = document.getElementById('camposOcultosProductos');
+    var totalEl = document.getElementById('totalCarrito');
+    var wrap    = document.getElementById('tablaCarritoWrap');
+    var vacio   = document.getElementById('msgCarritoVacio');
+    var titulo  = document.getElementById('tituloCarrito');
     if (!tbody) return;
 
-    tbody.innerHTML = '';
+    tbody.innerHTML  = '';
+    ocultos.innerHTML = '';
     var total = 0;
 
     carrito.forEach(function (item, idx) {
-      var subtotal = item.precio * item.cantidad;
-      total += subtotal;
-      var tr = document.createElement('tr');
+      var sub = item.precio * item.cantidad;
+      total  += sub;
+      var tr  = document.createElement('tr');
       tr.innerHTML =
-        '<td>' + item.nombre + '</td>' +
-        '<td>$' + item.precio.toLocaleString() + '</td>' +
-        '<td>' +
-          '<input type="number" min="1" value="' + item.cantidad + '" ' +
-          'class="form-control form-control-sm" style="width:70px" ' +
-          'onchange="App.ventas.actualizarCantidad(' + idx + ', this.value)">' +
-        '</td>' +
-        '<td>$' + subtotal.toLocaleString() + '</td>' +
-        '<td><button class="btn btn-sm btn-danger" onclick="App.ventas.eliminarDelCarrito(' + idx + ')">✕</button></td>';
+        '<td><span style="font-weight:600;">' + item.nombre + '</span>' +
+        '<br><small style="color:var(--tx-muted);">' + fmt(item.precio) + ' c/u</small></td>' +
+        '<td><div style="display:flex;align-items:center;gap:4px;">' +
+        '<button type="button" class="btn btn-secondary btn-sm btn-icon-sq" onclick="carritoRestar(' + idx + ')">-</button>' +
+        '<span style="font-weight:700;padding:0 6px;">' + item.cantidad + '</span>' +
+        '<button type="button" class="btn btn-secondary btn-sm btn-icon-sq" onclick="carritoSumar(' + idx + ')">+</button>' +
+        '</div></td>' +
+        '<td style="text-align:right;font-family:monospace;font-weight:700;color:var(--c-gold);">' + fmt(sub) + '</td>' +
+        '<td><button type="button" class="btn btn-danger btn-sm btn-icon-sq" onclick="carritoQuitar(' + idx + ')">' +
+        '<i class="fa-solid fa-trash"></i></button></td>';
       tbody.appendChild(tr);
+
+      // Campos ocultos para el POST
+      ['producto_id[]', 'producto_nombre[]', 'producto_precio[]', 'producto_cantidad[]']
+        .forEach(function (name, ni) {
+          var inp = document.createElement('input');
+          inp.type  = 'hidden';
+          inp.name  = name;
+          inp.value = [item.productoId, item.nombre, item.precio, item.cantidad][ni];
+          ocultos.appendChild(inp);
+        });
     });
 
-    if (totalEl) totalEl.textContent = '$' + total.toLocaleString();
-    if (carritoInput) carritoInput.value = JSON.stringify(carrito);
+    if (totalEl) totalEl.textContent = fmt(total);
+    var tieneItems = carrito.length > 0;
+    if (wrap)   wrap.classList.toggle('d-none', !tieneItems);
+    if (vacio)  vacio.style.display  = tieneItems ? 'none' : 'block';
+    if (titulo) titulo.classList.toggle('d-none', !tieneItems);
   }
 
-  App.ventas.agregarAlCarrito = function (id, nombre, precio) {
-    var idx = carrito.findIndex(function (i) { return i.id === id; });
-    if (idx >= 0) {
-      carrito[idx].cantidad++;
+  window.agregarProducto = function (id, nombre, precio, stock) {
+    var dup = carrito.findIndex(function (x) { return x.productoId == id; });
+    var alerta = document.getElementById('alertaProductoDuplicado');
+    var vacios = document.getElementById('alertaCarritoVacio');
+    if (vacios) vacios.classList.add('d-none');
+
+    if (dup >= 0) {
+      if (carrito[dup].cantidad < stock) {
+        carrito[dup].cantidad++;
+      } else {
+        if (alerta) { alerta.classList.remove('d-none'); setTimeout(function(){ alerta.classList.add('d-none'); }, 2500); }
+        return;
+      }
     } else {
-      carrito.push({ id: id, nombre: nombre, precio: precio, cantidad: 1 });
+      if (alerta) alerta.classList.add('d-none');
+      carrito.push({ productoId: id, nombre: nombre, precio: parseFloat(precio), cantidad: 1 });
     }
     renderCarrito();
   };
 
-  App.ventas.eliminarDelCarrito = function (idx) {
+  window.carritoSumar = function (idx) {
+    carrito[idx].cantidad++;
+    renderCarrito();
+  };
+
+  window.carritoRestar = function (idx) {
+    if (carrito[idx].cantidad > 1) { carrito[idx].cantidad--; renderCarrito(); }
+  };
+
+  window.carritoQuitar = function (idx) {
     carrito.splice(idx, 1);
     renderCarrito();
   };
 
-  App.ventas.actualizarCantidad = function (idx, val) {
-    var n = parseInt(val, 10);
-    if (n > 0) { carrito[idx].cantidad = n; }
-    renderCarrito();
-  };
+  document.addEventListener('DOMContentLoaded', function () {
+    var modalCrear = document.getElementById('modalCrearVenta');
+    if (!modalCrear) return;
 
-  // ── Retrocompatibilidad global ──────────────────────────────────
-  window.agregarAlCarrito  = App.ventas.agregarAlCarrito;
-  window.eliminarDelCarrito= App.ventas.eliminarDelCarrito;
-  window.actualizarCantidad= App.ventas.actualizarCantidad;
+    /* Búsqueda de productos */
+    var busqueda = document.getElementById('busquedaProductos');
+    if (busqueda) {
+      busqueda.addEventListener('input', function () {
+        var term = this.value.toLowerCase();
+        document.querySelectorAll('.producto-card').forEach(function (c) {
+          c.style.display = c.getAttribute('data-nombre').includes(term) ? '' : 'none';
+        });
+      });
+    }
+
+    /* Validación cliente */
+    var inputCliente = document.getElementById('inputClienteCrear');
+    var feedbackCliente = document.getElementById('feedbackCliente');
+    var contadorCliente = document.getElementById('contadorCliente');
+    if (inputCliente) {
+      inputCliente.addEventListener('input', function () {
+        var val = this.value.trim();
+        if (contadorCliente) contadorCliente.textContent = val.length + '/30 caracteres';
+        if (!feedbackCliente) return;
+        if (val.length === 0) {
+          feedbackCliente.textContent = '⚠ Nombre obligatorio.';
+          feedbackCliente.style.color = '#dc3545';
+        } else if (val.length < 3) {
+          feedbackCliente.textContent = '⚠ Mínimo 3 caracteres.';
+          feedbackCliente.style.color = '#fd7e14';
+        } else {
+          feedbackCliente.textContent = '✓ OK';
+          feedbackCliente.style.color = '#198754';
+        }
+      });
+    }
+
+    /* Validación submit */
+    var form = document.getElementById('formCrearVenta');
+    if (form) {
+      form.addEventListener('submit', function (e) {
+        var alertaVacio = document.getElementById('alertaCarritoVacio');
+        var alertaEstado = document.getElementById('feedbackEstado');
+        var estado = document.getElementById('selectEstado');
+        var cliente = document.getElementById('inputClienteCrear');
+        var ok = true;
+
+        if (carrito.length === 0) {
+          if (alertaVacio) alertaVacio.classList.remove('d-none');
+          ok = false;
+        }
+        if (estado && !estado.value) {
+          if (alertaEstado) { alertaEstado.textContent = '⚠ Selecciona un estado.'; alertaEstado.style.color = '#dc3545'; }
+          ok = false;
+        }
+        if (cliente && cliente.value.trim().length < 3) {
+          var fb = document.getElementById('feedbackCliente');
+          if (fb) { fb.textContent = '⚠ Nombre obligatorio (mín. 3 caracteres).'; fb.style.color = '#dc3545'; }
+          ok = false;
+        }
+        if (!ok) e.preventDefault();
+      });
+    }
+
+    /* Reset al cerrar */
+    modalCrear.addEventListener('hidden.bs.modal', function () {
+      carrito.length = 0;
+      renderCarrito();
+      var ids = ['inputClienteCrear','feedbackCliente','busquedaProductos'];
+      ids.forEach(function(id){ var el = document.getElementById(id); if(el) el.value = ''; });
+      var cc = document.getElementById('contadorCliente'); if(cc) cc.textContent = '0/30 caracteres';
+      var se = document.getElementById('selectEstado');    if(se) se.value = '';
+      var fe = document.getElementById('feedbackEstado');  if(fe) fe.textContent = '';
+      document.querySelectorAll('.producto-card').forEach(function(c){ c.style.display = ''; });
+    });
+  });
 
 })();
