@@ -9,7 +9,7 @@ try:
     from dotenv import load_dotenv
     load_dotenv(BASE_DIR / '.env')
 except ImportError:
-    pass  # Si no esta instalado, usa variables del sistema
+    pass  # Si no esta instalado, usa variables del sistema o valores por defecto
 
 
 def _env(name, default=None, required=False):
