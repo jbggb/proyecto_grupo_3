@@ -16,9 +16,14 @@
     </div>
     <div class="page-subtitle">Catálogo completo de productos e inventario</div>
   </div>
-  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregar">
-    <i class="fa-solid fa-plus"></i> Agregar Producto
-  </button>
+  <div style="display:flex;gap:10px;">
+    <button class="btn btn-info" id="btnAbrirEscaner">
+      <i class="fa-solid fa-barcode"></i> Escanear
+    </button>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregar">
+      <i class="fa-solid fa-plus"></i> Agregar Producto
+    </button>
+  </div>
 </div>
 
 <div data-filter-container class="animate-fade-up">
@@ -206,9 +211,51 @@
   </div>
 {% endfor %}
 
+<!-- Modal Escáner -->
+<div class="modal fade" id="modalEscaner" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,rgba(41,128,185,0.20),rgba(41,128,185,0.08));">
+        <h5 class="modal-title">
+          <i class="fa-solid fa-barcode" style="color:var(--c-info);"></i>
+          Escanear Código de Barras
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;gap:10px;margin-bottom:18px;">
+          <button class="btn btn-info" id="escaner-btn-camara" style="flex:1;">
+            <i class="fa-solid fa-camera"></i> Usar Cámara
+          </button>
+          <button class="btn btn-secondary" id="escaner-btn-imagen" style="flex:1;">
+            <i class="fa-solid fa-image"></i> Subir Imagen
+          </button>
+        </div>
+        <input type="file" id="escaner-input-imagen" accept="image/*" style="display:none;">
+        <div id="escaner-area-lector"
+             style="width:100%;min-height:220px;background:var(--bg-input);border-radius:var(--r-md);border:2px dashed var(--bd-default);overflow:hidden;display:flex;align-items:center;justify-content:center;">
+          <div style="text-align:center;color:var(--tx-muted);padding:32px;">
+            <i class="fa-solid fa-barcode" style="font-size:3rem;display:block;margin-bottom:12px;opacity:.3;"></i>
+            <p style="font-size:.875rem;">Selecciona un modo para escanear</p>
+          </div>
+        </div>
+        <p id="escaner-status" style="text-align:center;font-size:.84rem;margin-top:10px;min-height:20px;color:var(--tx-secondary);"></p>
+        <div id="escaner-resultado"></div>
+        <div style="margin-top:14px;padding:10px 14px;background:var(--bg-glass);border-radius:var(--r-sm);font-size:.78rem;color:var(--tx-muted);border:1px solid var(--bd-subtle);">
+          <i class="fa-solid fa-circle-info me-1" style="color:var(--c-info);"></i>
+          Si el producto no está registrado, se consultará <strong>Open Food Facts</strong> para obtener el nombre y la marca.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="{% static 'js/productos.js' %}"></script>
 <script src="{% static 'js/escaner.js' %}"></script>
 <script src="{% static 'js/filtros_realtime.js' %}"></script>

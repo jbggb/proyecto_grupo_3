@@ -52,6 +52,8 @@ urlpatterns = [
     # ── Escáner de código de barras ────────────────────────────────
     path('productos/buscar-codigo/',         productos_views.buscar_codigo_barras,    name='buscar_codigo_barras'),
     path('productos/actualizar-stock-escaner/', productos_views.actualizar_stock_escaner, name='actualizar_stock_escaner'),
+    path('productos/buscar-escaner/',           productos_views.buscar_codigo_escaner,      name='buscar_codigo_escaner'),
+    path('productos/actualizar-stock-nuevo/',   productos_views.actualizar_stock_desde_escaner, name='actualizar_stock_desde_escaner'),
     # ──────────────────────────────────────────────────────────────
     path('reporte/productos/pdf',   exportar_views.ExportarProductosPDF.as_view(),   name='exportar_productos_pdf'),
     path('reporte/productos/excel', exportar_views.ExportarProductosExcel.as_view(), name='exportar_productos_excel'),

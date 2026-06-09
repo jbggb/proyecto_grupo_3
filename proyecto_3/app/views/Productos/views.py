@@ -198,3 +198,80 @@ def actualizar_stock_escaner(request):
         return JsonResponse({'ok': True, 'stock': producto.stock})
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+
+# ══════════════════════════════════════════════════════════════
+# ESCÁNER — buscar en BD + Open Food Facts
+# ══════════════════════════════════════════════════════════════
+import urllib.request
+import urllib.error
+
+@admin_login_required
+@require_GET
+def buscar_codigo_escaner(request):
+    """
+    1. Busca en la BD propia
+    2. Si no existe, consulta Open Food Facts
+    3. Devuelve datos para el modal
+    """
+    codigo = request.GET.get('codigo', '').strip()
+    if not codigo:
+        return JsonResponse({'error': 'Código vacío'}, status=400)
+
+    # ── 1. Buscar en BD propia ──
+    try:
+        p = Producto.objects.get(codigo_barras=codigo)
+        return JsonResponse({
+            'estado':   'encontrado',
+            'id':       p.idProducto,
+            'nombre':   p.nombre,
+            'precio':   float(p.precio),
+            'stock':    p.stock,
+            'codigo':   codigo,
+        })
+    except Producto.DoesNotExist:
+        pass
+
+    # ── 2. Consultar Open Food Facts ──
+    nombre_sugerido = ''
+    marca_sugerida  = ''
+    try:
+        url = f'https://world.openfoodfacts.org/api/v0/product/{codigo}.json'
+        req = urllib.request.Request(url, headers={'User-Agent': 'TiendaElDespecho/1.0'})
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read().decode())
+        if data.get('status') == 1:
+            prod = data.get('product', {})
+            nombre_sugerido = (
+                prod.get('product_name_es') or
+                prod.get('product_name') or
+                prod.get('abbreviated_product_name') or ''
+            )
+            marca_sugerida = prod.get('brands', '').split(',')[0].strip()
+    except Exception:
+        pass
+
+    return JsonResponse({
+        'estado':          'no_encontrado',
+        'codigo':          codigo,
+        'nombre_sugerido': nombre_sugerido,
+        'marca_sugerida':  marca_sugerida,
+    })
+
+
+@admin_login_required
+@require_POST
+def actualizar_stock_desde_escaner(request):
+    """Suma cantidad al stock del producto encontrado"""
+    try:
+        data     = json.loads(request.body)
+        producto = Producto.objects.get(idProducto=data.get('id'))
+        cantidad = int(data.get('cantidad', 1))
+        if cantidad < 1:
+            return JsonResponse({'error': 'Cantidad inválida'}, status=400)
+        producto.stock += cantidad
+        producto.save()
+        return JsonResponse({'ok': True, 'stock_nuevo': producto.stock, 'nombre': producto.nombre})
+    except Producto.DoesNotExist:
+        return JsonResponse({'error': 'Producto no encontrado'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=400)
