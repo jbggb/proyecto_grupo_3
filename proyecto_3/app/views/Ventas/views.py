@@ -11,7 +11,7 @@ from django.db import transaction
 from django.db.models import Sum
 from django.http import JsonResponse
 from app.decorators import admin_login_required
-from app.services.notifications import notificacion_stock_bajo, notificacion_venta_completada
+from app.services.notifications import (notificacion_stock_bajo,notificacion_venta_completada,notificacion_venta_creada,notificacion_venta_eliminada,)
 from ...models import Venta, DetalleVenta, Producto, Cliente
 
 
@@ -160,6 +160,8 @@ class CrearVentaView(View):
                         cantidad        = cant_int[i],
                     )
             messages.success(request, f'Venta #{venta.id} creada exitosamente.')
+            notificacion_venta_creada(venta, request.user)
+            
         except ValueError as e:
             messages.error(request, str(e))
         except Exception as e:
@@ -268,6 +270,7 @@ class EliminarVentaView(View):
         try:
             with transaction.atomic():
                 _devolver_stock(venta.detalles.all())
+                notificacion_venta_eliminada(venta, request.user)
                 venta.delete()
             messages.success(request, f'Venta #{venta_id} eliminada y stock restaurado.')
         except Exception as e:

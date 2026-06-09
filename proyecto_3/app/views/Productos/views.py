@@ -9,10 +9,14 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_GET, require_POST
 from app.decorators import admin_login_required
 from app.models import Producto, Marca, TipoProductos, unidad_medida
+from app.services.notifications import (
+    notificacion_producto_creado,
+    notificacion_producto_editado,
+    notificacion_producto_eliminado,
+)
 
 
 def _contexto_productos(query='', form_data=None):
-    """Construye el contexto base. form_data preserva valores del modal si hay error."""
     lista = Producto.objects.all()
     if query:
         lista = lista.filter(nombre__icontains=query)
@@ -81,7 +85,7 @@ class CrearProductoView(View):
             return error('El stock debe ser un número entre 0 y 1.000.')
 
         try:
-            Producto.objects.create(
+            producto = Producto.objects.create(
                 nombre=nombre,
                 precio=precio_val,
                 stock=int(stock),
@@ -89,6 +93,7 @@ class CrearProductoView(View):
                 idTipo=get_object_or_404(TipoProductos, idTipo=idTipo),
                 idUnidad=get_object_or_404(unidad_medida, idUnidad=idUnidad),
             )
+            notificacion_producto_creado(producto, request.user)
             messages.success(request, f'Producto "{nombre}" creado correctamente.')
         except Exception as e:
             messages.error(request, f'Error al crear el producto: {str(e)}')
@@ -145,6 +150,7 @@ class EditarProductoView(View):
         producto.idTipo   = get_object_or_404(TipoProductos, idTipo=idTipo)
         producto.idUnidad = get_object_or_404(unidad_medida, idUnidad=idUnidad)
         producto.save()
+        notificacion_producto_editado(producto, request.user)
         messages.success(request, f'Producto "{nombre}" actualizado correctamente.')
         return redirect('productos')
 
@@ -155,6 +161,7 @@ class EliminarProductoView(View):
         try:
             producto = get_object_or_404(Producto, idProducto=id)
             nombre   = producto.nombre
+            notificacion_producto_eliminado(nombre, request.user)
             producto.delete()
             messages.success(request, f'Producto "{nombre}" eliminado correctamente.')
         except Exception as e:
@@ -199,25 +206,17 @@ def actualizar_stock_escaner(request):
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
 
-# ══════════════════════════════════════════════════════════════
-# ESCÁNER — buscar en BD + Open Food Facts
-# ══════════════════════════════════════════════════════════════
+
 import urllib.request
 import urllib.error
 
 @admin_login_required
 @require_GET
 def buscar_codigo_escaner(request):
-    """
-    1. Busca en la BD propia
-    2. Si no existe, consulta Open Food Facts
-    3. Devuelve datos para el modal
-    """
     codigo = request.GET.get('codigo', '').strip()
     if not codigo:
         return JsonResponse({'error': 'Código vacío'}, status=400)
 
-    # ── 1. Buscar en BD propia ──
     try:
         p = Producto.objects.get(codigo_barras=codigo)
         return JsonResponse({
@@ -231,7 +230,6 @@ def buscar_codigo_escaner(request):
     except Producto.DoesNotExist:
         pass
 
-    # ── 2. Consultar Open Food Facts ──
     nombre_sugerido = ''
     marca_sugerida  = ''
     try:
@@ -261,7 +259,6 @@ def buscar_codigo_escaner(request):
 @admin_login_required
 @require_POST
 def actualizar_stock_desde_escaner(request):
-    """Suma cantidad al stock del producto encontrado"""
     try:
         data     = json.loads(request.body)
         producto = Producto.objects.get(idProducto=data.get('id'))
@@ -274,4 +271,4 @@ def actualizar_stock_desde_escaner(request):
     except Producto.DoesNotExist:
         return JsonResponse({'error': 'Producto no encontrado'}, status=404)
     except Exception as e:
-        return JsonResponse({'error': str(e)}, status=400)
+        return JsonResponse({'error': str(e)}, status=400)  
