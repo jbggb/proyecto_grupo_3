@@ -104,7 +104,7 @@ urlpatterns = [
     path('compras/',                   compras_views.compras,             name='compras'),
     path('compras/crear/',             compras_views.crear_compra,        name='crear_compra'),
     path('compras/editar/<int:id>/',   compras_views.modal_editar_compra, name='modal_editar_compra'),
-    path('compras/eliminar/<int:id>/', compras_views.modal_eliminar_compra, name='eliminar_compra'),
+    path('compras/eliminar/<int:id>/', compras_views.modal_eliminar_compra, name='modal_eliminar_compra'),
     path('reporte/compras/pdf',   exportar_views.ExportarComprasPDF.as_view(),   name='exportar_compras_pdf'),
     path('reporte/compras/excel', exportar_views.ExportarComprasExcel.as_view(), name='exportar_compras_excel'),
 

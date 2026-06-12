@@ -9,6 +9,8 @@
             <form method="POST" action="{% url 'crear_producto' %}" id="formAgregarProducto">
                 {% csrf_token %}
                 <div class="modal-body">
+                    <!-- Campo oculto codigo de barras — lo llena el escaner -->
+                    <input type="hidden" name="codigo_barras" id="add_codigo_barras" value="">
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label fw-semibold">Nombre del Producto <span class="text-danger">*</span></label>
