@@ -212,15 +212,27 @@ import urllib.error
 @require_GET
 def buscar_codigo_escaner(request):
     """
-    1. Busca en la BD propia
-    2. Si no existe, consulta Open Food Facts
-    3. Devuelve datos para el modal
+    1. Si modo=nombre: busca por nombre (para búsqueda manual en escáner de ventas)
+    2. Busca en la BD propia por código de barras
+    3. Si no existe, consulta Open Food Facts
+    4. Devuelve datos para el modal
     """
     codigo = request.GET.get('codigo', '').strip()
+    modo   = request.GET.get('modo', '').strip()
+
     if not codigo:
         return JsonResponse({'error': 'Código vacío'}, status=400)
 
-    # ── 1. Buscar en BD propia ──
+    # ── 0. Búsqueda por nombre (modo=nombre) ──
+    if modo == 'nombre':
+        qs = Producto.objects.filter(nombre__icontains=codigo)[:8]
+        resultados = [
+            {'id': p.idProducto, 'nombre': p.nombre, 'precio': float(p.precio), 'stock': p.stock, 'codigo': p.codigo_barras or ''}
+            for p in qs
+        ]
+        return JsonResponse({'estado': 'lista', 'resultados': resultados})
+
+    # ── 1. Buscar en BD propia por código ──
     try:
         p = Producto.objects.get(codigo_barras=codigo)
         return JsonResponse({
@@ -278,3 +290,16 @@ def actualizar_stock_desde_escaner(request):
         return JsonResponse({'error': 'Producto no encontrado'}, status=404)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=400)
+
+
+@admin_login_required
+@require_GET
+def listado_productos_json(request):
+    """Devuelve todos los productos como JSON. Usado por el modal de asignación de proveedores."""
+    qs = Producto.objects.all().values('idProducto', 'nombre', 'stock', 'precio')
+    data = [
+        {'id': p['idProducto'], 'nombre': p['nombre'], 'stock': p['stock'], 'precio': float(p['precio'])}
+        for p in qs
+    ]
+    return JsonResponse({'productos': data})
+

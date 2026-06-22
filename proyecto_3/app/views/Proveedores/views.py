@@ -11,7 +11,7 @@ from app.services.notifications import (
     notificacion_proveedor_creado,
     notificacion_proveedor_eliminado,
 )
-from ...models import Proveedor
+from ...models import Proveedor, Producto
 
 
 def _validar_proveedor(nombre, telefono, email, envio, proveedor_id=None):
@@ -156,8 +156,39 @@ class ProveedoresJsonView(View):
         return JsonResponse({'proveedores': lista})
 
 
+
+@method_decorator(admin_login_required, name='dispatch')
+class ProveedorProductosView(View):
+    """Devuelve los productos asignados al proveedor (relación M2M).
+    Si no tiene productos asignados aún, devuelve todos (fallback)."""
+    def get(self, request, id):
+        proveedor = get_object_or_404(Proveedor, id=id)
+        qs = proveedor.productos.all()
+        if not qs.exists():
+            qs = Producto.objects.all()
+        data = [
+            {'id': p.idProducto, 'nombre': p.nombre, 'stock': p.stock, 'precio': float(p.precio)}
+            for p in qs
+        ]
+        return JsonResponse({'productos': data, 'proveedor': proveedor.nombre})
+
+    def post(self, request, id):
+        """Asignar/desasignar productos al proveedor."""
+        import json
+        proveedor = get_object_or_404(Proveedor, id=id)
+        try:
+            body = json.loads(request.body)
+            ids  = body.get('producto_ids', [])
+            proveedor.productos.set(ids)
+            return JsonResponse({'ok': True, 'total': proveedor.productos.count()})
+        except Exception as e:
+            return JsonResponse({'ok': False, 'error': str(e)}, status=400)
+
+
+
 proveedores        = ProveedoresView.as_view()
 crear_proveedor    = CrearProveedorView.as_view()
 editar_proveedor   = EditarProveedorView.as_view()
 eliminar_proveedor = EliminarProveedorView.as_view()
 proveedores_json   = ProveedoresJsonView.as_view()
+proveedor_productos = ProveedorProductosView.as_view()

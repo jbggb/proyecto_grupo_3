@@ -169,4 +169,17 @@
     });
   });
 
+  // ── Exponer para el escáner de ventas ──
+  // El escáner llama a esta función cuando lee un producto en modo venta
+  window.carritoVentaAgregar = function (id, nombre, precio, stock) {
+    // Abrir el modal de crear venta si no está abierto
+    var modalCrear = document.getElementById('modalCrearVenta');
+    if (modalCrear) {
+      var bsModal = bootstrap.Modal.getOrCreateInstance(modalCrear);
+      bsModal.show();
+    }
+    // Agregar al carrito (reutiliza la función ya existente)
+    window.agregarProducto(String(id), nombre, parseFloat(precio), stock);
+  };
+
 })();

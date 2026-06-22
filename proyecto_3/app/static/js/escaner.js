@@ -5,7 +5,8 @@
 (function () {
   'use strict';
 
-  if (!document.getElementById('btnAbrirEscaner')) return;
+  // Funciona tanto en productos (btnAbrirEscaner) como en ventas (btnEscanerVenta)
+  if (!document.getElementById('btnAbrirEscaner') && !document.getElementById('btnEscanerVenta')) return;
 
   // ── Estado ──
   var codeReader = null;
@@ -14,6 +15,7 @@
   var lastTime   = 0;
   var DEBOUNCE   = 2000;
   var modoInventario = false;
+  var modoVenta      = false;   // true cuando se abre desde ventas
   var pendientes = [];   // lista de ajustes en modo inventario
   var historial  = [];   // últimos 10 escaneos
   var sesionActualizados = 0;
@@ -49,21 +51,50 @@
   }
 
   // ── Abrir modal ──
-  document.getElementById('btnAbrirEscaner').addEventListener('click', function () {
-    modalBS = bootstrap.Modal.getOrCreateInstance(modalEl);
-    modalBS.show();
-  });
+  var btnAbrirEscaner = document.getElementById('btnAbrirEscaner');
+  if (btnAbrirEscaner) {
+    btnAbrirEscaner.addEventListener('click', function () {
+      modoVenta = false;
+      modalBS = bootstrap.Modal.getOrCreateInstance(modalEl);
+      modalBS.show();
+    });
+  }
+
+  // Botón escaner en ventas (modo venta)
+  var btnEscanerVenta = document.getElementById('btnEscanerVenta');
+  if (btnEscanerVenta) {
+    btnEscanerVenta.addEventListener('click', function () {
+      modoVenta = true;
+      modalBS = bootstrap.Modal.getOrCreateInstance(modalEl);
+      modalBS.show();
+    });
+  }
 
   modalEl.addEventListener('shown.bs.modal', function () {
     actualizarContadorBtn();
     iniciarCamara();
+    // Cambiar título según modo
+    var titulo = modalEl.querySelector('.modal-title');
+    if (titulo) {
+      titulo.innerHTML = modoVenta
+        ? '<i class="fa-solid fa-cart-shopping" style="color:var(--c-gold);"></i> Escanear producto para venta'
+        : '<i class="fa-solid fa-barcode" style="color:var(--c-info);"></i> Escanear Código de Barras';
+    }
+    // Ocultar modo inventario en modo venta
+    var btnInv = document.getElementById('escaner-btn-modo-inventario');
+    if (btnInv) btnInv.style.display = modoVenta ? 'none' : '';
   });
 
-  modalEl.addEventListener('hidden.bs.modal', function () {
+ modalEl.addEventListener('hidden.bs.modal', function () {
     detener();
     resetUI();
     modoInventario = false;
+    modoVenta      = false;
     pendientes = [];
+    document.querySelectorAll('.modal-backdrop').forEach(function(el){ el.remove(); });
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('overflow');
+    document.body.style.removeProperty('padding-right');
   });
 
   // ── Modo cámara / imagen ──
@@ -243,9 +274,10 @@
             '<input type="number" id="escaner-cantidad" value="1" min="1" max="9999"' +
               ' style="width:70px;padding:8px;background:var(--bg-input);border:1px solid var(--bd-default);border-radius:var(--r-sm);color:var(--tx-primary);font-size:1rem;font-weight:700;text-align:center;">' +
             '<button onclick="escaner_cambiarCantidad(1)" class="btn btn-secondary btn-sm btn-icon-sq" style="font-size:1rem;font-weight:700;">+</button>' +
-            '<button onclick="window.escaner_agregarStock(' + data.id + ')" class="btn btn-success" style="flex:1;">' +
-              '<i class="fa-solid fa-plus"></i> Actualizar stock' +
-            '</button>' +
+            (modoVenta
+              ? '<button onclick="window.escaner_agregarVenta(' + data.id + ',this)" class="btn btn-warning" style="flex:1;" data-nombre="' + data.nombre.replace(/"/g, '&quot;') + '" data-precio="' + data.precio + '" data-stock="' + data.stock + '"><i class="fa-solid fa-cart-shopping"></i> Agregar a venta</button>'
+              : '<button onclick="window.escaner_agregarStock(' + data.id + ')" class="btn btn-success" style="flex:1;"><i class="fa-solid fa-plus"></i> Actualizar stock</button>'
+            ) +
           '</div>' +
         '</div>' +
       '</div>';
@@ -480,6 +512,20 @@
       sessionStorage.removeItem('escaner_codigo_pendiente');
     }
   });
+
+  // ── Agregar a carrito de venta desde escáner ──
+  window.escaner_agregarVenta = function (id, btn) {
+    var nombre = btn ? btn.dataset.nombre : '';
+    var precio = btn ? parseFloat(btn.dataset.precio) : 0;
+    var stock  = btn ? parseInt(btn.dataset.stock)   : 0;
+    if (typeof window.carritoVentaAgregar === 'function') {
+      window.carritoVentaAgregar(id, nombre, precio, stock);
+      beep('ok');
+      setStatus('✓ ' + nombre + ' agregado a la venta', 'ok');
+    } else {
+      setStatus('Abre el modal de Nueva Venta primero.', 'error');
+    }
+  };
 
   // ── Helpers ──
   function setStatus(msg, tipo) {

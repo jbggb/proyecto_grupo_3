@@ -95,12 +95,15 @@ class ComprasView(View):
             except ValueError:
                 pass
 
+        mes_inicio = date(hoy.year, hoy.month, 1)
         return render(request, 'Compras/Compras.html', {
             'compras':     lista_compras,
             'proveedores': Proveedor.objects.all(),
             'productos':   Producto.objects.all(),
-            'fecha_min':   hoy.strftime('%Y-%m-%d'),
-            'fecha_max':   (hoy + timedelta(days=7)).strftime('%Y-%m-%d'),
+            'fecha_min':   mes_inicio.strftime('%Y-%m-%d'),
+            'fecha_max':   hoy.strftime('%Y-%m-%d'),
+            'mes_inicio':  mes_inicio.strftime('%Y-%m-%d'),
+            'hoy':         hoy.strftime('%Y-%m-%d'),
         })
 
 

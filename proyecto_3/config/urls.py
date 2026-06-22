@@ -53,6 +53,7 @@ urlpatterns = [
     path('productos/buscar-codigo/',         productos_views.buscar_codigo_barras,    name='buscar_codigo_barras'),
     path('productos/actualizar-stock-escaner/', productos_views.actualizar_stock_escaner, name='actualizar_stock_escaner'),
     path('productos/buscar-escaner/',           productos_views.buscar_codigo_escaner,      name='buscar_codigo_escaner'),
+    path('api/productos/listado/',               productos_views.listado_productos_json,     name='listado_productos_json'),
     path('productos/actualizar-stock-nuevo/',   productos_views.actualizar_stock_desde_escaner, name='actualizar_stock_desde_escaner'),
     # ──────────────────────────────────────────────────────────────
     path('reporte/productos/pdf',   exportar_views.ExportarProductosPDF.as_view(),   name='exportar_productos_pdf'),
@@ -97,6 +98,7 @@ urlpatterns = [
     path('proveedores/crear/',             proveedores_views.crear_proveedor,    name='crear_proveedor'),
     path('proveedores/editar/<int:id>/',   proveedores_views.editar_proveedor,   name='editar_proveedor'),
     path('proveedores/eliminar/<int:id>/', proveedores_views.eliminar_proveedor, name='eliminar_proveedor'),
+    path('proveedores/<int:id>/productos/', proveedores_views.proveedor_productos, name='proveedor_productos'),
     path('reporte/proveedores/pdf',   exportar_views.ExportarProveedoresPDF.as_view(),   name='exportar_proveedores_pdf'),
     path('reporte/proveedores/excel', exportar_views.ExportarProveedoresExcel.as_view(), name='exportar_proveedores_excel'),
 

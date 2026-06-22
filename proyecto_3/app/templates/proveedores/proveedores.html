@@ -4,6 +4,10 @@
 {% block title %}Proveedores{% endblock %}
 
 {% block content %}
+<style>
+.pp-card { user-select: none; }
+.pp-card:hover { border-color: var(--c-info) !important; background: rgba(52,152,219,.06) !important; }
+</style>
 
 <div class="page-header animate-slide-right">
   <div class="page-header-left">
@@ -79,6 +83,8 @@
             <th>Teléfono</th>
             <th>Email</th>
             <th>Envío</th>
+            <th>Velocidad</th>
+            <th>Productos</th>
             <th>Fecha</th>
             <th>Acciones</th>
           </tr>
@@ -105,6 +111,22 @@
               {% endif %}
             </td>
             <td data-col="envio-cat" style="display:none;">{% if p.envio <= 7 %}rapido{% elif p.envio <= 15 %}normal{% else %}lento{% endif %}</td>
+            <td data-col="velocidad">
+              {% if p.envio <= 7 %}
+                <span class="badge badge-success"><i class="fa-solid fa-bolt"></i> Rápido</span>
+              {% elif p.envio <= 15 %}
+                <span class="badge badge-warning"><i class="fa-solid fa-gauge"></i> Normal</span>
+              {% else %}
+                <span class="badge badge-danger"><i class="fa-solid fa-snail" style="font-size:.7rem;"></i> Lento</span>
+              {% endif %}
+            </td>
+            <td data-col="productos">
+              <span class="badge badge-info" style="cursor:pointer;"
+                    onclick="gestionarProductos({{ p.id }}, '{{ p.nombre|escapejs }}')">
+                <i class="fa-solid fa-box"></i>
+                {{ p.productos.count }} producto{% if p.productos.count != 1 %}s{% endif %}
+              </span>
+            </td>
             <td data-col="fecha" style="font-size:.82rem;color:var(--tx-muted);">{{ p.fechaRegistro }}</td>
             <td>
               <div class="tbl-actions">
@@ -131,14 +153,14 @@
           </tr>
           {% empty %}
           <tr data-filter-row>
-            <td colspan="7" style="text-align:center;padding:48px;color:var(--tx-muted);">
+            <td colspan="9" style="text-align:center;padding:48px;color:var(--tx-muted);">
               <i class="fa-solid fa-truck" style="font-size:2rem;display:block;margin-bottom:10px;opacity:.3;"></i>
               No hay proveedores registrados
             </td>
           </tr>
           {% endfor %}
           <tr data-filter-empty style="display:none;">
-            <td colspan="7" style="text-align:center;padding:32px;color:var(--tx-muted);">
+            <td colspan="9" style="text-align:center;padding:32px;color:var(--tx-muted);">
               <i class="fa-solid fa-filter-circle-xmark me-2"></i> Ningún proveedor coincide con los filtros.
             </td>
           </tr>
@@ -165,6 +187,8 @@
           <tr><td>Teléfono</td><td id="ver_telefono"></td></tr>
           <tr><td>Email</td><td id="ver_email"></td></tr>
           <tr><td>Días de envío</td><td id="ver_envio"></td></tr>
+          <tr><td>Velocidad</td><td id="ver_velocidad"></td></tr>
+          <tr><td>Entrega estimada</td><td id="ver_estimada"></td></tr>
           <tr><td>Fecha Registro</td><td id="ver_fecha"></td></tr>
         </table>
         <button type="button" class="btn modal-detalle-btn-cerrar" data-bs-dismiss="modal">Cerrar</button>
@@ -258,6 +282,52 @@
   </div>
 </div>
 
+
+<!-- Modal Gestión de Productos del Proveedor -->
+<div class="modal fade" id="modalProductosProveedor" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fa-solid fa-box"></i>
+          Productos de <span id="pp_nombre_proveedor"></span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:.85rem;color:var(--tx-muted);margin-bottom:14px;">
+          Seleccioná los productos que este proveedor suministra. Solo estos aparecerán al crear una compra con él.
+        </p>
+
+        <!-- Búsqueda dentro del modal -->
+        <div style="position:relative;margin-bottom:14px;">
+          <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--tx-muted);pointer-events:none;"></i>
+          <input type="text" id="pp_busqueda" class="form-control"
+                 style="padding-left:36px;" placeholder="Buscar producto...">
+        </div>
+
+        <!-- Grid de productos con checkboxes -->
+        <div id="pp_grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;max-height:380px;overflow-y:auto;padding:2px;">
+          <div id="pp_loading" style="grid-column:1/-1;text-align:center;padding:32px;color:var(--tx-muted);">
+            <i class="fa-solid fa-spinner fa-spin me-2"></i>Cargando productos...
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="justify-content:space-between;">
+        <div style="font-size:.83rem;color:var(--tx-muted);">
+          <span id="pp_seleccionados">0</span> seleccionados
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-success" id="pp_btn_guardar">
+            <i class="fa-solid fa-floppy-disk"></i> Guardar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="{% static 'js/filtros_realtime.js' %}"></script>
 <script>
 function verProveedor(id, nombre, telefono, email, envio, fecha) {
@@ -267,6 +337,24 @@ function verProveedor(id, nombre, telefono, email, envio, fecha) {
   document.getElementById('ver_email').textContent = email;
   document.getElementById('ver_envio').textContent = envio + ' días';
   document.getElementById('ver_fecha').textContent = fecha;
+
+  // Calcular velocidad y fecha estimada de entrega
+  var dias = parseInt(envio);
+  var vel, velClass;
+  if (dias <= 7)       { vel = '🟢 Rápido (1-7 días)';   velClass = 'badge-success'; }
+  else if (dias <= 15) { vel = '🟡 Normal (8-15 días)';   velClass = 'badge-warning'; }
+  else                 { vel = '🔴 Lento (más de 15 días)'; velClass = 'badge-danger'; }
+
+  var velEl = document.getElementById('ver_velocidad');
+  if (velEl) { velEl.innerHTML = '<span class="badge ' + velClass + '">' + vel + '</span>'; }
+
+  // Fecha estimada = hoy + dias
+  var hoy = new Date();
+  hoy.setDate(hoy.getDate() + dias);
+  var opts = { day: '2-digit', month: '2-digit', year: 'numeric' };
+  var estEl = document.getElementById('ver_estimada');
+  if (estEl) estEl.textContent = hoy.toLocaleDateString('es-CO', opts);
+
   bootstrap.Modal.getOrCreateInstance(document.getElementById('modalVerProveedor')).show();
 }
 function abrirEditar(id, nombre, telefono, email, envio) {
@@ -286,5 +374,132 @@ function confirmarEliminar(id, nombre) {
     background: '#0e1420', color: '#f0f4ff',
   }).then(r => { if (r.isConfirmed) document.getElementById('formEliminar' + id).submit(); });
 }
+
+// ── Gestión de productos del proveedor ──
+var ppProveedorId = null;
+var ppTodosProductos = [];
+
+function gestionarProductos(id, nombre) {
+  ppProveedorId = id;
+  document.getElementById('pp_nombre_proveedor').textContent = nombre;
+  document.getElementById('pp_loading').style.display = 'block';
+  document.getElementById('pp_busqueda').value = '';
+  ppTodosProductos = [];
+
+  bootstrap.Modal.getOrCreateInstance(
+    document.getElementById('modalProductosProveedor')
+  ).show();
+
+  // 1. Cargar todos los productos disponibles
+  fetch('/api/productos/listado/')
+    .then(r => r.json())
+    .then(todosData => {
+      // 2. Cargar los ya asignados a este proveedor
+      fetch('/proveedores/' + id + '/productos/')
+        .then(r => r.json())
+        .then(asignadosData => {
+          var asignadosIds = new Set(
+            (asignadosData.productos || []).map(p => String(p.id))
+          );
+          ppTodosProductos = todosData.productos || [];
+          ppRenderGrid(ppTodosProductos, asignadosIds);
+          document.getElementById('pp_loading').style.display = 'none';
+        });
+    })
+    .catch(() => {
+      document.getElementById('pp_loading').textContent = 'Error al cargar productos.';
+    });
+}
+
+function ppRenderGrid(lista, asignadosIds) {
+  var grid = document.getElementById('pp_grid');
+  // Limpiar excepto el loading
+  Array.from(grid.children).forEach(c => {
+    if (c.id !== 'pp_loading') c.remove();
+  });
+
+  lista.forEach(function (p) {
+    var checked = asignadosIds && asignadosIds.has(String(p.id));
+    var card = document.createElement('label');
+    card.className = 'pp-card' + (checked ? ' pp-card--checked' : '');
+    card.dataset.nombre = p.nombre.toLowerCase();
+    card.innerHTML =
+      '<input type="checkbox" class="pp-check" value="' + p.id + '"' + (checked ? ' checked' : '') + ' style="display:none;">' +
+      '<div style="display:flex;justify-content:space-between;align-items:flex-start;">' +
+      '  <span style="font-weight:600;font-size:.84rem;">' + p.nombre + '</span>' +
+      '  <i class="fa-solid fa-check pp-check-icon" style="color:var(--c-success);' + (checked ? '' : 'display:none;') + '"></i>' +
+      '</div>' +
+      '<div style="font-size:.75rem;color:var(--tx-muted);margin-top:4px;">Stock: ' + p.stock + ' · $' + Number(p.precio).toLocaleString('es-CO') + '</div>';
+
+    card.style.cssText = 'display:block;background:var(--bg-card);border:1.5px solid ' +
+      (checked ? 'var(--c-success)' : 'var(--bd-default)') +
+      ';border-radius:var(--r-md);padding:12px;cursor:pointer;transition:border-color .15s,background .15s;';
+
+    card.addEventListener('click', function () {
+      var cb = this.querySelector('.pp-check');
+      var icon = this.querySelector('.pp-check-icon');
+      cb.checked = !cb.checked;
+      if (cb.checked) {
+        this.style.borderColor = 'var(--c-success)';
+        this.style.background  = 'rgba(39,174,96,.08)';
+        if (icon) icon.style.display = '';
+      } else {
+        this.style.borderColor = 'var(--bd-default)';
+        this.style.background  = 'var(--bg-card)';
+        if (icon) icon.style.display = 'none';
+      }
+      ppActualizarContador();
+    });
+
+    grid.appendChild(card);
+  });
+  ppActualizarContador();
+}
+
+function ppActualizarContador() {
+  var total = document.querySelectorAll('.pp-check:checked').length;
+  var el = document.getElementById('pp_seleccionados');
+  if (el) el.textContent = total;
+}
+
+// Búsqueda en tiempo real dentro del grid
+document.getElementById('pp_busqueda').addEventListener('input', function () {
+  var q = this.value.toLowerCase();
+  document.querySelectorAll('#pp_grid label').forEach(function (card) {
+    card.style.display = card.dataset.nombre && card.dataset.nombre.includes(q) ? '' : 'none';
+  });
+});
+
+// Guardar asignación
+document.getElementById('pp_btn_guardar').addEventListener('click', function () {
+  var ids = Array.from(document.querySelectorAll('.pp-check:checked')).map(c => c.value);
+  var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+  var csrf = csrfToken ? csrfToken.value : '';
+
+  fetch('/proveedores/' + ppProveedorId + '/productos/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+    body: JSON.stringify({ producto_ids: ids })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.ok) {
+      bootstrap.Modal.getOrCreateInstance(
+        document.getElementById('modalProductosProveedor')
+      ).hide();
+      Swal.fire({
+        icon: 'success',
+        title: 'Guardado',
+        text: data.total + ' producto(s) asignados al proveedor.',
+        background: '#0e1420', color: '#f0f4ff',
+        confirmButtonColor: '#27ae60',
+        timer: 2000, timerProgressBar: true
+      }).then(() => location.reload());
+    }
+  })
+  .catch(() => {
+    Swal.fire({ icon: 'error', title: 'Error', text: 'No se pudo guardar.', background: '#0e1420', color: '#f0f4ff' });
+  });
+});
 </script>
 {% endblock %}
