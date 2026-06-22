@@ -307,3 +307,15 @@ function emailDuplicado(valor, idExcluir) {
     }
     return false;
 }
+function telefonoDuplicado(valor, idExcluir) {
+    var filas = document.querySelectorAll("table tbody tr");
+    for (var i = 0; i < filas.length; i++) {
+        var celdas = filas[i].querySelectorAll("td");
+        if (celdas.length > 0) {
+            var idFila       = celdas[0].textContent.trim().replace('#','');
+            var telefonoFila = celdas[3].textContent.trim();
+            if (telefonoFila === valor && idFila !== idExcluir) return true;
+        }
+    }
+    return false;
+}

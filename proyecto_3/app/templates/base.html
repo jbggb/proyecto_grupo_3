@@ -4,6 +4,7 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
+<<<<<<< HEAD
     <meta charset="UTF-8">
     <title>Inventario - Grupo 3</title>
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
@@ -329,196 +330,223 @@ body.acc-reducir-movimiento * {
     transition: none !important;
 }
     </style>
+=======
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Tienda El Despecho{% endblock %} — Inventario</title>
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/all.min.css' %}">
+  <link rel="stylesheet" href="{% static 'css/tokens.css' %}">
+  <link rel="stylesheet" href="{% static 'css/estilos_pagina.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modulos.css' %}">
+  <link rel="stylesheet" href="{% static 'css/animaciones.css' %}">
+  <link rel="stylesheet" href="{% static 'css/accesibilidad.css' %}">
+  <link rel="stylesheet" href="{% static 'css/filtros_realtime.css' %}">
+  <script src="{% static 'js/sweetalert2.min.js' %}"></script>
+>>>>>>> 1660d504a99d038aada9f6c349ee5998d3113a25
 </head>
 <body>
-<div style="
-    position: fixed;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background-image: url('{% static "img/fondo.png" %}');
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
-    opacity: 0.85;
-    z-index: -1;
-    pointer-events: none;
-"></div>
 
-<nav class="navbar navbar-dark" style="background: linear-gradient(150deg, #3c3b38 0%, #1b1d1b 45%, #161615 100%); border-bottom: 1px solid #404040;">
-    <div class="container-fluid">
-        <span class="navbar-brand mb-0 h1">
-            <i class="fa-solid fa-shop me-2"></i>Sistema de Inventario
-        </span>
-        <div class="d-flex align-items-center">
-            {% if request.user.is_authenticated %}
-                <span class="text-light me-3">
-                    <i class="fa-solid fa-user me-1"></i>
-                    {{ request.user.get_full_name|default:request.user.username }}
-                    {% if request.user.is_superuser %}
-                        <span class="badge bg-warning text-dark ms-1" style="font-size:.65rem;"></span>
-                    {% endif %}
-                </span>
-                <!-- ══════════ CAMPANITA DE NOTIFICACIONES ══════════ -->
-                <div class="dropdown me-3">
-                    <button class="btn btn-outline-light position-relative" type="button"
-                            id="dropdownNotif" data-bs-toggle="dropdown"
-                            aria-expanded="false" title="Notificaciones">
-                        <i class="fa-solid fa-bell"></i>
-                        {% if notif_total > 0 %}
-                        <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger"
-                              style="font-size:.65rem;">
-                            {{ notif_total }}
-                        </span>
-                        {% endif %}
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow"
-                        aria-labelledby="dropdownNotif"
-                        style="min-width:320px; max-height:420px; overflow-y:auto; z-index:9999;">
+<!-- ══════════════════════════════════════════════════
+     SIDEBAR
+     ══════════════════════════════════════════════════ -->
+<aside id="sidebar">
+  <!-- Logo -->
+  <div class="sidebar-logo">
+    <span class="sidebar-logo-text">
+      <i class="fa-solid fa-shop me-2" style="color:var(--c-red);"></i>El Despecho
+    </span>
+    <button id="toggle-btn" class="sidebar-toggle" title="Colapsar menú">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+  </div>
 
-                        <li><h6 class="dropdown-header">
-                            <i class="fa-solid fa-bell me-1"></i> Notificaciones
-                        </h6></li>
+  <!-- Navegación -->
+  <nav class="sidebar-nav">
 
-                        {% if notif_total > 0 %}
-                        <li class="px-3 py-2 d-flex justify-content-between align-items-center">
-                            <span class="small text-muted">Últimas notificaciones</span>
-                            <button type="button" class="btn btn-sm btn-link text-secondary p-0" id="clear-notifications">
-                                Limpiar
-                            </button>
-                        </li>
-                        <li><hr class="dropdown-divider my-1"></li>
-                        {% endif %}
-
-                        {% for notif in notificaciones %}
-                        <li>
-                            <div class="dropdown-item small py-2 d-flex justify-content-between align-items-center">
-                                <a href="{{ notif.url }}" class="text-decoration-none text-dark flex-grow-1" style="white-space: normal;">
-                                    <span class="me-1">{{ notif.icono }}</span>
-                                    <strong>{{ notif.mensaje }}</strong>
-                                </a>
-                                <div class="ms-2 text-nowrap">
-                                    <button class="btn btn-sm btn-link text-primary p-0 me-2 btn-read-notif" data-id="{{ notif.notif_id }}" title="Marcar como leída">
-                                        <i class="fa-solid fa-check"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-link text-danger p-0 btn-delete-notif" data-id="{{ notif.notif_id }}" title="Eliminar">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </div>
-                            </div>
-                        </li>
-                        {% empty %}
-                        <li>
-                            <span class="dropdown-item-text text-muted small text-center py-3">
-                                <i class="fa-solid fa-circle-check text-success me-1"></i>
-                                Sin notificaciones pendientes
-                            </span>
-                        </li>
-                        {% endfor %}
-
-                    </ul>
-                </div>
-                <!-- ══════════════════════════════════════════════════ -->
-
-                <a href="{% url 'logout' %}" class="btn btn-outline-light">
-                    <i class="fa-solid fa-right-from-bracket me-1"></i>Cerrar Sesión
-                </a>
-            {% else %}
-                <a href="{% url 'login' %}" class="btn btn-light">
-                    <i class="fa-solid fa-right-to-bracket me-1"></i>Iniciar Sesión
-                </a>
-            {% endif %}
-        </div>
+    <div class="nav-section">
+      <div class="nav-section-label">Principal</div>
+      <a href="{% url 'inicio' %}" class="nav-link {% if request.resolver_match.url_name == 'inicio' %}active{% endif %}">
+        <span class="nav-icon"><i class="fa-solid fa-gauge-high"></i></span>
+        <span class="nav-label">Dashboard</span>
+      </a>
     </div>
-</nav>
 
-<div class="d-flex">
-    <!-- MENÚ LATERAL -->
-    <aside id="sidebar" class="text-light p-3" style="background: #161615; border-right: 1px solid #404040;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0 sidebar-title">Inventario</h4>
-            <button id="toggle-btn" title="Ocultar menú">
-                <i class="fa-solid fa-bars"></i>
-            </button>
-        </div>
+    <div class="nav-divider"></div>
 
-        <a href="{% url 'inicio' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'inicio' %} active{% endif %}">
-            <i class="fa-solid fa-house"></i>
-            <span class="link-text ms-2">Inicio</span>
+    <div class="nav-section">
+      <div class="nav-section-label">Catálogo</div>
+
+      <!-- Productos (con submenu) -->
+      <button class="nav-link nav-parent w-100 text-start border-0 bg-transparent {% if request.resolver_match.url_name in 'productos,marcas,tipos,unidades' %}active open{% endif %}"
+              id="productos-toggle" onclick="toggleSubMenu(this)">
+        <span class="nav-icon"><i class="fa-solid fa-box"></i></span>
+        <span class="nav-label">Productos</span>
+        <i class="fa-solid fa-chevron-down nav-chevron"></i>
+      </button>
+      <div class="nav-submenu {% if request.resolver_match.url_name in 'productos,marcas,tipos,unidades' %}open{% endif %}" id="submenu-productos">
+        <a href="{% url 'productos' %}" class="nav-link {% if request.resolver_match.url_name == 'productos' %}active{% endif %}">
+          <span class="nav-icon"><i class="fa-solid fa-boxes-stacked"></i></span>
+          <span class="nav-label">Productos</span>
         </a>
+        <a href="{% url 'marcas' %}" class="nav-link {% if request.resolver_match.url_name == 'marcas' %}active{% endif %}">
+          <span class="nav-icon"><i class="fa-solid fa-tag"></i></span>
+          <span class="nav-label">Marcas</span>
+        </a>
+        <a href="{% url 'unidades' %}" class="nav-link {% if request.resolver_match.url_name == 'unidades' %}active{% endif %}">
+          <span class="nav-icon"><i class="fa-solid fa-ruler"></i></span>
+          <span class="nav-label">Unidades</span>
+        </a>
+        <a href="{% url 'tipos' %}" class="nav-link {% if request.resolver_match.url_name == 'tipos' %}active{% endif %}">
+          <span class="nav-icon"><i class="fa-solid fa-layer-group"></i></span>
+          <span class="nav-label">Tipos</span>
+        </a>
+      </div>
 
-        <!-- Menú desplegable Productos -->
-        <div class="productos-menu mb-2">
-            <button class="productos-toggle d-flex align-items-center text-light text-decoration-none w-100 border-0 bg-transparent p-0"
-                    style="padding: 10px 8px !important; border-radius: 6px; cursor: pointer; transition: background 0.2s;"
-                    onclick="toggleProductosMenu(this)"
-                    title="Productos">
-                <i class="fa-solid fa-box" style="min-width:24px; text-align:center;"></i>
-                <span class="link-text ms-2 d-flex align-items-center justify-content-between w-100">
-                    Productos
-                    <i class="fa-solid fa-chevron-down ms-auto me-1 chevron-icon" style="font-size:.75rem; transition: transform 0.25s;"></i>
-                </span>
-            </button>
-            <div class="productos-submenu ps-3 mt-1"
-                 style="display:{% if request.resolver_match and request.resolver_match.url_name in 'productos,marcas,tipos,unidades' %}block{% else %}none{% endif %}; border-left: 2px solid rgba(255,255,255,0.2);">
-                <a href="{% url 'productos' %}" class="d-flex align-items-center text-light py-1 text-decoration-none sub-link{% if request.resolver_match and request.resolver_match.url_name == 'productos' %} active{% endif %}" style="border-radius:4px; padding: 6px 8px;">
-                    <i class="fa-solid fa-boxes-stacked" style="min-width:20px; text-align:center; font-size:.9rem;"></i>
-                    <span class="link-text ms-2" style="font-size:.9rem;">Productos</span>
-                </a>
-                <a href="{% url 'marcas' %}" class="d-flex align-items-center text-light py-1 text-decoration-none sub-link{% if request.resolver_match and request.resolver_match.url_name == 'marcas' %} active{% endif %}" style="border-radius:4px; padding: 6px 8px;">
-                    <i class="fa-solid fa-tag" style="min-width:20px; text-align:center; font-size:.9rem;"></i>
-                    <span class="link-text ms-2" style="font-size:.9rem;">Marcas</span>
-                </a>
-                <a href="{% url 'unidades' %}" class="d-flex align-items-center text-light py-1 text-decoration-none sub-link{% if request.resolver_match and request.resolver_match.url_name == 'unidades' %} active{% endif %}" style="border-radius:4px; padding: 6px 8px;">
-                    <i class="fa-solid fa-ruler" style="min-width:20px; text-align:center; font-size:.9rem;"></i>
-                    <span class="link-text ms-2" style="font-size:.9rem;">Unidades de Medida</span>
-                </a>
-                <a href="{% url 'tipos' %}" class="d-flex align-items-center text-light py-1 text-decoration-none sub-link{% if request.resolver_match and request.resolver_match.url_name == 'tipos' %} active{% endif %}" style="border-radius:4px; padding: 6px 8px;">
-                    <i class="fa-solid fa-layer-group" style="min-width:20px; text-align:center; font-size:.9rem;"></i>
-                    <span class="link-text ms-2" style="font-size:.9rem;">Tipo de Producto</span>
-                </a>
+      <a href="{% url 'proveedores' %}" class="nav-link {% if request.resolver_match.url_name == 'proveedores' %}active{% endif %}">
+        <span class="nav-icon"><i class="fa-solid fa-truck"></i></span>
+        <span class="nav-label">Proveedores</span>
+      </a>
+    </div>
+
+    <div class="nav-divider"></div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Operaciones</div>
+      <a href="{% url 'clientes' %}" class="nav-link {% if request.resolver_match.url_name == 'clientes' %}active{% endif %}">
+        <span class="nav-icon"><i class="fa-solid fa-users"></i></span>
+        <span class="nav-label">Clientes</span>
+      </a>
+      <a href="{% url 'ventas' %}" class="nav-link {% if request.resolver_match.url_name == 'ventas' %}active{% endif %}">
+        <span class="nav-icon"><i class="fa-solid fa-cart-shopping"></i></span>
+        <span class="nav-label">Ventas</span>
+      </a>
+      <a href="{% url 'compras' %}" class="nav-link {% if request.resolver_match.url_name == 'compras' %}active{% endif %}">
+        <span class="nav-icon"><i class="fa-solid fa-bag-shopping"></i></span>
+        <span class="nav-label">Compras</span>
+      </a>
+    </div>
+
+    <div class="nav-divider"></div>
+
+    <div class="nav-section">
+      <div class="nav-section-label">Sistema</div>
+      <a href="{% url 'reportes' %}" class="nav-link {% if request.resolver_match.url_name == 'reportes' %}active{% endif %}">
+        <span class="nav-icon"><i class="fa-solid fa-chart-line"></i></span>
+        <span class="nav-label">Reportes</span>
+      </a>
+      <a href="{% url 'backup' %}" class="nav-link {% if request.resolver_match.url_name == 'backup' %}active{% endif %}">
+        <span class="nav-icon"><i class="fa-solid fa-database"></i></span>
+        <span class="nav-label">Respaldo BD</span>
+      </a>
+      {% if request.user.is_superuser %}
+      <a href="{% url 'usuarios:listar' %}" class="nav-link {% if request.resolver_match.url_name == 'usuarios:listar' %}active{% endif %}">
+        <span class="nav-icon"><i class="fa-solid fa-users-gear"></i></span>
+        <span class="nav-label">Usuarios</span>
+      </a>
+      {% endif %}
+    </div>
+
+  </nav>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-version">v2.0 — Grupo 3</div>
+  </div>
+</aside>
+
+<!-- ══════════════════════════════════════════════════
+     TOPBAR
+     ══════════════════════════════════════════════════ -->
+<header class="topbar">
+  <div class="topbar-brand">
+    {% block page_header_title %}
+      <i class="fa-solid fa-shop"></i> Inventario
+    {% endblock %}
+  </div>
+
+  <div class="topbar-right">
+    {% if request.user.is_authenticated %}
+
+      <!-- Notificaciones -->
+      <div class="dropdown">
+        <button class="btn-notif" type="button" id="dropdownNotif"
+                data-bs-toggle="dropdown" aria-expanded="false" title="Notificaciones">
+          <i class="fa-solid fa-bell"></i>
+          {% if notif_total > 0 %}
+          <span class="notif-badge">{{ notif_total }}</span>
+          {% endif %}
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdownNotif" style="min-width:310px; max-height:400px; overflow-y:auto;">
+          <li><h6 class="dropdown-header"><i class="fa-solid fa-bell me-1"></i> Notificaciones</h6></li>
+          {% if notif_total > 0 %}
+          <li class="px-3 py-1 d-flex justify-content-between align-items-center">
+            <span style="font-size:.76rem;color:var(--tx-muted);">{{ notif_total }} pendiente{{ notif_total|pluralize:"s" }}</span>
+            <button type="button" class="btn btn-sm btn-secondary" id="clear-notifications" style="padding:3px 10px;font-size:.74rem;">Limpiar</button>
+          </li>
+          <li><hr class="dropdown-divider my-1"></li>
+          {% endif %}
+          {% for notif in notificaciones %}
+          <li>
+            <div class="dropdown-item d-flex justify-content-between align-items-center gap-2">
+              <a href="{{ notif.url }}" class="text-decoration-none flex-grow-1" style="white-space:normal;font-size:.83rem;color:var(--tx-primary);">
+                <span class="me-1">{{ notif.icono }}</span>{{ notif.mensaje }}
+              </a>
+              <div class="d-flex gap-1 flex-shrink-0">
+                <button class="btn btn-sm btn-icon-sq btn-secondary btn-read-notif" data-id="{{ notif.notif_id }}" title="Leída">
+                  <i class="fa-solid fa-check"></i>
+                </button>
+                <button class="btn btn-sm btn-icon-sq btn-danger btn-delete-notif" data-id="{{ notif.notif_id }}" title="Eliminar">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
             </div>
-        </div>
+          </li>
+          {% empty %}
+          <li>
+            <span class="dropdown-item-text text-center py-3" style="font-size:.83rem;color:var(--tx-muted);">
+              <i class="fa-solid fa-circle-check me-1" style="color:var(--c-success);"></i>Sin notificaciones
+            </span>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
 
-        <a href="{% url 'clientes' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'clientes' %} active{% endif %}">
-            <i class="fa-solid fa-users"></i>
-            <span class="link-text ms-2">Clientes</span>
-        </a>
-        <a href="{% url 'ventas' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'ventas' %} active{% endif %}">
-            <i class="fa-solid fa-cart-shopping"></i>
-            <span class="link-text ms-2">Ventas</span>
-        </a>
-        <a href="{% url 'proveedores' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'proveedores' %} active{% endif %}">
-            <i class="fa-solid fa-truck"></i>
-            <span class="link-text ms-2">Proveedores</span>
-        </a>
-        <a href="{% url 'compras' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'compras' %} active{% endif %}">
-            <i class="fa-solid fa-bag-shopping"></i>
-            <span class="link-text ms-2">Compras</span>
-        </a>
-        <a href="{% url 'reportes' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'reportes' %} active{% endif %}">
-            <i class="fa-solid fa-chart-line"></i>
-            <span class="link-text ms-2">Reportes</span>
-        </a>
-        <a href="{% url 'backup' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'backup' %} active{% endif %}">
-            <i class="fa-solid fa-database"></i>
-            <span class="link-text ms-2">Respaldo BD</span>
-        </a>
-
+      <!-- Usuario -->
+      <div class="topbar-user">
+        <div class="avatar">{{ request.user.username|slice:":2"|upper }}</div>
+        <span>{{ request.user.get_full_name|default:request.user.username }}</span>
         {% if request.user.is_superuser %}
-        <hr class="border-secondary my-2">
-        <a href="{% url 'usuarios:listar' %}" class="d-flex align-items-center text-light mb-2 text-decoration-none{% if request.resolver_match and request.resolver_match.url_name == 'usuarios:listar' %} active{% endif %}">
-            <i class="fa-solid fa-users-gear"></i>
-            <span class="link-text ms-2">Usuarios</span>
-        </a>
+          <span style="font-size:.66rem;padding:2px 7px;background:var(--c-gold-l);color:var(--c-gold);border-radius:var(--r-full);border:1px solid rgba(232,168,56,0.3);">Admin</span>
         {% endif %}
-    </aside>
+      </div>
 
-    <!-- CONTENIDO -->
-    <main id="main-content" class="p-4 animate-fade-in">
-        {% block content %}{% endblock %}
-    </main>
+      <!-- Logout -->
+      <a href="{% url 'logout' %}" class="btn-logout">
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span>Salir</span>
+      </a>
+
+    {% else %}
+      <a href="{% url 'login' %}" class="btn btn-primary btn-sm">
+        <i class="fa-solid fa-right-to-bracket"></i> Iniciar sesión
+      </a>
+    {% endif %}
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════
+     CONTENIDO PRINCIPAL
+     ══════════════════════════════════════════════════ -->
+<div id="main-content">
+  <main class="page-inner animate-fade-in">
+    {% block content %}{% endblock %}
+  </main>
+  <footer class="site-footer">
+    <small>Tienda El Despecho &mdash; Proyecto Inventario Grupo 3 &copy; 2025–2026</small>
+  </footer>
 </div>
 
+<<<<<<< HEAD
 <footer class="text-light text-center py-2" style="background: #161615; border-top: 1px solid #404040;">
     <small>Proyecto Inventario - Grupo 3 © 2025</small>
 </footer>
@@ -568,362 +596,243 @@ body.acc-reducir-movimiento * {
 {% if request.user.is_authenticated %}
 <button id="chat-btn" onclick="toggleChat()" title="Asistente IA" aria-label="Asistente inteligente" aria-controls="chat-window" aria-expanded="false">
     <i class="fa-solid fa-robot"></i>
+=======
+<!-- ══════════════════════════════════════════════════
+     CHAT IA FLOTANTE
+     ══════════════════════════════════════════════════ -->
+{% if request.user.is_authenticated %}
+<button id="chat-btn" onclick="toggleChat()" title="Asistente IA">
+  <i class="fa-solid fa-robot"></i>
+>>>>>>> 1660d504a99d038aada9f6c349ee5998d3113a25
 </button>
-
-<!-- Ventana del chat -->
 <div id="chat-window">
-    <div id="chat-header">
-        <span><i class="fa-solid fa-robot me-2"></i>Asistente IA</span>
-        <button onclick="toggleChat()">✕</button>
-    </div>
-    <div id="chat-box"></div>
-    <div id="chat-input-area">
-        <input type="text" id="user-input" placeholder="Escribe tu pregunta..."
-               onkeydown="if(event.key==='Enter') sendMessage()">
-        <button onclick="sendMessage()">Enviar</button>
-    </div>
+  <div id="chat-header">
+    <span><i class="fa-solid fa-robot me-2"></i>Asistente IA</span>
+    <button onclick="toggleChat()">✕</button>
+  </div>
+  <div id="chat-box"></div>
+  <div id="chat-input-area">
+    <input type="text" id="user-input" placeholder="Escribe tu pregunta..."
+           onkeydown="if(event.key==='Enter') sendMessage()">
+    <button onclick="sendMessage()">Enviar</button>
+  </div>
 </div>
 {% endif %}
 
+<!-- ══════════════════════════════════════════════════
+     SCRIPTS
+     ══════════════════════════════════════════════════ -->
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
 <script src="{% static 'js/confirmaciones.js' %}"></script>
+<script src="{% static 'js/alertas.js' %}"></script>
+
 <script>
-    // Submenu Productos
-    function toggleProductosMenu(btn) {
-        const submenu = btn.closest('.productos-menu').querySelector('.productos-submenu');
-        const chevron = btn.querySelector('.chevron-icon');
-        const isOpen = submenu.style.display !== 'none';
-        submenu.style.display = isOpen ? 'none' : 'block';
-        chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
-    }
-    document.addEventListener('DOMContentLoaded', function() {
-        const submenu = document.querySelector('.productos-submenu');
-        const chevron = document.querySelector('.chevron-icon');
-        if (submenu && submenu.style.display !== 'none') {
-            chevron.style.transform = 'rotate(180deg)';
-        }
-    });
+/* ── Sidebar toggle ── */
+(function () {
+  const sidebar = document.getElementById('sidebar');
+  const btn     = document.getElementById('toggle-btn');
+  const STORED  = localStorage.getItem('sidebar_collapsed') === '1';
+  if (STORED) sidebar.classList.add('collapsed');
 
-    const toggleBtn = document.getElementById('toggle-btn');
-    const sidebar = document.getElementById('sidebar');
-
-    toggleBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('collapsed');
-        const icon = toggleBtn.querySelector('i');
-        if (sidebar.classList.contains('collapsed')) {
-            icon.classList.replace('fa-bars', 'fa-bars-staggered');
-        } else {
-            icon.classList.replace('fa-bars-staggered', 'fa-bars');
-        }
-    });
-</script>
-
-{% if request.user.is_authenticated %}
-<script>
-(function() {
-    const notifButton = document.getElementById('dropdownNotif');
-    const dropdownMenu = document.querySelector('ul.dropdown-menu[aria-labelledby="dropdownNotif"]');
-    const notificationsUrl = '{% url "notificaciones_data" %}';
-    const clearUrl = '{% url "limpiar_notificaciones" %}';
-
-    if (!notifButton || !dropdownMenu) return;
-
-    function getCookie(name) {
-        const match = document.cookie.match(new RegExp('(^|; )' + name + '=([^;]+)'));
-        return match ? decodeURIComponent(match[2]) : null;
-    }
-
-    function ensureBadge() {
-        let badge = notifButton.querySelector('span.badge');
-        if (!badge) {
-            badge = document.createElement('span');
-            badge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
-            badge.style.fontSize = '.65rem';
-            notifButton.appendChild(badge);
-        }
-        return badge;
-    }
-
-    function updateBadge(count) {
-        const badge = ensureBadge();
-        if (count > 0) {
-            badge.textContent = count;
-            badge.style.display = 'inline-block';
-        } else {
-            badge.style.display = 'none';
-        }
-    }
-
-    function renderDropdown(items) {
-        const header = `<li><h6 class="dropdown-header"><i class="fa-solid fa-bell me-1"></i> Notificaciones</h6></li>`;
-        const clearHtml = items.length > 0 ? `
-            <li class="px-3 py-2 d-flex justify-content-between align-items-center">
-                <span class="small text-muted">Últimas notificaciones</span>
-                <button type="button" class="btn btn-sm btn-link text-secondary p-0" id="clear-notifications">Limpiar</button>
-            </li>
-            <li><hr class="dropdown-divider my-1"></li>
-        ` : '';
-        const content = items.length > 0 ?
-            items.map(notif => `
-                <li>
-                    <div class="dropdown-item small py-2 d-flex justify-content-between align-items-center">
-                        <a href="${notif.url || '#'}" class="text-decoration-none text-dark flex-grow-1" style="white-space: normal;">
-                            <span class="me-1">${notif.icono || '🔔'}</span>
-                            <strong>${notif.mensaje || ''}</strong>
-                        </a>
-                        <div class="ms-2 text-nowrap">
-                            <button class="btn btn-sm btn-link text-primary p-0 me-2 btn-read-notif" data-id="${notif.notif_id}" title="Marcar como leída">
-                                <i class="fa-solid fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-link text-danger p-0 btn-delete-notif" data-id="${notif.notif_id}" title="Eliminar">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                </li>
-            `).join('') : `
-                <li>
-                    <span class="dropdown-item-text text-muted small text-center py-3">
-                        <i class="fa-solid fa-circle-check text-success me-1"></i>
-                        Sin notificaciones pendientes
-                    </span>
-                </li>
-            `;
-
-        dropdownMenu.innerHTML = header + clearHtml + content;
-    }
-
-    function refreshNotifications() {
-        fetch(notificationsUrl)
-            .then(response => response.json())
-            .then(data => {
-                if (!data.ok) return;
-                updateBadge(data.total_notificaciones || 0);
-                renderDropdown(data.notificaciones || []);
-            })
-            .catch(() => {});
-    }
-
-    notifButton.addEventListener('click', function() {
-        refreshNotifications();
-    });
-
-    document.addEventListener('click', function(event) {
-        const clearBtn = event.target.closest('#clear-notifications');
-        const readBtn = event.target.closest('.btn-read-notif');
-        const deleteBtn = event.target.closest('.btn-delete-notif');
-
-        if (clearBtn) {
-            event.preventDefault();
-            fetch(clearUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': getCookie('csrftoken'),
-                },
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.ok) {
-                    updateBadge(0);
-                    renderDropdown([]);
-                }
-            })
-            .catch(() => {});
-        } else if (readBtn) {
-            event.preventDefault();
-            const id = readBtn.getAttribute('data-id');
-            if (!id) return;
-            fetch('/notificaciones/leer/' + id + '/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': getCookie('csrftoken'),
-                },
-            }).then(response => response.json()).then(data => {
-                if (data.ok) refreshNotifications();
-            }).catch(() => {});
-        } else if (deleteBtn) {
-            event.preventDefault();
-            const id = deleteBtn.getAttribute('data-id');
-            if (!id) return;
-            fetch('/notificaciones/eliminar/' + id + '/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': getCookie('csrftoken'),
-                },
-            }).then(response => response.json()).then(data => {
-                if (data.ok) refreshNotifications();
-            }).catch(() => {});
-        }
-    });
+  btn.addEventListener('click', function () {
+    sidebar.classList.toggle('collapsed');
+    localStorage.setItem('sidebar_collapsed', sidebar.classList.contains('collapsed') ? '1' : '0');
+  });
 })();
-</script>
-{% endif %}
 
-{% if request.user.is_authenticated %}
-<script>
-const chatBox = document.getElementById('chat-box');
-const input   = document.getElementById('user-input');
-
-function toggleChat() {
-    const win = document.getElementById('chat-window');
-    win.classList.toggle('open');
-    if (win.classList.contains('open')) input.focus();
+/* ── Submenu ── */
+function toggleSubMenu(btn) {
+  const submenu = document.getElementById('submenu-productos');
+  const isOpen  = submenu.classList.contains('open');
+  submenu.classList.toggle('open', !isOpen);
+  btn.classList.toggle('open', !isOpen);
 }
 
-function getCookie(name) {
-    return document.cookie.split(';')
-        .map(c => c.trim())
-        .find(c => c.startsWith(name + '='))
-        ?.split('=')[1] ?? '';
+/* ── Fix modal backdrop — versión robusta ── */
+document.addEventListener('show.bs.modal', function (e) {
+  // Antes de abrir, limpiar backdrops huérfanos
+  if (!document.querySelector('.modal.show')) {
+    document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('overflow');
+    document.body.style.removeProperty('padding-right');
+  }
+});
+
+document.addEventListener('hidden.bs.modal', function () {
+  setTimeout(function () {
+    if (!document.querySelector('.modal.show')) {
+      document.querySelectorAll('.modal-backdrop').forEach(b => b.remove());
+      document.body.classList.remove('modal-open');
+      document.body.style.removeProperty('overflow');
+      document.body.style.removeProperty('padding-right');
+    }
+  }, 150);
+});
+</script>
+
+{% if request.user.is_authenticated %}
+<script>
+/* ── Notificaciones ── */
+(function () {
+  const notifBtn = document.getElementById('dropdownNotif');
+  const dropMenu = document.querySelector('ul.dropdown-menu[aria-labelledby="dropdownNotif"]');
+  if (!notifBtn || !dropMenu) return;
+
+  function getCookie(n) {
+    const m = document.cookie.match(new RegExp('(^|; )' + n + '=([^;]+)'));
+    return m ? decodeURIComponent(m[2]) : null;
+  }
+
+  function updateBadge(count) {
+    let badge = notifBtn.querySelector('.notif-badge');
+    if (count > 0) {
+      if (!badge) { badge = document.createElement('span'); badge.className = 'notif-badge'; notifBtn.appendChild(badge); }
+      badge.textContent = count;
+    } else if (badge) {
+      badge.remove();
+    }
+  }
+
+  function renderDropdown(items) {
+    const hdr = `<li><h6 class="dropdown-header"><i class="fa-solid fa-bell me-1"></i> Notificaciones</h6></li>`;
+    const clr = items.length ? `<li class="px-3 py-1 d-flex justify-content-between align-items-center">
+      <span style="font-size:.76rem;color:var(--tx-muted);">${items.length} pendiente${items.length>1?'s':''}</span>
+      <button type="button" class="btn btn-sm btn-secondary" id="clear-notifications" style="padding:3px 10px;font-size:.74rem;">Limpiar</button>
+    </li><li><hr class="dropdown-divider my-1"></li>` : '';
+    const rows = items.length
+      ? items.map(n => `<li><div class="dropdown-item d-flex justify-content-between align-items-center gap-2">
+          <a href="${n.url||'#'}" class="text-decoration-none flex-grow-1" style="white-space:normal;font-size:.83rem;color:var(--tx-primary);">
+            <span class="me-1">${n.icono||'🔔'}</span>${n.mensaje||''}
+          </a>
+          <div class="d-flex gap-1 flex-shrink-0">
+            <button class="btn btn-sm btn-icon-sq btn-secondary btn-read-notif" data-id="${n.notif_id}" title="Leída"><i class="fa-solid fa-check"></i></button>
+            <button class="btn btn-sm btn-icon-sq btn-danger btn-delete-notif" data-id="${n.notif_id}" title="Eliminar"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div></li>`).join('')
+      : `<li><span class="dropdown-item-text text-center py-3" style="font-size:.83rem;color:var(--tx-muted);"><i class="fa-solid fa-circle-check me-1" style="color:var(--c-success);"></i>Sin notificaciones</span></li>`;
+    dropMenu.innerHTML = hdr + clr + rows;
+  }
+
+  function refresh() {
+    fetch('{% url "notificaciones_data" %}')
+      .then(r => r.json())
+      .then(d => { if (d.ok) { updateBadge(d.total_notificaciones||0); renderDropdown(d.notificaciones||[]); } })
+      .catch(()=>{});
+  }
+
+  notifBtn.addEventListener('click', refresh);
+
+  document.addEventListener('click', function (e) {
+    const clr = e.target.closest('#clear-notifications');
+    const rd  = e.target.closest('.btn-read-notif');
+    const del = e.target.closest('.btn-delete-notif');
+    const csrf = getCookie('csrftoken');
+    const headers = { 'Content-Type': 'application/json', 'X-CSRFToken': csrf };
+
+    if (clr) {
+      e.preventDefault();
+      fetch('{% url "limpiar_notificaciones" %}', { method:'POST', headers }).then(r=>r.json()).then(d=>{ if(d.ok){ updateBadge(0); renderDropdown([]); } }).catch(()=>{});
+    } else if (rd) {
+      e.preventDefault();
+      fetch('/notificaciones/leer/'+rd.dataset.id+'/', { method:'POST', headers }).then(r=>r.json()).then(d=>{ if(d.ok) refresh(); }).catch(()=>{});
+    } else if (del) {
+      e.preventDefault();
+      fetch('/notificaciones/eliminar/'+del.dataset.id+'/', { method:'POST', headers }).then(r=>r.json()).then(d=>{ if(d.ok) refresh(); }).catch(()=>{});
+    }
+  });
+})();
+
+/* ── Chat IA ── */
+const chatBox = document.getElementById('chat-box');
+const chatInput = document.getElementById('user-input');
+
+function toggleChat() {
+  const win = document.getElementById('chat-window');
+  win.classList.toggle('open');
+  if (win.classList.contains('open')) chatInput.focus();
+}
+
+function getCookieChat(n) {
+  return document.cookie.split(';').map(c=>c.trim()).find(c=>c.startsWith(n+'='))?.split('=')[1] ?? '';
 }
 
 function addMessage(text, isUser) {
-    const div = document.createElement('div');
-    div.style.cssText = `
-        max-width: 80%; padding: 10px 14px; border-radius: 12px; font-size: 14px;
-        ${isUser
-            ? 'background:#f59e0b; color:#1a1a1a; align-self:flex-end; margin-left:auto;'
-            : 'background:#3c3b38; border:1px solid #525252; align-self:flex-start; color:#fff;'}
-    `;
-    div.textContent = text;
-    chatBox.appendChild(div);
-    chatBox.scrollTop = chatBox.scrollHeight;
+  const d = document.createElement('div');
+  d.style.cssText = `max-width:82%;padding:10px 14px;border-radius:12px;font-size:.85rem;line-height:1.5;
+    ${isUser
+      ? 'background:linear-gradient(135deg,var(--c-gold),var(--c-gold-d));color:#1a0f00;align-self:flex-end;margin-left:auto;'
+      : 'background:var(--bg-glass-hover);border:1px solid var(--bd-default);color:var(--tx-primary);align-self:flex-start;'}`;
+  d.textContent = text;
+  chatBox.appendChild(d);
+  chatBox.scrollTop = chatBox.scrollHeight;
 }
 
 async function sendMessage() {
-    const message = input.value.trim();
-    if (!message) return;
-
-    addMessage(message, true);
-    input.value = '';
-
-    const loading = document.createElement('div');
-    loading.id = 'loading';
-    loading.style.cssText = 'color:#6c757d; font-style:italic; font-size:13px;';
-    loading.textContent = 'Pensando...';
-    chatBox.appendChild(loading);
-    chatBox.scrollTop = chatBox.scrollHeight;
-
-    try {
-        const res = await fetch('/ia/chat/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({ message })
-        });
-
-        const data = await res.json();
-        document.getElementById('loading')?.remove();
-        addMessage(data.reply, false);
-
-    } catch (err) {
-        document.getElementById('loading')?.remove();
-        addMessage('Error de conexión con el servidor.', false);
-    }
+  const msg = chatInput.value.trim();
+  if (!msg) return;
+  addMessage(msg, true);
+  chatInput.value = '';
+  const ld = document.createElement('div');
+  ld.id = 'chat-loading';
+  ld.style.cssText = 'color:var(--tx-muted);font-size:.82rem;font-style:italic;';
+  ld.textContent = 'Pensando…';
+  chatBox.appendChild(ld);
+  chatBox.scrollTop = chatBox.scrollHeight;
+  try {
+    const res = await fetch('/ia/chat/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookieChat('csrftoken') },
+      body: JSON.stringify({ message: msg })
+    });
+    const data = await res.json();
+    document.getElementById('chat-loading')?.remove();
+    addMessage(data.reply, false);
+  } catch {
+    document.getElementById('chat-loading')?.remove();
+    addMessage('Error de conexión.', false);
+  }
 }
 
-// Hacer el botón de IA arrastrable
-if (document.getElementById('chat-btn')) {
-    const btn = document.getElementById('chat-btn');
-    let isDragging = false;
-    let currentX;
-    let currentY;
-    let initialX;
-    let initialY;
-    let xOffset = 0;
-    let yOffset = 0;
-
-    btn.addEventListener("mousedown", dragStart);
-    document.addEventListener("mouseup", dragEnd);
-    document.addEventListener("mousemove", drag);
-
-    function dragStart(e) {
-        initialX = e.clientX - xOffset;
-        initialY = e.clientY - yOffset;
-        if (e.target === btn || btn.contains(e.target)) {
-            isDragging = true;
-            btn.style.transition = 'none';
-        }
-    }
-
-    function dragEnd(e) {
-        initialX = currentX;
-        initialY = currentY;
-        isDragging = false;
-        btn.style.transition = 'transform 0.2s';
-    }
-
-    function drag(e) {
-        if (isDragging) {
-            e.preventDefault();
-            currentX = e.clientX - initialX;
-            currentY = e.clientY - initialY;
-            xOffset = currentX;
-            yOffset = currentY;
-            setTranslate(currentX, currentY, btn);
-        }
-    }
-
-    function setTranslate(xPos, yPos, el) {
-        el.style.transform = "translate3d(" + xPos + "px, " + yPos + "px, 0)";
-    }
-}
+/* Drag chat btn */
+(function () {
+  const btn = document.getElementById('chat-btn');
+  if (!btn) return;
+  let dragging = false, sx, sy, ox = 0, oy = 0, cx, cy;
+  btn.addEventListener('mousedown', e => { dragging=true; sx=e.clientX-ox; sy=e.clientY-oy; btn.style.transition='none'; });
+  document.addEventListener('mouseup', () => { if(dragging){ ox=cx||0; oy=cy||0; dragging=false; btn.style.transition=''; } });
+  document.addEventListener('mousemove', e => {
+    if (!dragging) return;
+    cx=e.clientX-sx; cy=e.clientY-sy;
+    btn.style.transform=`translate3d(${cx}px,${cy}px,0)`;
+  });
+})();
 </script>
 {% endif %}
 
 {% if messages %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const mensajes = [
-        {% for message in messages %}
-        { tipo: "{{ message.tags }}", texto: "{{ message|escapejs }}" }{% if not forloop.last %},{% endif %}
-        {% endfor %}
-    ];
-
-    const iconMap  = { 'success': 'success', 'error': 'error', 'warning': 'warning', 'info': 'info', 'debug': 'info' };
-    const titleMap = { 'success': '¡Listo!', 'error': '¡Error!', 'warning': '¡Atención!', 'info': '¡Info!' };
-
-    const Toast = Swal.mixin({
-        toast: true,
-        position: 'bottom-end',
-        showConfirmButton: false,
-        timer: 4000,
-        timerProgressBar: true,
-        didOpen: (toast) => {
-            toast.addEventListener('mouseenter', Swal.stopTimer);
-            toast.addEventListener('mouseleave', Swal.resumeTimer);
-        }
-    });
-
-    mensajes.forEach(function(msg) {
-        const tipo = msg.tipo || 'info';
-        if (tipo === 'success' || tipo === 'info') {
-            Toast.fire({
-                icon: iconMap[tipo],
-                title: msg.texto,
-            });
-        } else {
-            Swal.fire({
-                icon: iconMap[tipo] || 'warning',
-                title: titleMap[tipo] || '¡Atención!',
-                text: msg.texto,
-                confirmButtonText: 'Entendido',
-                confirmButtonColor: tipo === 'error' ? '#dc3545' : '#ffc107',
-            });
-        }
-    });
+document.addEventListener('DOMContentLoaded', function () {
+  const msgs = [{% for m in messages %}{ tipo:"{{ m.tags }}", texto:"{{ m|escapejs }}" }{% if not forloop.last %},{% endif %}{% endfor %}];
+  const iconMap  = { success:'success', error:'error', warning:'warning', info:'info', debug:'info' };
+  const titleMap = { success:'¡Listo!', error:'¡Error!', warning:'¡Atención!', info:'¡Info!' };
+  const Toast = Swal.mixin({
+    toast:true, position:'bottom-end', showConfirmButton:false, timer:4000, timerProgressBar:true,
+    didOpen: t => { t.addEventListener('mouseenter', Swal.stopTimer); t.addEventListener('mouseleave', Swal.resumeTimer); }
+  });
+  msgs.forEach(function (m) {
+    const tipo = m.tipo || 'info';
+    if (tipo === 'success' || tipo === 'info') {
+      Toast.fire({ icon: iconMap[tipo], title: m.texto });
+    } else {
+      Swal.fire({ icon: iconMap[tipo]||'warning', title: titleMap[tipo]||'¡Atención!', text: m.texto, confirmButtonText:'Entendido', confirmButtonColor: tipo==='error'?'#dc3545':'#ffc107' });
+    }
+  });
 });
 </script>
 {% endif %}
 
+<<<<<<< HEAD
 
 <!-- ── FIX GLOBAL: Limpieza de backdrop y scroll al cerrar cualquier modal ── -->
 <script>
@@ -1118,9 +1027,11 @@ document.addEventListener('DOMContentLoaded', function() {
 })();
 </script>
 {% endif %}
+=======
+>>>>>>> 1660d504a99d038aada9f6c349ee5998d3113a25
 <script src="{% static 'js/animaciones.js' %}"></script>
-
+<script src="{% static 'js/accesibilidad.js' %}"></script>
+<script src="https://unpkg.com/@zxing/library@latest/umd/index.min.js"></script>
 {% block extra_js %}{% endblock %}
-
 </body>
 </html>

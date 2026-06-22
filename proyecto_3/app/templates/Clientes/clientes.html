@@ -1,172 +1,196 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block title %}Clientes{% endblock %}
+
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/estilos_pagina.css' %}">
 
-<div class="d-flex justify-content-between align-items-center mb-4 animate-slide-left">
-    <h2 class="mb-0"><i class="fa-solid fa-users me-2"></i>Gestión de Clientes</h2>
-    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregarCliente">
-        <i class="fa-solid fa-plus me-2"></i>Agregar Cliente
-    </button>
-</div>
-<div class="contenedor-exportar animate-fade-up">
-    <a href="{% url 'exportar_clientes_pdf' %}" class="btn btn-danger"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</a>
-    <a href="{% url 'exportar_clientes_excel' %}" class="btn btn-success"><i class="fa-solid fa-file-excel"></i> Exportar Excel</a>
-</div>
-
-<!-- Buscador y filtros -->
-<div class="filter-bar animate-fade-up">
-    <form method="GET" class="row g-2 align-items-end w-100">
-        <div class="col-md-3">
-            <label class="form-label mb-1">Buscar</label>
-            <input type="text" name="busqueda" class="form-control"
-                   placeholder="Buscar cliente por nombre..."
-                   pattern="[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+"
-                   title="Solo se permiten letras y espacios"
-                   value="{{ request.GET.busqueda }}">
-        </div>
-        <div class="col-md-2">
-            <label class="form-label mb-1">Filtrar por estado</label>
-            <select name="estado" class="form-select">
-                <option value="">Todos</option>
-                <option value="activo" {% if request.GET.estado == "activo" %}selected{% endif %}>Activos</option>
-                <option value="inactivo" {% if request.GET.estado == "inactivo" %}selected{% endif %}>Inactivos</option>
-            </select>
-        </div>
-        <div class="col-md-5 d-flex align-items-end gap-2">
-            <button type="submit" class="btn btn-primary flex-fill h-100">
-                <i class="fa-solid fa-filter me-2"></i>Filtrar
-            </button>
-            {% if request.GET.busqueda or request.GET.estado %}
-            <a href="{% url 'clientes' %}" class="btn btn-secondary flex-fill h-100">
-                <i class="fa-solid fa-times me-2"></i>Limpiar
-            </a>
-            {% endif %}
-        </div>
-    </form>
+<div class="page-header animate-slide-right">
+  <div class="page-header-left">
+    <div class="page-title">
+      <div class="page-title-icon"><i class="fa-solid fa-users"></i></div>
+      Gestión de Clientes
+    </div>
+    <div class="page-subtitle">Base de clientes registrados en el sistema</div>
+  </div>
+  <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregarCliente">
+    <i class="fa-solid fa-user-plus"></i> Agregar Cliente
+  </button>
 </div>
 
-<!-- Tabla de clientes -->
-<div class="table-container animate-fade-up">
-    <table class="table">
+<div data-filter-container class="animate-fade-up">
+
+  <!-- Filtros -->
+  <div class="rt-filter-bar" role="search" aria-label="Filtros de clientes">
+    <div class="rt-filter-grid">
+      <div class="rt-filter-group">
+        <label for="filtro-nombre-cliente" class="rt-filter-label"><i class="fa-solid fa-magnifying-glass"></i> Buscar cliente</label>
+        <div class="rt-input-wrapper">
+          <i class="fa-solid fa-user rt-input-icon"></i>
+          <input id="filtro-nombre-cliente" type="search" class="rt-filter-input"
+                 data-filter-col="nombre" placeholder="Buscar por nombre..." autocomplete="off">
+        </div>
+      </div>
+      <div class="rt-filter-group">
+        <label for="filtro-doc-cliente" class="rt-filter-label"><i class="fa-solid fa-id-card"></i> Documento</label>
+        <div class="rt-input-wrapper">
+          <i class="fa-solid fa-id-card rt-input-icon"></i>
+          <input id="filtro-doc-cliente" type="search" class="rt-filter-input"
+                 data-filter-col="documento" placeholder="Buscar por documento..." autocomplete="off">
+        </div>
+      </div>
+      <div class="rt-filter-group">
+        <label for="filtro-estado-cliente" class="rt-filter-label"><i class="fa-solid fa-circle-half-stroke"></i> Estado</label>
+        <select id="filtro-estado-cliente" class="rt-filter-select" data-filter-col="estado">
+          <option value="">Todos los estados</option>
+          <option value="activo">Activos</option>
+          <option value="inactivo">Inactivos</option>
+        </select>
+      </div>
+      <div class="rt-filter-actions">
+        <button type="button" class="rt-btn-clear" data-filter-clear>
+          <i class="fa-solid fa-xmark"></i> Limpiar filtros
+        </button>
+        <span class="rt-filter-count" data-filter-count aria-live="polite"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exportar -->
+  <div class="contenedor-exportar">
+    <a href="{% url 'exportar_clientes_pdf' %}" class="btn btn-danger btn-sm">
+      <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+    </a>
+    <a href="{% url 'exportar_clientes_excel' %}" class="btn btn-success btn-sm">
+      <i class="fa-solid fa-file-excel"></i> Exportar Excel
+    </a>
+  </div>
+
+  <!-- Tabla -->
+  <div class="glass-card">
+    <div class="glass-card-header">
+      <div class="glass-card-title"><i class="fa-solid fa-list"></i> Clientes Registrados</div>
+    </div>
+    <div class="tbl-wrap" style="border:none;border-radius:0;">
+      <table class="table" aria-label="Listado de clientes">
         <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Documento</th>
-                <th>Teléfono</th>
-                <th>Email</th>
-                <th>Dirección</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
+          <tr>
+            <th>ID</th>
+            <th>Cliente</th>
+            <th>Documento</th>
+            <th>Teléfono</th>
+            <th>Email</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
         </thead>
         <tbody class="animate-stagger">
-            {% for cliente in clientes %}
-            <tr class="animate-item">
-                <td>{{ cliente.id }}</td>
-                <td>{{ cliente.nombre }}</td>
-                <td>{{ cliente.documento }}</td>
-                <td>{{ cliente.telefono }}</td>
-                <td>{{ cliente.email }}</td>
-                <td>{{ cliente.direccion }}</td>
-                <td>
-                    {% if cliente.estado == 'activo' %}
-                        <span class="badge badge-success">Activo</span>
-                    {% else %}
-                        <span class="badge badge-danger">Inactivo</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <div class="btn-group">
-                        <!-- Botón Ver (siempre visible) -->
-                        <button type="button" class="btn btn-sm btn-info" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#modalVerCliente{{ cliente.id }}"
-                                title="Ver">
-                            <i class="fa-solid fa-eye"></i>
-                        </button>
-
-                        <!-- Botón Editar (bloqueado si está activo) -->
-                        <button type="button" class="btn btn-sm btn-warning" 
-                                {% if cliente.estado == 'activo' %}
-                                    style="background-color: darkgrey;"
-                                    disabled title="No se puede editar un cliente activo"
-                                {% else %}
-                                    data-bs-toggle="modal" 
-                                    data-bs-target="#modalEditarCliente{{ cliente.id }}"
-                                    title="Editar"
-                                {% endif %}>
-                            <i class="fa-solid fa-edit"></i>
-                        </button>
-
-                        <!-- Botón Eliminar -->
-                        <button type="button" class="btn btn-sm btn-danger" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#modalEliminarCliente{{ cliente.id }}"
-                                title="Eliminar">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="8" class="text-center py-4">No hay clientes registrados</td>
-            </tr>
-            {% endfor %}
+          {% for cliente in clientes %}
+          <tr class="animate-item" data-filter-row>
+            <td data-col="id" style="color:var(--tx-muted);font-size:.8rem;">#{{ cliente.id }}</td>
+            <td data-col="nombre">
+              <div class="tbl-name-cell">
+                <div class="tbl-avatar" style="background:linear-gradient(135deg,var(--c-success),#1e8449);">
+                  {{ cliente.nombre|slice:":2"|upper }}
+                </div>
+                <div>
+                  <div style="font-weight:600;">{{ cliente.nombre }}</div>
+                  <div style="font-size:.75rem;color:var(--tx-muted);">{{ cliente.direccion|truncatechars:28 }}</div>
+                </div>
+              </div>
+            </td>
+            <td data-col="documento" style="font-family:var(--font-mono);font-size:.85rem;">{{ cliente.documento }}</td>
+            <td data-col="telefono" style="font-family:var(--font-mono);font-size:.85rem;">{{ cliente.telefono }}</td>
+            <td data-col="email" style="font-size:.84rem;color:var(--tx-secondary);">{{ cliente.email }}</td>
+            <td data-col="estado">
+              {% if cliente.estado == 'activo' %}
+                <span class="badge badge-success"><i class="fa-solid fa-circle" style="font-size:.45rem;vertical-align:middle;"></i> Activo</span>
+              {% else %}
+                <span class="badge badge-danger"><i class="fa-solid fa-circle" style="font-size:.45rem;vertical-align:middle;"></i> Inactivo</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="tbl-actions">
+                <button type="button" class="btn btn-sm btn-info btn-icon-sq"
+                        data-bs-toggle="modal" data-bs-target="#modalVerCliente{{ cliente.id }}"
+                        title="Ver detalle">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-icon-sq
+                  {% if cliente.estado == 'activo' %}btn-secondary{% else %}btn-warning{% endif %}"
+                  {% if cliente.estado == 'activo' %}
+                    disabled title="No se puede editar un cliente activo"
+                  {% else %}
+                    data-bs-toggle="modal" data-bs-target="#modalEditarCliente{{ cliente.id }}" title="Editar"
+                  {% endif %}>
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button type="button" class="btn btn-sm btn-danger btn-icon-sq"
+                        data-bs-toggle="modal" data-bs-target="#modalEliminarCliente{{ cliente.id }}"
+                        title="Eliminar">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr data-filter-row>
+            <td colspan="7" style="text-align:center;padding:48px;color:var(--tx-muted);">
+              <i class="fa-solid fa-users" style="font-size:2rem;display:block;margin-bottom:10px;opacity:.3;"></i>
+              No hay clientes registrados
+            </td>
+          </tr>
+          {% endfor %}
+          <tr data-filter-empty style="display:none;">
+            <td colspan="7" style="text-align:center;padding:32px;color:var(--tx-muted);">
+              <i class="fa-solid fa-filter-circle-xmark me-2"></i> Ningún cliente coincide con los filtros.
+            </td>
+          </tr>
         </tbody>
-    </table>
+      </table>
+    </div>
+  </div>
+
 </div>
 
-<!-- Modales agregar -->
-{% include 'clientes/modal_agregar_cliente.html' %}
-
-<!-- Modales editar, eliminar y ver -->
+<!-- Modales -->
+{% include 'Clientes/modal_agregar_cliente.html' %}
 {% for cliente in clientes %}
-    {% include 'clientes/modal_editar.html' %}
-    {% include 'clientes/modal_eliminar.html' %}
-
-    <!-- Modal Ver Cliente -->
-    <div class="modal fade modal-detalle" id="modalVerCliente{{ cliente.id }}" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="modal-detalle-icon">
-                        <i class="fa-solid fa-user"></i>
-                    </div>
-                    <h4 class="modal-detalle-title">Información del Cliente</h4>
-                    
-                    <table class="modal-detalle-table">
-                        <tr><td>ID</td><td>{{ cliente.id }}</td></tr>
-                        <tr><td>Nombre</td><td>{{ cliente.nombre }}</td></tr>
-                        <tr><td>Documento</td><td>{{ cliente.documento }}</td></tr>
-                        <tr><td>Teléfono</td><td>{{ cliente.telefono }}</td></tr>
-                        <tr><td>Email</td><td>{{ cliente.email }}</td></tr>
-                        <tr><td>Dirección</td><td>{{ cliente.direccion }}</td></tr>
-                        <tr>
-                            <td>Estado</td>
-                            <td>
-                                {% if cliente.estado == 'activo' %}
-                                    <span class="badge badge-success">Activo</span>
-                                {% else %}
-                                    <span class="badge badge-danger">Inactivo</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                    </table>
-                    
-                    <button type="button" class="btn modal-detalle-btn-cerrar" data-bs-dismiss="modal">Cerrar</button>
-                </div>
-            </div>
+  {% include 'Clientes/modal_editar.html' %}
+  {% include 'Clientes/modal_eliminar.html' %}
+  <div class="modal fade modal-detalle" id="modalVerCliente{{ cliente.id }}" tabindex="-1" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
+        <div class="modal-body">
+          <div class="modal-detalle-icon" style="background:var(--c-success-l);border-color:var(--c-success);color:var(--c-success);">
+            <i class="fa-solid fa-user"></i>
+          </div>
+          <h4 class="modal-detalle-title">{{ cliente.nombre }}</h4>
+          <table class="modal-detalle-table">
+            <tr><td>ID</td><td>#{{ cliente.id }}</td></tr>
+            <tr><td>Documento</td><td>{{ cliente.documento }}</td></tr>
+            <tr><td>Teléfono</td><td>{{ cliente.telefono }}</td></tr>
+            <tr><td>Email</td><td>{{ cliente.email }}</td></tr>
+            <tr><td>Dirección</td><td>{{ cliente.direccion }}</td></tr>
+            <tr><td>Estado</td><td>
+              {% if cliente.estado == 'activo' %}
+                <span class="badge badge-success">Activo</span>
+              {% else %}
+                <span class="badge badge-danger">Inactivo</span>
+              {% endif %}
+            </td></tr>
+            <tr><td>Registro</td><td>{{ cliente.fechaRegistro }}</td></tr>
+          </table>
+          <button type="button" class="btn modal-detalle-btn-cerrar" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
     </div>
+  </div>
 {% endfor %}
 
 <script src="{% static 'js/clientes_validaciones.js' %}"></script>
-
+<script src="{% static 'js/filtros_realtime.js' %}"></script>
 {% endblock %}

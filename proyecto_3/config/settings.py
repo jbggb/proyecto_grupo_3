@@ -1,5 +1,6 @@
 from pathlib import Path
 import os
+from dotenv import load_dotenv 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -8,7 +9,7 @@ try:
     from dotenv import load_dotenv
     load_dotenv(BASE_DIR / '.env')
 except ImportError:
-    pass  # Si no esta instalado, usa variables del sistema
+    pass  # Si no esta instalado, usa variables del sistema o valores por defecto
 
 
 def _env(name, default=None, required=False):
@@ -26,7 +27,6 @@ SECRET_KEY = _env(
     required=not DEBUG,
 )
 ALLOWED_HOSTS = [host.strip() for host in _env('DJANGO_ALLOWED_HOSTS', '127.0.0.1,localhost').split(',') if host.strip()]
-GROQ_API_KEY = _env('GROQ_API_KEY', '')
 
 INSTALLED_APPS = [
     'app',
@@ -78,11 +78,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': os.environ.get('DB_NAME', 'proyecto'),
-        'USER': os.environ.get('DB_USER', 'root'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', 'aprendermysql123'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '3306'),
+        'NAME': _env('DB_NAME', 'proyecto'),
+        'USER': _env('DB_USER', 'root'),
+        'PASSWORD': _env('DB_PASSWORD', 'parceroj',),
+        'HOST': _env('DB_HOST', 'localhost'),
+        'PORT': _env('DB_PORT', '3306'),
         'OPTIONS': {
             'init_command': "SET time_zone = '-05:00'",
         },

@@ -122,7 +122,6 @@ class ReportesView(View):
         compras_completadas  = Compra.objects.filter(estado='Completada').count()
         compras_pendientes   = Compra.objects.filter(estado='Pendiente').count()
 
-        # ── TODO ──
         productos_mini   = productos_data[:5]
         clientes_mini    = sorted(clientes_data, key=lambda x: x['total_compras'], reverse=True)[:5]
         ventas_mini      = ventas_data[:5]
@@ -145,7 +144,6 @@ class ReportesView(View):
             })
         todas.sort(key=lambda x: str(x['fecha']), reverse=True)
 
-        # ── TODO: unir fechas de ventas y compras en un eje común ──
         todas_fechas = sorted(set(graf_ventas_labels) | set(graf_compras_labels))
 
         ventas_por_fecha  = dict(zip(graf_ventas_labels,  graf_ventas_valores))

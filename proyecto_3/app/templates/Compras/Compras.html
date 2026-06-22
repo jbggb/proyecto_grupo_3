@@ -1,357 +1,423 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static humanize %}
+
+{% block title %}Compras{% endblock %}
 
 {% block content %}
-<link rel="stylesheet" href="{% static 'css/estilos_pagina.css' %}">
-<div class="d-flex justify-content-between align-items-center mb-4 animate-slide-left">
-    <h2 class="mb-0"><i class="fa-solid fa-shopping-cart me-2"></i>Gestión de Compras</h2>
-    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalCrearCompra">
-        <i class="fa-solid fa-plus me-2"></i>Agregar Compra
-    </button>
-</div>
-<div class="contenedor-exportar animate-fade-up">
-    <a href="{% url 'exportar_compras_pdf' %}" class="btn btn-danger"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</a>
-    <a href="{% url 'exportar_compras_excel' %}" class="btn btn-success"><i class="fa-solid fa-file-excel"></i> Exportar Excel</a>
+
+<div class="page-header animate-slide-right">
+  <div class="page-header-left">
+    <div class="page-title">
+      <div class="page-title-icon"><i class="fa-solid fa-bag-shopping"></i></div>
+      Gestión de Compras
+    </div>
+    <div class="page-subtitle">Registro y control de compras a proveedores</div>
+  </div>
+  <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCrearCompra">
+    <i class="fa-solid fa-plus"></i> Nueva Compra
+  </button>
 </div>
 
-<!-- Buscador y filtros -->
-<div class="filter-bar animate-fade-up">
-    <form method="GET" class="row g-2 align-items-end w-100">
-        <div class="col-md-3">
-            <label class="form-label mb-1">Buscar</label>
-            <input type="text" name="busqueda" class="form-control"
-                   placeholder="Buscar por proveedor o producto..."
-                   value="{{ request.GET.busqueda }}">
-        </div>
-        <div class="col-md-2">
-            <label class="form-label mb-1">Filtrar por estado</label>
-            <select name="estado" class="form-select">
-                <option value="">Todos</option>
-                <option value="Completada" {% if request.GET.estado == "Completada" %}selected{% endif %}>Completada</option>
-                <option value="Pendiente"  {% if request.GET.estado == "Pendiente"  %}selected{% endif %}>Pendiente</option>
-            </select>
-        </div>
-        <div class="col-md-2">
-            <label class="form-label mb-1">Desde</label>
-            <input type="date" name="fecha_desde" class="form-control"
-                   value="{{ request.GET.fecha_desde }}">
-        </div>
-        <div class="col-md-2">
-            <label class="form-label mb-1">Hasta</label>
-            <input type="date" name="fecha_hasta" class="form-control"
-                   value="{{ request.GET.fecha_hasta }}">
-        </div>
-        <div class="col-md-3 d-flex align-items-end gap-2">
-            <button type="submit" class="btn btn-primary flex-fill h-100">
-                <i class="fa-solid fa-filter me-2"></i>Buscar
-            </button>
-            {% if request.GET.busqueda or request.GET.estado or request.GET.fecha_desde or request.GET.fecha_hasta %}
-            <a href="{% url 'compras' %}" class="btn btn-secondary flex-fill h-100">
-                <i class="fa-solid fa-times me-2"></i>Limpiar
-            </a>
-            {% endif %}
-        </div>
-    </form>
-</div>
+<div data-filter-container class="animate-fade-up">
 
-<!-- Tabla de compras -->
-<div class="table-container animate-fade-up">
-    <table class="table">
+  <!-- Filtros -->
+  <div class="rt-filter-bar" role="search" aria-label="Filtros de compras">
+    <div class="rt-filter-grid">
+      <div class="rt-filter-group">
+        <label for="filtro-prov-compra" class="rt-filter-label"><i class="fa-solid fa-truck"></i> Proveedor</label>
+        <div class="rt-input-wrapper">
+          <i class="fa-solid fa-truck rt-input-icon"></i>
+          <input id="filtro-prov-compra" type="search" class="rt-filter-input"
+                 data-filter-col="proveedor" placeholder="Buscar por proveedor..." autocomplete="off">
+        </div>
+      </div>
+      <div class="rt-filter-group">
+        <label for="filtro-prod-compra" class="rt-filter-label"><i class="fa-solid fa-box"></i> Producto</label>
+        <div class="rt-input-wrapper">
+          <i class="fa-solid fa-box rt-input-icon"></i>
+          <input id="filtro-prod-compra" type="search" class="rt-filter-input"
+                 data-filter-col="producto" placeholder="Buscar por producto..." autocomplete="off">
+        </div>
+      </div>
+      <div class="rt-filter-group">
+        <label for="filtro-estado-compra" class="rt-filter-label"><i class="fa-solid fa-circle-half-stroke"></i> Estado</label>
+        <select id="filtro-estado-compra" class="rt-filter-select" data-filter-col="estado">
+          <option value="">Todos los estados</option>
+          <option value="completada">Completada</option>
+          <option value="pendiente">Pendiente</option>
+        </select>
+      </div>
+      <!-- NUEVO: filtro velocidad envío del proveedor -->
+      <div class="rt-filter-group">
+        <label for="filtro-velocidad-compra" class="rt-filter-label"><i class="fa-solid fa-gauge"></i> Vel. envío proveedor</label>
+        <select id="filtro-velocidad-compra" class="rt-filter-select" data-filter-col="vel-envio">
+          <option value="">Todas las velocidades</option>
+          <option value="rapido">🟢 Rápido (1-7 días)</option>
+          <option value="normal">🟡 Normal (8-15 días)</option>
+          <option value="lento">🔴 Lento (15+ días)</option>
+        </select>
+      </div>
+      <!-- Fechas limitadas al mes actual -->
+      <div class="rt-filter-group">
+        <label for="filtro-desde-compra" class="rt-filter-label"><i class="fa-solid fa-calendar-days"></i> Desde</label>
+        <input id="filtro-desde-compra" type="date" class="rt-filter-input" data-filter-col="fecha-desde"
+               min="{{ mes_inicio }}" max="{{ hoy }}">
+      </div>
+      <div class="rt-filter-group">
+        <label for="filtro-hasta-compra" class="rt-filter-label"><i class="fa-solid fa-calendar-check"></i> Hasta</label>
+        <input id="filtro-hasta-compra" type="date" class="rt-filter-input" data-filter-col="fecha-hasta"
+               min="{{ mes_inicio }}" max="{{ hoy }}">
+      </div>
+      <div class="rt-filter-actions">
+        <button type="button" class="rt-btn-clear" data-filter-clear>
+          <i class="fa-solid fa-xmark"></i> Limpiar filtros
+        </button>
+        <span class="rt-filter-count" data-filter-count aria-live="polite"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exportar -->
+  <div class="contenedor-exportar">
+    <a href="{% url 'exportar_compras_pdf' %}" class="btn btn-danger btn-sm">
+      <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+    </a>
+    <a href="{% url 'exportar_compras_excel' %}" class="btn btn-success btn-sm">
+      <i class="fa-solid fa-file-excel"></i> Exportar Excel
+    </a>
+  </div>
+
+  <!-- Tabla -->
+  <div class="glass-card">
+    <div class="glass-card-header">
+      <div class="glass-card-title"><i class="fa-solid fa-list"></i> Compras Registradas</div>
+    </div>
+    <div class="tbl-wrap" style="border:none;border-radius:0;">
+      <table class="table" aria-label="Listado de compras">
         <thead>
-            <tr>
-                <th>ID</th>
-                <th>Proveedor</th>
-                <th>Producto</th>
-                <th>Cant.</th>
-                <th>Total</th>
-                <th>Administrador</th>
-                <th>Fecha</th>
-                <th>Estado</th>
-                <th>Acciones</th>
-            </tr>
+          <tr>
+            <th>ID</th>
+            <th>Proveedor</th>
+            <th>Producto</th>
+            <th>Cant.</th>
+            <th>Total</th>
+            <th>Administrador</th>
+            <th>Fecha</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
         </thead>
         <tbody class="animate-stagger">
-            {% for compra in compras %}
-            <tr class="animate-item">
-                <td>{{ compra.idCompra }}</td>
-                <td>{{ compra.Proveedor.nombre }}</td>
-                <td>{{ compra.Producto.nombre }}</td>
-                <td>{{ compra.cantidad }}</td>
-                <td>${{ compra.total|floatformat:0 }}</td>
-                <td>
-                    {% if compra.usuario %}
-                        {{ compra.usuario.get_full_name|default:compra.usuario.username }}
-                    {% else %}
-                        -
-                    {% endif %}
-                </td>
-                <td>{{ compra.fechaCompra|date:"d/m/Y" }}</td>
-                <td>
-                    {% if compra.estado == 'Completada' %}
-                        <span class="badge badge-success">Completada</span>
-                    {% else %}
-                        <span class="badge badge-warning">Pendiente</span>
-                    {% endif %}
-                </td>
-                <td>
-                    <div class="btn-group">
-                        <button class="btn btn-sm btn-info"
-                                data-bs-toggle="modal"
-                                data-bs-target="#modalVerCompra{{ compra.idCompra }}"
-                                title="Ver">
-                            <i class="fa-solid fa-eye"></i>
-                        </button>
-                        <button class="btn btn-sm btn-warning"
-                                {% if compra.estado == 'Completada' %}
-                                    disabled
-                                    style="background-color: #6c757d; border-color: #6c757d;"
-                                    title="No se puede editar una compra completada"
-                                {% else %}
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#modalEditarCompra{{ compra.idCompra }}"
-                                    title="Editar"
-                                {% endif %}>
-                            <i class="fa-solid fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-danger"
-                                data-bs-toggle="modal"
-                                data-bs-target="#modalEliminarCompra{{ compra.idCompra }}"
-                                title="Eliminar">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </div>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="9" class="text-center py-4">No hay compras registradas</td>
-            </tr>
-            {% endfor %}
+          {% for compra in compras %}
+          <tr class="animate-item" data-filter-row>
+            <td data-col="id" style="color:var(--tx-muted);font-size:.8rem;">#{{ compra.idCompra }}</td>
+            <td data-col="proveedor" style="font-weight:600;">{{ compra.Proveedor.nombre }}</td>
+            <td data-col="producto" style="color:var(--tx-secondary);">{{ compra.Producto.nombre }}</td>
+            <td data-col="cantidad" style="font-family:var(--font-mono);">{{ compra.cantidad }}</td>
+            <td data-col="total" style="font-family:var(--font-mono);font-weight:700;color:var(--c-gold);">
+              ${{ compra.total|floatformat:0|intcomma }}
+            </td>
+            <td data-col="admin" style="font-size:.84rem;color:var(--tx-secondary);">
+              {% if compra.usuario %}{{ compra.usuario.get_full_name|default:compra.usuario.username }}{% else %}—{% endif %}
+            </td>
+            <td data-col="fecha" style="font-size:.84rem;color:var(--tx-secondary);">{{ compra.fechaCompra|date:"d/m/Y" }}</td>
+            <td data-col="fecha-desde" style="display:none;">{{ compra.fechaCompra|date:"Y-m-d" }}</td>
+            <td data-col="fecha-hasta" style="display:none;">{{ compra.fechaCompra|date:"Y-m-d" }}</td>
+            <!-- col oculta para filtro velocidad -->
+            <td data-col="vel-envio" style="display:none;">
+              {% if compra.Proveedor.envio <= 7 %}rapido{% elif compra.Proveedor.envio <= 15 %}normal{% else %}lento{% endif %}
+            </td>
+            <td data-col="estado">
+              {% if compra.estado == 'Completada' %}
+                <span class="badge badge-success"><i class="fa-solid fa-check"></i> Completada</span>
+              {% else %}
+                <span class="badge badge-warning"><i class="fa-solid fa-clock"></i> Pendiente</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="tbl-actions">
+                <button class="btn btn-sm btn-info btn-icon-sq"
+                        data-bs-toggle="modal" data-bs-target="#modalVerCompra{{ compra.idCompra }}"
+                        title="Ver detalle">
+                  <i class="fa-solid fa-eye"></i>
+                </button>
+                <button class="btn btn-sm btn-icon-sq
+                  {% if compra.estado == 'Completada' %}btn-secondary{% else %}btn-warning{% endif %}"
+                  {% if compra.estado == 'Completada' %}
+                    disabled title="No editable"
+                  {% else %}
+                    data-bs-toggle="modal" data-bs-target="#modalEditarCompra{{ compra.idCompra }}" title="Editar"
+                  {% endif %}>
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button class="btn btn-sm btn-danger btn-icon-sq"
+                        data-bs-toggle="modal" data-bs-target="#modalEliminarCompra{{ compra.idCompra }}"
+                        title="Eliminar">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr data-filter-row>
+            <td colspan="9" style="text-align:center;padding:48px;color:var(--tx-muted);">
+              <i class="fa-solid fa-bag-shopping" style="font-size:2rem;display:block;margin-bottom:10px;opacity:.3;"></i>
+              No hay compras registradas
+            </td>
+          </tr>
+          {% endfor %}
+          <tr data-filter-empty style="display:none;">
+            <td colspan="9" style="text-align:center;padding:32px;color:var(--tx-muted);">
+              <i class="fa-solid fa-filter-circle-xmark me-2"></i> Ninguna compra coincide con los filtros.
+            </td>
+          </tr>
         </tbody>
-    </table>
-</div>
-
-<!-- Modal: Crear Compra -->
-<div class="modal fade" id="modalCrearCompra" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title"><i class="fa-solid fa-plus me-1"></i> Nueva Compra</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST" action="{% url 'crear_compra' %}">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Fecha <span class="text-danger">*</span></label>
-                        <input type="date" name="fecha" class="form-control"
-                               min="{{ fecha_min }}" max="{{ fecha_max }}" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Estado</label>
-                        <select name="estado" class="form-control">
-                            <option value="Pendiente">Pendiente</option>
-                            <option value="Completada">Completada</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Producto <span class="text-danger">*</span></label>
-                        <select name="producto_id" class="form-control" required>
-                            <option value="">Seleccione un producto</option>
-                            {% for producto in productos %}
-                                <option value="{{ producto.idProducto }}">{{ producto.nombre }} (stock: {{ producto.stock }})</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="row">
-                        <div class="col-6 mb-3">
-                            <label class="form-label">Cantidad <span class="text-danger">*</span></label>
-                            <input type="number" name="cantidad" class="form-control" min="1" value="1" required>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <label class="form-label">Precio unitario <span class="text-danger">*</span></label>
-                            <input type="number" name="precio_unitario" class="form-control" min="0.01" step="0.01" placeholder="0.00" required>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Proveedor <span class="text-danger">*</span></label>
-                        <select name="proveedor_id" class="form-control" required>
-                            <option value="">Seleccione un proveedor</option>
-                            {% for proveedor in proveedores %}
-                                <option value="{{ proveedor.id }}">{{ proveedor.nombre }}</option>
-                            {% endfor %}
-                        </select>
-                        <a href="{% url 'proveedores' %}" class="text-success" style="font-size: 13px;">
-                            <i class="fa-solid fa-plus"></i> Gestionar Proveedores
-                        </a>
-                    </div>
-                    <div class="alert alert-info py-2 mb-0" style="font-size:.85rem;">
-                        <i class="fa-solid fa-circle-info me-1"></i>
-                        El stock solo aumenta cuando el estado es <strong>Completada</strong>.
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-success">
-                        <i class="fa-solid fa-save me-1"></i> Guardar
-                    </button>
-                </div>
-            </form>
-        </div>
+      </table>
     </div>
+  </div>
+
 </div>
 
-<!-- Modales Ver, Editar y Eliminar por compra -->
+<!-- ══════════════════════════════════════════════════
+     MODAL CREAR COMPRA — proveedor filtra productos
+════════════════════════════════════════════════════ -->
+<div class="modal fade" id="modalCrearCompra" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fa-solid fa-plus"></i> Nueva Compra</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" action="{% url 'crear_compra' %}" id="formCrearCompra">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label">Fecha <span style="color:var(--c-danger);">*</span></label>
+            <input type="date" name="fecha" id="crear_fecha" class="form-control"
+                   min="{{ fecha_min }}" max="{{ fecha_max }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Estado</label>
+            <select name="estado" class="form-select">
+              <option value="Pendiente">Pendiente</option>
+              <option value="Completada">Completada</option>
+            </select>
+          </div>
+
+          <!-- 1. PRIMERO Proveedor -->
+          <div class="mb-3">
+            <label class="form-label">Proveedor <span style="color:var(--c-danger);">*</span></label>
+            <select name="proveedor_id" id="crear_proveedor" class="form-select" required>
+              <option value="">— Seleccione un proveedor —</option>
+              {% for proveedor in proveedores %}
+                <option value="{{ proveedor.id }}"
+                        data-envio="{{ proveedor.envio }}"
+                        data-velocidad="{% if proveedor.envio <= 7 %}rapido{% elif proveedor.envio <= 15 %}normal{% else %}lento{% endif %}">
+                  {{ proveedor.nombre }}
+                </option>
+              {% endfor %}
+            </select>
+            <!-- Badge velocidad de envío -->
+            <div id="crear_badge_envio" style="margin-top:6px;display:none;">
+              <span id="crear_badge_envio_text" class="badge"></span>
+            </div>
+            <a href="{% url 'proveedores' %}" class="form-text"
+               style="color:var(--c-success);font-size:.8rem;display:inline-flex;align-items:center;gap:4px;margin-top:6px;">
+              <i class="fa-solid fa-plus"></i> Gestionar Proveedores
+            </a>
+          </div>
+
+          <!-- 2. LUEGO Producto (se filtra según proveedor seleccionado) -->
+          <div class="mb-3">
+            <label class="form-label">Producto <span style="color:var(--c-danger);">*</span></label>
+            <select name="producto_id" id="crear_producto" class="form-select" required disabled>
+              <option value="">— Selecciona un proveedor primero —</option>
+            </select>
+            <div id="crear_producto_loading" style="display:none;font-size:.8rem;color:var(--tx-muted);margin-top:4px;">
+              <i class="fa-solid fa-spinner fa-spin"></i> Cargando productos...
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-6 mb-3">
+              <label class="form-label">Cantidad <span style="color:var(--c-danger);">*</span></label>
+              <input type="number" name="cantidad" class="form-control" min="1" value="1" required>
+            </div>
+            <div class="col-6 mb-3">
+              <label class="form-label">Precio unitario <span style="color:var(--c-danger);">*</span></label>
+              <input type="number" name="precio_unitario" class="form-control"
+                     min="0.01" step="0.01" placeholder="0.00" required>
+            </div>
+          </div>
+
+          <div class="alert alert-info py-2 mb-0">
+            <i class="fa-solid fa-circle-info me-1"></i>
+            El stock aumenta solo cuando el estado es <strong>Completada</strong>.
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-success">
+            <i class="fa-solid fa-floppy-disk"></i> Guardar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Modales por compra -->
 {% for compra in compras %}
+  {% include 'Compras/modal_editar_compra.html' %}
+  {% include 'Compras/modal_eliminar_compra.html' %}
 
-<!-- Modal Ver -->
-<div class="modal fade modal-detalle" id="modalVerCompra{{ compra.idCompra }}" tabindex="-1">
+  <div class="modal fade modal-detalle" id="modalVerCompra{{ compra.idCompra }}" tabindex="-1" aria-modal="true" role="dialog">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="modal-detalle-icon">
-                    <i class="fa-solid fa-shopping-cart"></i>
-                </div>
-                <h4 class="modal-detalle-title">Información de la Compra</h4>
-                
-                <table class="modal-detalle-table">
-                    <tr><td>ID</td><td>{{ compra.idCompra }}</td></tr>
-                    <tr><td>Proveedor</td><td>{{ compra.Proveedor.nombre }}</td></tr>
-                    <tr><td>Producto</td><td>{{ compra.Producto.nombre }}</td></tr>
-                    <tr><td>Cantidad</td><td>{{ compra.cantidad }} unidades</td></tr>
-                    <tr><td>Total</td><td>${{ compra.total|floatformat:2 }}</td></tr>
-                    <tr>
-                        <td>Administrador</td>
-                        <td>
-                            {% if compra.usuario %}
-                                {{ compra.usuario.get_full_name|default:compra.usuario.username }}
-                            {% else %}
-                                -
-                            {% endif %}
-                        </td>
-                    </tr>
-                    <tr><td>Fecha</td><td>{{ compra.fechaCompra|date:"d/m/Y" }}</td></tr>
-                    <tr>
-                        <td>Estado</td>
-                        <td>
-                            {% if compra.estado == 'Completada' %}
-                                <span class="badge badge-success">Completada</span>
-                            {% else %}
-                                <span class="badge badge-warning">Pendiente</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                </table>
-                
-                <button type="button" class="btn modal-detalle-btn-cerrar" data-bs-dismiss="modal">Cerrar</button>
-            </div>
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-    </div>
-</div>
-
-<!-- Modal Editar -->
-<div class="modal fade" id="modalEditarCompra{{ compra.idCompra }}" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-warning">
-                <h5 class="modal-title"><i class="fa-solid fa-edit me-1"></i> Editar Compra #{{ compra.idCompra }}</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST" action="{% url 'modal_editar_compra' compra.idCompra %}">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label class="form-label">Fecha <span class="text-danger">*</span></label>
-                        <input type="date" name="fecha" class="form-control"
-                               value="{{ compra.fechaCompra|date:'Y-m-d' }}" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Estado</label>
-                        <select name="estado" class="form-control">
-                            <option value="Pendiente" {% if compra.estado == 'Pendiente' %}selected{% endif %}>Pendiente</option>
-                            <option value="Completada" {% if compra.estado == 'Completada' %}selected{% endif %}>Completada</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Producto <span class="text-danger">*</span></label>
-                        <select name="producto_id" class="form-control" required>
-                            {% for producto in productos %}
-                                <option value="{{ producto.idProducto }}"
-                                    {% if compra.Producto.idProducto == producto.idProducto %}selected{% endif %}>
-                                    {{ producto.nombre }} (stock: {{ producto.stock }})
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div class="row">
-                        <div class="col-6 mb-3">
-                            <label class="form-label">Cantidad <span class="text-danger">*</span></label>
-                            <input type="number" name="cantidad" class="form-control"
-                                   min="1" value="{{ compra.cantidad }}" required>
-                        </div>
-                        <div class="col-6 mb-3">
-                            <label class="form-label">Precio unitario <span class="text-danger">*</span></label>
-                            <input type="number" name="precio_unitario" class="form-control"
-                                   min="0.01" step="0.01" value="{{ compra.precio_unitario }}" required>
-                        </div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Proveedor <span class="text-danger">*</span></label>
-                        <select name="proveedor_id" class="form-control" required>
-                            {% for proveedor in proveedores %}
-                                <option value="{{ proveedor.id }}"
-                                    {% if compra.Proveedor.id == proveedor.id %}selected{% endif %}>
-                                    {{ proveedor.nombre }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-warning">
-                        <i class="fa-solid fa-save me-1"></i> Actualizar
-                    </button>
-                </div>
-            </form>
+        <div class="modal-body">
+          <div class="modal-detalle-icon"><i class="fa-solid fa-bag-shopping"></i></div>
+          <h4 class="modal-detalle-title">Compra #{{ compra.idCompra }}</h4>
+          <table class="modal-detalle-table">
+            <tr><td>Proveedor</td><td>{{ compra.Proveedor.nombre }}
+              <span class="badge ms-1 {% if compra.Proveedor.envio <= 7 %}badge-success{% elif compra.Proveedor.envio <= 15 %}badge-warning{% else %}badge-danger{% endif %}">
+                {{ compra.Proveedor.envio }} días
+              </span>
+            </td></tr>
+            <tr><td>Producto</td><td>{{ compra.Producto.nombre }}</td></tr>
+            <tr><td>Cantidad</td><td>{{ compra.cantidad }} unidades</td></tr>
+            <tr><td>Precio unitario</td><td style="font-family:var(--font-mono);">${{ compra.precio_unitario|floatformat:2|intcomma }}</td></tr>
+            <tr><td>Total</td><td style="font-family:var(--font-mono);font-weight:800;color:var(--c-gold);">${{ compra.total|floatformat:2|intcomma }}</td></tr>
+            <tr><td>Administrador</td><td>{% if compra.usuario %}{{ compra.usuario.get_full_name|default:compra.usuario.username }}{% else %}—{% endif %}</td></tr>
+            <tr><td>Fecha</td><td>{{ compra.fechaCompra|date:"d/m/Y" }}</td></tr>
+            <tr><td>Estado</td><td>
+              {% if compra.estado == 'Completada' %}
+                <span class="badge badge-success">Completada</span>
+              {% else %}
+                <span class="badge badge-warning">Pendiente</span>
+              {% endif %}
+            </td></tr>
+          </table>
+          <button type="button" class="btn modal-detalle-btn-cerrar" data-bs-dismiss="modal">Cerrar</button>
         </div>
+      </div>
     </div>
-</div>
-
-<!-- Modal Eliminar -->
-<div class="modal fade" id="modalEliminarCompra{{ compra.idCompra }}" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title"><i class="fa-solid fa-trash me-1"></i> Eliminar Compra</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <form method="POST" action="{% url 'modal_eliminar_compra' compra.idCompra %}">
-                {% csrf_token %}
-                <div class="modal-body">
-                    <p>¿Está seguro de eliminar la compra <strong>#{{ compra.idCompra }}</strong>?</p>
-                    <p>
-                        Proveedor: <strong>{{ compra.Proveedor.nombre }}</strong> —
-                        Producto: <strong>{{ compra.Producto.nombre }}</strong>
-                    </p>
-                    <p class="text-danger">
-                        <i class="fa-solid fa-warning me-2"></i>Esta acción no se puede deshacer.
-                    </p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="submit" class="btn btn-danger">
-                        <i class="fa-solid fa-trash me-1"></i> Sí, eliminar
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
+  </div>
 {% endfor %}
 
+<script src="{% static 'js/filtros_realtime.js' %}"></script>
+<script>
+(function () {
+  // ── Filtros de fecha con límite al mes actual ──
+  var container  = document.querySelector('[data-filter-container]');
+  if (!container) return;
+  var inputDesde = container.querySelector('[data-filter-col="fecha-desde"]');
+  var inputHasta = container.querySelector('[data-filter-col="fecha-hasta"]');
+
+  function filtrarFechas() {
+    var desde = inputDesde ? inputDesde.value : '';
+    var hasta = inputHasta ? inputHasta.value : '';
+    // Sincronizar mins/maxs entre sí
+    if (desde && inputHasta) inputHasta.min = desde;
+    if (hasta && inputDesde) inputDesde.max = hasta;
+    container.querySelectorAll('tr[data-filter-row]').forEach(function (fila) {
+      var celda = fila.querySelector('[data-col="fecha-desde"]');
+      if (!celda) return;
+      var f = celda.textContent.trim();
+      var ok = (!desde || f >= desde) && (!hasta || f <= hasta);
+      if (!ok) fila.style.display = 'none';
+    });
+  }
+  if (inputDesde) inputDesde.addEventListener('change', filtrarFechas);
+  if (inputHasta) inputHasta.addEventListener('change', filtrarFechas);
+
+  // ── Filtro velocidad de envío (columna oculta vel-envio) ──
+  var selVel = document.getElementById('filtro-velocidad-compra');
+  if (selVel) {
+    selVel.addEventListener('change', function () {
+      var val = this.value.toLowerCase();
+      container.querySelectorAll('tr[data-filter-row]').forEach(function (fila) {
+        if (!val) { return; } // el filtro realtime principal maneja vacíos
+        var celda = fila.querySelector('[data-col="vel-envio"]');
+        if (!celda) return;
+        if (celda.textContent.trim() !== val) fila.style.display = 'none';
+      });
+    });
+  }
+})();
+
+// ── Modal Crear: proveedor → carga productos vía AJAX ──
+(function () {
+  var selProv    = document.getElementById('crear_proveedor');
+  var selProd    = document.getElementById('crear_producto');
+  var loading    = document.getElementById('crear_producto_loading');
+  var badgeWrap  = document.getElementById('crear_badge_envio');
+  var badgeText  = document.getElementById('crear_badge_envio_text');
+
+  if (!selProv || !selProd) return;
+
+  var BADGE_CLASSES = { rapido: 'badge-success', normal: 'badge-warning', lento: 'badge-danger' };
+  var BADGE_LABELS  = { rapido: '🟢 Envío rápido', normal: '🟡 Envío normal', lento: '🔴 Envío lento' };
+
+  selProv.addEventListener('change', function () {
+    var provId = this.value;
+    var opt    = this.options[this.selectedIndex];
+
+    // Mostrar badge velocidad
+    if (provId && opt) {
+      var vel = opt.dataset.velocidad;
+      var dias = opt.dataset.envio;
+      badgeText.className = 'badge ' + (BADGE_CLASSES[vel] || '');
+      badgeText.textContent = (BADGE_LABELS[vel] || '') + ' — ' + dias + ' días';
+      badgeWrap.style.display = 'block';
+    } else {
+      badgeWrap.style.display = 'none';
+    }
+
+    // Reset producto
+    selProd.innerHTML = '<option value="">— Selecciona un proveedor primero —</option>';
+    selProd.disabled = true;
+
+    if (!provId) return;
+
+    loading.style.display = 'block';
+    fetch('/proveedores/' + provId + '/productos/')
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        loading.style.display = 'none';
+        selProd.innerHTML = '<option value="">— Seleccione un producto —</option>';
+        if (data.productos && data.productos.length > 0) {
+          data.productos.forEach(function (p) {
+            var o = document.createElement('option');
+            o.value = p.id;
+            o.textContent = p.nombre + ' (stock: ' + p.stock + ')';
+            selProd.appendChild(o);
+          });
+          selProd.disabled = false;
+        } else {
+          selProd.innerHTML = '<option value="">Sin productos para este proveedor</option>';
+        }
+      })
+      .catch(function () {
+        loading.style.display = 'none';
+        // Fallback: cargar todos los productos
+        selProd.innerHTML = '<option value="">Error al cargar — intenta de nuevo</option>';
+        selProd.disabled = false;
+      });
+  });
+
+  // Reset al cerrar el modal
+  var modal = document.getElementById('modalCrearCompra');
+  if (modal) {
+    modal.addEventListener('hidden.bs.modal', function () {
+      selProv.value = '';
+      selProd.innerHTML = '<option value="">— Selecciona un proveedor primero —</option>';
+      selProd.disabled = true;
+      badgeWrap.style.display = 'none';
+    });
+  }
+})();
+</script>
 {% endblock %}

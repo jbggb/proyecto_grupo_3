@@ -105,6 +105,13 @@ class Proveedor(models.Model):
     email         = models.EmailField(max_length=100)
     envio         = models.IntegerField(default=0)
     fechaRegistro = models.DateField(default=datetime.now)
+    productos     = models.ManyToManyField(
+        'Producto',
+        blank=True,
+        related_name='proveedores',
+        db_table='proveedor_producto',
+        verbose_name='Productos que suministra',
+    )
 
     def __str__(self):
         return self.nombre

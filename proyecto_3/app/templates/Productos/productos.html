@@ -1,146 +1,267 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static humanize %}
+
+{% block title %}Productos{% endblock %}
 
 {% block content %}
-<!-- Select2 CSS -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css">
-<link rel="stylesheet" href="{% static 'css/estilos_pagina.css' %}">
+<link rel="stylesheet" href="{% static 'css/filtros_realtime.css' %}">
 
-<div class="d-flex justify-content-between align-items-center mb-4 animate-slide-left">
-    <h2><i class="fa-solid fa-box me-2"></i>Panel de Gestión de Productos</h2>
-    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAgregar">
-        <i class="fa-solid fa-plus me-1"></i> Agregar Producto
+<div class="page-header animate-slide-right">
+  <div class="page-header-left">
+    <div class="page-title">
+      <div class="page-title-icon"><i class="fa-solid fa-boxes-stacked"></i></div>
+      Gestión de Productos
+    </div>
+    <div class="page-subtitle">Catálogo completo de productos e inventario</div>
+  </div>
+  <div style="display:flex;gap:10px;">
+    <button class="btn btn-info" id="btnAbrirEscaner">
+      <i class="fa-solid fa-barcode"></i> Escanear
     </button>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAgregar">
+      <i class="fa-solid fa-plus"></i> Agregar Producto
+    </button>
+  </div>
 </div>
 
-<div class="contenedor-exportar animate-fade-up">
-    <a href="{% url 'exportar_productos_pdf' %}" class="btn btn-danger"><i class="fa-solid fa-file-pdf"></i> Exportar PDF</a>
-    <a href="{% url 'exportar_productos_excel' %}" class="btn btn-success"><i class="fa-solid fa-file-excel"></i> Exportar Excel</a>
-</div>
+<div data-filter-container class="animate-fade-up">
 
-<div class="card mb-3 animate-fade-up">
-    <div class="card-body">
-        <form method="GET" class="row g-2 align-items-end">
-            <div class="col-md-3">
-                <label class="form-label mb-1">Buscar</label>
-                <input type="text" name="q" class="form-control" placeholder="Buscar producto..." value="{{ request.GET.q }}">
-            </div>
-            <div class="col-md-2">
-                <label class="form-label mb-1">Filtrar por stock</label>
-                <select name="stock" class="form-select">
-                    <option value="">Todos</option>
-                    <option value="disponible" {% if request.GET.stock == 'disponible' %}selected{% endif %}>Disponible</option>
-                    <option value="bajo" {% if request.GET.stock == 'bajo' %}selected{% endif %}>Stock bajo</option>
-                    <option value="agotado" {% if request.GET.stock == 'agotado' %}selected{% endif %}>Agotado</option>
-                </select>
-            </div>
-            <div class="col-md-5 d-flex align-items-end gap-2">
-                <button type="submit" class="btn btn-primary flex-fill h-100">
-                    <i class="fa-solid fa-search me-1"></i> Buscar
+  <!-- Filtros -->
+  <div class="rt-filter-bar" role="search" aria-label="Filtros de productos">
+    <div class="rt-filter-grid">
+      <div class="rt-filter-group">
+        <label for="filtro-nombre-producto" class="rt-filter-label"><i class="fa-solid fa-magnifying-glass"></i> Buscar producto</label>
+        <div class="rt-input-wrapper">
+          <i class="fa-solid fa-box rt-input-icon"></i>
+          <input id="filtro-nombre-producto" type="search" class="rt-filter-input"
+                 data-filter-col="nombre" placeholder="Ej: Arroz, Aceite..." autocomplete="off">
+        </div>
+      </div>
+      <div class="rt-filter-group">
+        <label for="filtro-marca-producto" class="rt-filter-label"><i class="fa-solid fa-tag"></i> Marca</label>
+        <div class="rt-input-wrapper">
+          <i class="fa-solid fa-tag rt-input-icon"></i>
+          <input id="filtro-marca-producto" type="search" class="rt-filter-input"
+                 data-filter-col="marca" placeholder="Filtrar por marca..." autocomplete="off">
+        </div>
+      </div>
+      <div class="rt-filter-group">
+        <label for="filtro-tipo-producto" class="rt-filter-label"><i class="fa-solid fa-layer-group"></i> Tipo</label>
+        <div class="rt-input-wrapper">
+          <i class="fa-solid fa-layer-group rt-input-icon"></i>
+          <input id="filtro-tipo-producto" type="search" class="rt-filter-input"
+                 data-filter-col="tipo" placeholder="Filtrar por tipo..." autocomplete="off">
+        </div>
+      </div>
+      <div class="rt-filter-group">
+        <label for="filtro-stock-producto" class="rt-filter-label"><i class="fa-solid fa-warehouse"></i> Estado stock</label>
+        <select id="filtro-stock-producto" class="rt-filter-select" data-filter-col="stock-estado">
+          <option value="">Todos los estados</option>
+          <option value="disponible">✅ Disponible</option>
+          <option value="bajo">⚠️ Stock bajo</option>
+          <option value="agotado">❌ Agotado</option>
+        </select>
+      </div>
+      <div class="rt-filter-actions">
+        <button type="button" class="rt-btn-clear" data-filter-clear>
+          <i class="fa-solid fa-xmark"></i> Limpiar filtros
+        </button>
+        <span class="rt-filter-count" data-filter-count aria-live="polite"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exportar -->
+  <div class="contenedor-exportar">
+    <a href="{% url 'exportar_productos_pdf' %}" class="btn btn-danger btn-sm">
+      <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+    </a>
+    <a href="{% url 'exportar_productos_excel' %}" class="btn btn-success btn-sm">
+      <i class="fa-solid fa-file-excel"></i> Exportar Excel
+    </a>
+  </div>
+
+  <!-- Tabla -->
+  <div class="glass-card">
+    <div class="glass-card-header">
+      <div class="glass-card-title"><i class="fa-solid fa-list"></i> Productos Registrados</div>
+    </div>
+    <div class="tbl-wrap" style="border:none;border-radius:0;">
+      <table class="table" aria-label="Listado de productos">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>Marca</th>
+            <th>Tipo</th>
+            <th>Unidad</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="animate-stagger">
+          {% for producto in productos %}
+          <tr class="animate-item" data-filter-row>
+            <td data-col="id" style="color:var(--tx-muted);font-size:.8rem;">#{{ producto.idProducto }}</td>
+            <td data-col="nombre" style="font-weight:600;">{{ producto.nombre }}</td>
+            <td data-col="precio" style="font-family:var(--font-mono);color:var(--c-gold);font-weight:600;">
+              ${{ producto.precio|floatformat:0|intcomma }}
+            </td>
+            <td data-col="stock">
+              {% if producto.stock == 0 %}
+                <span class="stock-empty"><i class="fa-solid fa-xmark"></i> {{ producto.stock }}</span>
+              {% elif producto.stock <= 5 %}
+                <span class="stock-low"><i class="fa-solid fa-triangle-exclamation"></i> {{ producto.stock }}</span>
+              {% else %}
+                <span class="stock-ok"><i class="fa-solid fa-check"></i> {{ producto.stock }}</span>
+              {% endif %}
+            </td>
+            <td data-col="marca">
+              <span style="font-size:.8rem;padding:3px 9px;background:var(--c-red-l);color:var(--c-red);border-radius:var(--r-full);border:1px solid rgba(192,57,43,0.2);">
+                {{ producto.idMarca.nombreMarca }}
+              </span>
+            </td>
+            <td data-col="tipo" style="font-size:.85rem;color:var(--tx-secondary);">{{ producto.idTipo.nombre_tipo }}</td>
+            <td data-col="unidad">
+              <span style="font-size:.78rem;padding:2px 8px;background:var(--c-info-l);color:var(--c-info);border-radius:var(--r-full);border:1px solid rgba(41,128,185,0.2);font-family:var(--font-mono);">
+                {{ producto.idUnidad.abreviatura }}
+              </span>
+            </td>
+            <td data-col="stock-estado" style="display:none;">
+              {% if producto.stock == 0 %}agotado{% elif producto.stock <= 5 %}bajo{% else %}disponible{% endif %}
+            </td>
+            <td>
+              <div class="tbl-actions">
+                <button class="btn btn-sm btn-info btn-icon-sq"
+                        data-bs-toggle="modal" data-bs-target="#modalVerProducto{{ producto.idProducto }}"
+                        title="Ver detalle">
+                  <i class="fa-solid fa-eye"></i>
                 </button>
-                {% if request.GET.q or request.GET.stock %}
-                <a href="{% url 'productos' %}" class="btn btn-secondary flex-fill h-100">Limpiar</a>
-                {% endif %}
-            </div>
-        </form>
+                <button class="btn btn-sm btn-warning btn-icon-sq"
+                        data-bs-toggle="modal" data-bs-target="#modalEditar{{ producto.idProducto }}"
+                        title="Editar">
+                  <i class="fa-solid fa-pen"></i>
+                </button>
+                <button class="btn btn-sm btn-danger btn-icon-sq"
+                        onclick="eliminarProducto('{% url 'eliminar_producto' producto.idProducto %}', '{{ producto.nombre|escapejs }}')"
+                        title="Eliminar">
+                  <i class="fa-solid fa-trash"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+          {% empty %}
+          <tr data-filter-row>
+            <td colspan="8" style="text-align:center;padding:48px;color:var(--tx-muted);">
+              <i class="fa-solid fa-box" style="font-size:2rem;display:block;margin-bottom:10px;opacity:.3;"></i>
+              No hay productos registrados
+            </td>
+          </tr>
+          {% endfor %}
+          <tr data-filter-empty style="display:none;">
+            <td colspan="8" style="text-align:center;padding:32px;color:var(--tx-muted);">
+              <i class="fa-solid fa-filter-circle-xmark me-2"></i> Ningún producto coincide con los filtros.
+            </td>
+          </tr>
+        </tbody>
+      </table>
     </div>
-</div>
+  </div>
 
-<div class="card animate-fade-up">
-    <div class="card-header bg-dark text-white">Productos registrados</div>
-    <div class="table-responsive">
-        <table class="table table-hover mb-0">
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th><th>Nombre</th><th>Precio</th><th>Stock</th>
-                    <th>Marca</th><th>Tipo</th><th>Unidad</th><th>Acción</th>
-                </tr>
-            </thead>
-            <tbody class="animate-stagger">
-                {% for producto in productos %}
-                <tr class="animate-item">
-                    <td>{{ producto.idProducto }}</td>
-                    <td>{{ producto.nombre }}</td>
-                    <td>${{ producto.precio }}</td>
-                    <td>{{ producto.stock }}</td>
-                    <td>{{ producto.idMarca.nombreMarca }}</td>
-                    <td>{{ producto.idTipo.nombre_tipo }}</td>
-                    <td>{{ producto.idUnidad.nombre_unidad }}</td>
-                    
-                    <td>
-                        <button class="btn btn-info btn-sm"
-                            data-bs-toggle="modal"
-                            data-bs-target="#modalVerProducto{{ producto.idProducto }}">
-                            <i class="fa-solid fa-eye"></i>
-                        </button>
-                        <button class="btn btn-primary btn-sm"
-                            data-bs-toggle="modal"
-                            data-bs-target="#modalEditar{{ producto.idProducto }}">
-                            <i class="fa-solid fa-pen"></i>
-                        </button>
-                        <button class="btn btn-danger btn-sm"
-                            onclick="eliminarProducto('{% url 'eliminar_producto' producto.idProducto %}', '{{ producto.nombre }}')">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-                {% empty %}
-                <tr><td colspan="8" class="text-center py-4">No hay productos registrados</td></tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
 </div>
 
 {% include 'Productos/Modal_agregar.html' %}
 {% for producto in productos %}
-    {% include 'Productos/Modal_editar.html' %}
-    <!-- Modal Ver Producto -->
-    <div class="modal fade modal-detalle" id="modalVerProducto{{ producto.idProducto }}" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="modal-detalle-icon">
-                        <i class="fa-solid fa-box"></i>
-                    </div>
-                    <h4 class="modal-detalle-title">Detalle del Producto</h4>
-                    
-                    <table class="modal-detalle-table">
-                        <tr><td>ID</td><td>{{ producto.idProducto }}</td></tr>
-                        <tr><td>Nombre</td><td>{{ producto.nombre }}</td></tr>
-                        <tr><td>Precio</td><td>${{ producto.precio|floatformat:0 }}</td></tr>
-                        <tr><td>Stock</td><td>{{ producto.stock }} unidades</td></tr>
-                        <tr><td>Marca</td><td>{{ producto.idMarca.nombreMarca }}</td></tr>
-                        <tr><td>Tipo</td><td>{{ producto.idTipo.nombre_tipo }}</td></tr>
-                        <tr><td>Unidad</td><td>{{ producto.idUnidad.nombre_unidad }}</td></tr>
-                    </table>
-                    
-                    <button type="button" class="btn modal-detalle-btn-cerrar" data-bs-dismiss="modal">Cerrar</button>
-                </div>
-            </div>
+  {% include 'Productos/Modal_editar.html' %}
+  <div class="modal fade modal-detalle" id="modalVerProducto{{ producto.idProducto }}" tabindex="-1" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
+        <div class="modal-body">
+          <div class="modal-detalle-icon"><i class="fa-solid fa-box"></i></div>
+          <h4 class="modal-detalle-title">{{ producto.nombre }}</h4>
+          <table class="modal-detalle-table">
+            <tr><td>ID</td><td>#{{ producto.idProducto }}</td></tr>
+            <tr><td>Precio</td><td style="color:var(--c-gold);font-weight:700;">${{ producto.precio|floatformat:0|intcomma }}</td></tr>
+            <tr><td>Stock</td><td>
+              {% if producto.stock == 0 %}
+                <span class="badge badge-danger">Agotado ({{ producto.stock }})</span>
+              {% elif producto.stock <= 5 %}
+                <span class="badge badge-warning">Bajo ({{ producto.stock }})</span>
+              {% else %}
+                <span class="badge badge-success">{{ producto.stock }} unidades</span>
+              {% endif %}
+            </td></tr>
+            <tr><td>Marca</td><td>{{ producto.idMarca.nombreMarca }}</td></tr>
+            <tr><td>Tipo</td><td>{{ producto.idTipo.nombre_tipo }}</td></tr>
+            <tr><td>Unidad</td><td>{{ producto.idUnidad.nombre_unidad }} ({{ producto.idUnidad.abreviatura }})</td></tr>
+            {% if producto.codigo_barras %}
+            <tr><td>Código de barras</td><td style="font-family:var(--font-mono);">{{ producto.codigo_barras }}</td></tr>
+            {% endif %}
+          </table>
+          <button type="button" class="btn modal-detalle-btn-cerrar" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
     </div>
+  </div>
 {% endfor %}
 
-<!-- Select2 JS -->
+<!-- Modal Escáner -->
+<div class="modal fade" id="modalEscaner" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,rgba(41,128,185,0.20),rgba(41,128,185,0.08));">
+        <h5 class="modal-title">
+          <i class="fa-solid fa-barcode" style="color:var(--c-info);"></i>
+          Escanear Código de Barras
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div style="display:flex;gap:10px;margin-bottom:18px;">
+          <button class="btn btn-info" id="escaner-btn-camara" style="flex:1;">
+            <i class="fa-solid fa-camera"></i> Usar Cámara
+          </button>
+          <button class="btn btn-secondary" id="escaner-btn-imagen" style="flex:1;">
+            <i class="fa-solid fa-image"></i> Subir Imagen
+          </button>
+        </div>
+        <input type="file" id="escaner-input-imagen" accept="image/*" style="display:none;">
+        <div id="escaner-area-lector"
+             style="width:100%;min-height:220px;background:var(--bg-input);border-radius:var(--r-md);border:2px dashed var(--bd-default);overflow:hidden;display:flex;align-items:center;justify-content:center;">
+          <div style="text-align:center;color:var(--tx-muted);padding:32px;">
+            <i class="fa-solid fa-barcode" style="font-size:3rem;display:block;margin-bottom:12px;opacity:.3;"></i>
+            <p style="font-size:.875rem;">Selecciona un modo para escanear</p>
+          </div>
+        </div>
+        <p id="escaner-status" style="text-align:center;font-size:.84rem;margin-top:10px;min-height:20px;color:var(--tx-secondary);"></p>
+        <div id="escaner-resultado"></div>
+        <div style="margin-top:14px;padding:10px 14px;background:var(--bg-glass);border-radius:var(--r-sm);font-size:.78rem;color:var(--tx-muted);border:1px solid var(--bd-subtle);">
+          <i class="fa-solid fa-circle-info me-1" style="color:var(--c-info);"></i>
+          Si el producto no está registrado, se consultará <strong>Open Food Facts</strong> para obtener el nombre y la marca.
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-
-<!-- QuaggaJS — escáner de códigos de barras -->
-<script src="https://cdn.jsdelivr.net/npm/quagga@0.12.1/dist/quagga.min.js"></script>
-
 <script src="{% static 'js/productos.js' %}"></script>
 <script src="{% static 'js/escaner.js' %}"></script>
-
+<script src="{% static 'js/filtros_realtime.js' %}"></script>
 <script>
-
-// ── Guardar borrador en sessionStorage ───────────────────────────
+var SK = 'prod_modal_draft';
 function guardarBorrador() {
-  const draft = {
+  var draft = {
     nombre:   $('[name="nombre"]', '#formAgregarProducto').val(),
     precio:   $('[name="precio"]', '#formAgregarProducto').val(),
     stock:    $('[name="stock"]',  '#formAgregarProducto').val(),
@@ -150,13 +271,18 @@ function guardarBorrador() {
   };
   sessionStorage.setItem(SK, JSON.stringify(draft));
 }
-
-// ── Restaurar borrador en el modal ───────────────────────────────
 function restaurarBorrador() {
-  const raw = sessionStorage.getItem(SK);
+  // Siempre restaurar codigo de escaner si existe
+  var codigoEscaner = sessionStorage.getItem('escaner_codigo_pendiente');
+  if (codigoEscaner) {
+    var inputCodigo = document.getElementById('add_codigo_barras');
+    if (inputCodigo) inputCodigo.value = codigoEscaner;
+  }
+
+  var raw = sessionStorage.getItem(SK);
   if (!raw) return;
   try {
-    const d = JSON.parse(raw);
+    var d = JSON.parse(raw);
     $('[name="nombre"]', '#formAgregarProducto').val(d.nombre || '');
     $('[name="precio"]', '#formAgregarProducto').val(d.precio || '');
     $('[name="stock"]',  '#formAgregarProducto').val(d.stock  || '');
@@ -165,106 +291,62 @@ function restaurarBorrador() {
     if (d.idUnidad) { $('#add_idUnidad').val(d.idUnidad).trigger('change'); }
   } catch(e) {}
 }
-
-// ── Limpiar borrador ─────────────────────────────────────────────
-function limpiarBorrador() {
-  sessionStorage.removeItem(SK);
-}
+function limpiarBorrador() { sessionStorage.removeItem(SK); }
 
 $(document).ready(function () {
-
-  const s2opts = {
-    theme: 'bootstrap-5',
-    width: '100%',
-    language: {
-      noResults: () => 'No se encontraron resultados',
-      searching: () => 'Buscando...',
-    },
+  var s2opts = {
+    theme: 'bootstrap-5', width: '100%',
+    language: { noResults: () => 'No se encontraron resultados', searching: () => 'Buscando...' },
   };
-
-  // ── Inicializar Select2 en el modal Agregar ───────────────────
   function initSelect2Agregar() {
     $('#add_idMarca, #add_idTipo, #add_idUnidad').each(function () {
       if (!$(this).hasClass('select2-hidden-accessible')) {
-        $(this).select2({
-          ...s2opts,
-          dropdownParent: $('#modalAgregar'),
-          placeholder: $(this).find('option:first').text(),
-        });
+        $(this).select2({ ...s2opts, dropdownParent: $('#modalAgregar'), placeholder: $(this).find('option:first').text() });
       }
     });
   }
-
-  $('#modalAgregar').on('shown.bs.modal', function () {
-    initSelect2Agregar();
-    // Restaurar si venía de "Gestionar Marcas/Tipos/Unidades"
-    restaurarBorrador();
-  });
-
-  // Guardar al hacer clic en los links "Gestionar..."
-  $(document).on('click', 'a[href*="marcas"], a[href*="tipos"], a[href*="unidades"]', function () {
-    guardarBorrador();
-  });
-
-  // Limpiar borrador cuando el form se envía con éxito (submit)
-  $('#formAgregarProducto').on('submit', function () {
-    limpiarBorrador();
-  });
-
+  $('#modalAgregar').on('shown.bs.modal', function () { initSelect2Agregar(); restaurarBorrador(); });
+  $('#modalAgregar').on('click', 'a[href*="next=productos"]', function () { guardarBorrador(); });
+  $('#formAgregarProducto').on('submit', function () { limpiarBorrador(); sessionStorage.removeItem('escaner_codigo_pendiente'); });
   $('#modalAgregar').on('hide.bs.modal', function () {
-    // Destruir Select2 ANTES de que el modal cierre para evitar conflicto con backdrop
     $('#add_idMarca, #add_idTipo, #add_idUnidad').each(function () {
-      if ($(this).hasClass('select2-hidden-accessible')) {
-        $(this).select2('destroy');
-      }
+      if ($(this).hasClass('select2-hidden-accessible')) { $(this).select2('destroy'); }
     });
   });
-
   $('#modalAgregar').on('hidden.bs.modal', function () {
-    // Limpiar backdrop residual por si Select2 lo dejó colgado
     $('.modal-backdrop').remove();
     $('body').removeClass('modal-open').css('overflow', '').css('padding-right', '');
-
     if (!{{ abrir_modal_agregar|yesno:"true,false" }}) {
       limpiarBorrador();
+      var codigoGuardado = document.getElementById('add_codigo_barras') ? document.getElementById('add_codigo_barras').value : '';
       $('#formAgregarProducto')[0].reset();
+      if (codigoGuardado && document.getElementById('add_codigo_barras')) {
+        document.getElementById('add_codigo_barras').value = codigoGuardado;
+      }
     }
   });
-
-  // ── Inicializar Select2 en modales Editar ─────────────────────
   $('[id^="modalEditar"]').each(function () {
-    const $modal = $(this);
-    const pid    = $modal.attr('id').replace('modalEditar', '');
-
+    var $modal = $(this);
+    var pid = $modal.attr('id').replace('modalEditar', '');
     $modal.on('shown.bs.modal', function () {
       $modal.find('.select2-editar-' + pid).each(function () {
         if (!$(this).hasClass('select2-hidden-accessible')) {
-          $(this).select2({
-            ...s2opts,
-            dropdownParent: $modal,
-            placeholder: $(this).find('option:first').text(),
-          });
+          $(this).select2({ ...s2opts, dropdownParent: $modal, placeholder: $(this).find('option:first').text() });
         }
       });
     });
   });
-
-  // ── Auto-abrir modal si hubo error de validación ──────────────
-  // FIX: usar getOrCreateInstance para evitar instancias duplicadas que generan backdrop doble
   {% if abrir_modal_agregar %}
     bootstrap.Modal.getOrCreateInstance(document.getElementById('modalAgregar')).show();
-
-  // Auto-abrir si hay borrador guardado (volvio de Gestionar Marcas/Tipos/Unidades)
   {% else %}
     if (sessionStorage.getItem('prod_modal_draft')) {
       setTimeout(function () {
         bootstrap.Modal.getOrCreateInstance(document.getElementById('modalAgregar')).show();
-        // restaurarBorrador() se llama automaticamente en shown.bs.modal
       }, 200);
     }
   {% endif %}
-
 });
 </script>
+{% include "escaner_modal.html" %}
 
 {% endblock %}

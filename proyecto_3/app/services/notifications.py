@@ -1,6 +1,6 @@
 """
-Servicio de notificaciones por email.
-Envía notificaciones a usuarios activos (logged in).
+Sistema de notificaciones — El Despecho
+Cubre: stock, compras, ventas, clientes, proveedores y resumen diario.
 """
 from django.core.mail import send_mail
 from django.conf import settings
@@ -9,34 +9,30 @@ from django.contrib.auth.models import User
 from app.models import NotificacionEmail
 
 
-def enviar_notificacion_email(usuario, asunto, mensaje, tipo='info'):
-    """
-    Envía una notificación por email a un usuario.
+# ══════════════════════════════════════════════════════
+# NÚCLEO
+# ══════════════════════════════════════════════════════
 
-    Args:
-        usuario: Usuario Django
-        asunto: Asunto del email
-        mensaje: Cuerpo del mensaje
-        tipo: Tipo de notificación (alerta, info, error, success)
-    """
-    if not usuario.email:
-        return False
-
-    # Crear notificación en BD
-    notif = NotificacionEmail.objects.create(
+def _crear_notif(usuario, asunto, mensaje, tipo='info'):
+    """Crea la notificación en BD siempre. Devuelve el objeto."""
+    return NotificacionEmail.objects.create(
         usuario=usuario,
         asunto=asunto,
         mensaje=mensaje,
         tipo=tipo,
     )
 
-    # Intentar enviar email
+
+def _enviar_email(notif):
+    """Intenta enviar el email asociado a una notificación ya guardada."""
+    if not notif.usuario.email:
+        return False
     try:
         send_mail(
-            subject=asunto,
-            message=mensaje,
+            subject=notif.asunto,
+            message=notif.mensaje,
             from_email=settings.DEFAULT_FROM_EMAIL,
-            recipient_list=[usuario.email],
+            recipient_list=[notif.usuario.email],
             fail_silently=False,
         )
         notif.enviada = True
@@ -44,99 +40,270 @@ def enviar_notificacion_email(usuario, asunto, mensaje, tipo='info'):
         notif.save()
         return True
     except Exception as e:
-        print(f"Error enviando email a {usuario.email}: {e}")
+        print(f"[Notif] Error enviando email a {notif.usuario.email}: {e}")
         return False
 
 
-def enviar_notificacion_a_activos(asunto, mensaje, tipo='info', excluir_usuario=None):
-    """
-    Envía una notificación a todos los usuarios activos (is_active=True).
+def enviar_notificacion_email(usuario, asunto, mensaje, tipo='info'):
+    """Crea notificación en BD y envía email si el usuario tiene correo."""
+    notif = _crear_notif(usuario, asunto, mensaje, tipo)
+    _enviar_email(notif)
+    return notif
 
-    Args:
-        asunto: Asunto del email
-        mensaje: Cuerpo del mensaje
-        tipo: Tipo de notificación
-        excluir_usuario: Usuario a excluir (opcional)
+
+def _notificar_a_todos(asunto, mensaje, tipo='info', excluir=None):
+    """
+    Crea y envía notificación a todos los usuarios activos.
+    excluir: instancia User a omitir (opcional).
     """
     usuarios = User.objects.filter(is_active=True)
-    if excluir_usuario is not None:
-        usuarios = usuarios.exclude(pk=excluir_usuario.pk)
+    if excluir:
+        usuarios = usuarios.exclude(pk=excluir.pk)
+    for u in usuarios:
+        notif = _crear_notif(u, asunto, mensaje, tipo)
+        _enviar_email(notif)
 
-    resultado = []
-    for usuario in usuarios:
-        enviada = enviar_notificacion_email(usuario, asunto, mensaje, tipo)
-        resultado.append({
-            'usuario': usuario.username,
-            'enviada': enviada,
-        })
 
-    return resultado
-
+# ══════════════════════════════════════════════════════
+# PRODUCTOS / STOCK
+# ══════════════════════════════════════════════════════
 
 def notificacion_stock_bajo(producto):
-    """
-    Envía notificación de stock bajo a todos los usuarios activos.
-    """
-    asunto = f"⚠️ Stock bajo: {producto.nombre}"
+    """Stock ≤ 5 unidades."""
     if producto.stock == 0:
-        mensaje = f"El producto '{producto.nombre}' está AGOTADO. Reabastecer urgentemente."
+        asunto  = f"❌ AGOTADO: {producto.nombre}"
+        mensaje = (
+            f"El producto «{producto.nombre}» se ha agotado completamente.\n"
+            f"Marca: {producto.idMarca.nombreMarca}\n"
+            f"Tipo: {producto.idTipo.nombre_tipo}\n\n"
+            f"Reabastece cuanto antes para no perder ventas."
+        )
         tipo = 'error'
     else:
-        mensaje = f"El producto '{producto.nombre}' tiene stock bajo ({producto.stock} unidades)."
+        asunto  = f"⚠️ Stock bajo: {producto.nombre} ({producto.stock} uds.)"
+        mensaje = (
+            f"El producto «{producto.nombre}» tiene stock bajo.\n"
+            f"Stock actual: {producto.stock} unidades\n"
+            f"Marca: {producto.idMarca.nombreMarca}\n"
+            f"Tipo: {producto.idTipo.nombre_tipo}\n\n"
+            f"Se recomienda reabastecer pronto."
+        )
         tipo = 'alerta'
 
-    return enviar_notificacion_a_activos(asunto, mensaje, tipo)
+    _notificar_a_todos(asunto, mensaje, tipo)
 
+
+def notificacion_producto_creado(producto, usuario):
+    """Nuevo producto registrado en el catálogo."""
+    asunto  = f"✅ Nuevo producto: {producto.nombre}"
+    mensaje = (
+        f"Se ha registrado un nuevo producto en el inventario.\n\n"
+        f"Nombre:  {producto.nombre}\n"
+        f"Precio:  ${producto.precio:,.2f}\n"
+        f"Stock:   {producto.stock} unidades\n"
+        f"Marca:   {producto.idMarca.nombreMarca}\n"
+        f"Tipo:    {producto.idTipo.nombre_tipo}\n"
+        f"Unidad:  {producto.idUnidad.nombre_unidad}\n\n"
+        f"Registrado por: {usuario.get_full_name() or usuario.username}"
+    )
+    _notificar_a_todos(asunto, mensaje, 'success', excluir=usuario)
+
+
+def notificacion_producto_editado(producto, usuario):
+    """Producto modificado."""
+    asunto  = f"✏️ Producto actualizado: {producto.nombre}"
+    mensaje = (
+        f"El producto «{producto.nombre}» ha sido modificado.\n\n"
+        f"Estado actual:\n"
+        f"Precio: ${producto.precio:,.2f}\n"
+        f"Stock:  {producto.stock} unidades\n\n"
+        f"Modificado por: {usuario.get_full_name() or usuario.username}"
+    )
+    _notificar_a_todos(asunto, mensaje, 'info', excluir=usuario)
+
+
+def notificacion_producto_eliminado(nombre_producto, usuario):
+    """Producto eliminado del catálogo."""
+    asunto  = f"🗑️ Producto eliminado: {nombre_producto}"
+    mensaje = (
+        f"El producto «{nombre_producto}» ha sido eliminado del inventario.\n\n"
+        f"Eliminado por: {usuario.get_full_name() or usuario.username}\n"
+        f"Fecha: {timezone.now().strftime('%d/%m/%Y %H:%M')}"
+    )
+    _notificar_a_todos(asunto, mensaje, 'alerta', excluir=usuario)
+
+
+# ══════════════════════════════════════════════════════
+# COMPRAS
+# ══════════════════════════════════════════════════════
 
 def notificacion_compra_creada(compra):
-    """
-    Envía notificación cuando se crea una nueva compra.
-    """
-    producto_nombre = compra.Producto.nombre if compra.Producto else 'Producto sin asignar'
-    asunto = f"Nueva compra: {producto_nombre}"
+    """Nueva compra registrada."""
+    producto_nombre = compra.Producto.nombre if compra.Producto else 'Sin asignar'
+    asunto  = f"🛒 Nueva compra #{compra.idCompra}: {producto_nombre}"
     mensaje = (
-        f"Se ha registrado una nueva compra:\n"
+        f"Se ha registrado una nueva compra.\n\n"
+        f"Compra #:    {compra.idCompra}\n"
+        f"Proveedor:   {compra.Proveedor.nombre}\n"
+        f"Producto:    {producto_nombre}\n"
+        f"Cantidad:    {compra.cantidad}\n"
+        f"P. Unitario: ${compra.precio_unitario:,.2f}\n"
+        f"Total:       ${compra.total:,.2f}\n"
+        f"Estado:      {compra.estado}\n"
+        f"Fecha:       {compra.fechaCompra.strftime('%d/%m/%Y')}\n\n"
+        f"Registrada por: {compra.usuario.get_full_name() or compra.usuario.username if compra.usuario else 'Sistema'}"
+    )
+    _notificar_a_todos(asunto, mensaje, 'info', excluir=compra.usuario)
+
+
+def notificacion_compra_completada(compra):
+    """Compra marcada como completada — stock sumado."""
+    producto_nombre = compra.Producto.nombre if compra.Producto else 'Sin asignar'
+    asunto  = f"✅ Compra completada #{compra.idCompra}: {producto_nombre}"
+    mensaje = (
+        f"La compra #{compra.idCompra} ha sido completada y el stock fue actualizado.\n\n"
+        f"Producto:  {producto_nombre}\n"
+        f"Cantidad:  +{compra.cantidad} unidades sumadas al stock\n"
+        f"Total:     ${compra.total:,.2f}\n"
+        f"Proveedor: {compra.Proveedor.nombre}"
+    )
+    _notificar_a_todos(asunto, mensaje, 'success')
+
+
+def notificacion_compra_eliminada(compra, usuario):
+    """Compra eliminada."""
+    producto_nombre = compra.Producto.nombre if compra.Producto else 'Sin asignar'
+    asunto  = f"🗑️ Compra #{compra.idCompra} eliminada"
+    mensaje = (
+        f"La compra #{compra.idCompra} ha sido eliminada.\n\n"
+        f"Producto:  {producto_nombre}\n"
         f"Proveedor: {compra.Proveedor.nombre}\n"
-        f"Producto: {producto_nombre}\n"
-        f"Cantidad: {compra.cantidad}\n"
-        f"Total: ${compra.total:,.2f}\n"
-        f"Estado: {compra.estado}"
+        f"Total:     ${compra.total:,.2f}\n\n"
+        f"Eliminada por: {usuario.get_full_name() or usuario.username}"
     )
-    tipo = 'info'
-
-    return enviar_notificacion_a_activos(asunto, mensaje, tipo, excluir_usuario=compra.usuario)
-
-
-def notificacion_venta_completada(venta):
-    """
-    Envía notificación cuando se completa una venta.
-    """
-    asunto = f"Venta completada: {venta.cliente}"
-    mensaje = (
-        f"Se ha completado la siguiente venta:\n"
-        f"Cliente: {venta.cliente}\n"
-        f"Total: ${venta.total:,.2f}\n"
-        f"Fecha: {venta.fecha.strftime('%d/%m/%Y %H:%M')}"
-    )
-    tipo = 'success'
-
-    return enviar_notificacion_a_activos(asunto, mensaje, tipo)
+    _notificar_a_todos(asunto, mensaje, 'alerta', excluir=usuario)
 
 
 def notificacion_compra_proxima_vencer(compra):
-    """
-    Envía notificación de compra próxima a vencer.
-    """
-    producto_nombre = compra.Producto.nombre if compra.Producto else 'Producto sin asignar'
-    dias_restantes = (compra.fechaCompra - timezone.now().date()).days
-
-    if dias_restantes <= 0:
-        asunto = f"🚨 Compra vencida: {producto_nombre}"
-        mensaje = f"La compra '{producto_nombre}' del proveedor {compra.Proveedor.nombre} venció hace {abs(dias_restantes)} días."
+    """Compra próxima a vencer o vencida."""
+    producto_nombre = compra.Producto.nombre if compra.Producto else 'Sin asignar'
+    dias = (compra.fechaCompra - timezone.now().date()).days
+    if dias <= 0:
+        asunto  = f"🚨 Compra vencida #{compra.idCompra}: {producto_nombre}"
+        mensaje = (
+            f"La compra #{compra.idCompra} ha vencido hace {abs(dias)} día(s).\n\n"
+            f"Producto:  {producto_nombre}\n"
+            f"Proveedor: {compra.Proveedor.nombre}\n"
+            f"Fecha:     {compra.fechaCompra.strftime('%d/%m/%Y')}"
+        )
         tipo = 'error'
     else:
-        asunto = f"⏰ Compra próxima a vencer: {producto_nombre}"
-        mensaje = f"La compra '{producto_nombre}' del proveedor {compra.Proveedor.nombre} vence en {dias_restantes} día(s)."
+        asunto  = f"⏰ Compra vence en {dias} día(s): {producto_nombre}"
+        mensaje = (
+            f"La compra #{compra.idCompra} vence en {dias} día(s).\n\n"
+            f"Producto:  {producto_nombre}\n"
+            f"Proveedor: {compra.Proveedor.nombre}\n"
+            f"Fecha:     {compra.fechaCompra.strftime('%d/%m/%Y')}"
+        )
         tipo = 'alerta'
+    _notificar_a_todos(asunto, mensaje, tipo)
 
-    return enviar_notificacion_a_activos(asunto, mensaje, tipo)
+
+# ══════════════════════════════════════════════════════
+# VENTAS
+# ══════════════════════════════════════════════════════
+
+def notificacion_venta_completada(venta):
+    """Venta marcada como completada."""
+    asunto  = f"💰 Venta completada #{venta.id}: {venta.cliente}"
+    mensaje = (
+        f"La venta #{venta.id} ha sido completada.\n\n"
+        f"Cliente: {venta.cliente}\n"
+        f"Total:   ${venta.total:,.2f}\n"
+        f"Fecha:   {venta.fecha.strftime('%d/%m/%Y %H:%M')}\n\n"
+        f"Productos vendidos:\n"
+        + "\n".join(
+            f"  • {d.producto_nombre} x{d.cantidad} — ${d.subtotal:,.2f}"
+            for d in venta.detalles.all()
+        )
+    )
+    _notificar_a_todos(asunto, mensaje, 'success')
+
+
+def notificacion_venta_creada(venta, usuario):
+    """Nueva venta registrada."""
+    asunto  = f"🧾 Nueva venta #{venta.id}: {venta.cliente}"
+    mensaje = (
+        f"Se ha registrado una nueva venta.\n\n"
+        f"Cliente: {venta.cliente}\n"
+        f"Total:   ${venta.total:,.2f}\n"
+        f"Estado:  {venta.estado}\n"
+        f"Fecha:   {venta.fecha.strftime('%d/%m/%Y %H:%M')}\n\n"
+        f"Registrada por: {usuario.get_full_name() or usuario.username}"
+    )
+    _notificar_a_todos(asunto, mensaje, 'info', excluir=usuario)
+
+
+def notificacion_venta_eliminada(venta, usuario):
+    """Venta eliminada."""
+    asunto  = f"🗑️ Venta #{venta.id} eliminada"
+    mensaje = (
+        f"La venta #{venta.id} ha sido eliminada y el stock fue restaurado.\n\n"
+        f"Cliente: {venta.cliente}\n"
+        f"Total:   ${venta.total:,.2f}\n\n"
+        f"Eliminada por: {usuario.get_full_name() or usuario.username}"
+    )
+    _notificar_a_todos(asunto, mensaje, 'alerta', excluir=usuario)
+
+
+# ══════════════════════════════════════════════════════
+# CLIENTES
+# ══════════════════════════════════════════════════════
+
+def notificacion_cliente_creado(cliente, usuario):
+    asunto  = f"👤 Nuevo cliente: {cliente.nombre}"
+    mensaje = (
+        f"Se ha registrado un nuevo cliente.\n\n"
+        f"Nombre:    {cliente.nombre}\n"
+        f"Teléfono:  {cliente.telefono}\n"
+        f"Email:     {cliente.email}\n"
+        f"Dirección: {cliente.direccion or 'No especificada'}\n\n"
+        f"Registrado por: {usuario.get_full_name() or usuario.username}"
+    )
+    _notificar_a_todos(asunto, mensaje, 'info', excluir=usuario)
+
+
+def notificacion_cliente_inactivo(cliente, usuario):
+    asunto  = f"⚠️ Cliente desactivado: {cliente.nombre}"
+    mensaje = (
+        f"El cliente «{cliente.nombre}» ha sido marcado como inactivo.\n\n"
+        f"Desactivado por: {usuario.get_full_name() or usuario.username}\n"
+        f"Fecha: {timezone.now().strftime('%d/%m/%Y %H:%M')}"
+    )
+    _notificar_a_todos(asunto, mensaje, 'alerta', excluir=usuario)
+
+
+# ══════════════════════════════════════════════════════
+# PROVEEDORES
+# ══════════════════════════════════════════════════════
+
+def notificacion_proveedor_creado(proveedor, usuario):
+    asunto  = f"🏭 Nuevo proveedor: {proveedor.nombre}"
+    mensaje = (
+        f"Se ha registrado un nuevo proveedor.\n\n"
+        f"Nombre:    {proveedor.nombre}\n"
+        f"Teléfono:  {proveedor.telefono}\n"
+        f"Email:     {proveedor.email}\n\n"
+        f"Registrado por: {usuario.get_full_name() or usuario.username}"
+    )
+    _notificar_a_todos(asunto, mensaje, 'info', excluir=usuario)
+
+
+def notificacion_proveedor_eliminado(nombre_proveedor, usuario):
+    asunto  = f"🗑️ Proveedor eliminado: {nombre_proveedor}"
+    mensaje = (
+        f"El proveedor «{nombre_proveedor}» ha sido eliminado del sistema.\n\n"
+        f"Eliminado por: {usuario.get_full_name() or usuario.username}\n"
+        f"Fecha: {timezone.now().strftime('%d/%m/%Y %H:%M')}"
+    )
+    _notificar_a_todos(asunto, mensaje, 'alerta', excluir=usuario)

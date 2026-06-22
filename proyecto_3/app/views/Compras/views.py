@@ -1,4 +1,4 @@
-"""Vistas para gestión de compras — CORREGIDO: usa request.user directamente"""
+"""Vistas para gestión de compras"""
 from datetime import date, timedelta
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -7,34 +7,28 @@ from django.utils.decorators import method_decorator
 from django.db import transaction
 from django.http import JsonResponse
 from app.decorators import admin_login_required
-from app.services.notifications import notificacion_stock_bajo, notificacion_compra_creada, notificacion_compra_proxima_vencer
+from app.services.notifications import (
+    notificacion_stock_bajo,
+    notificacion_compra_creada,
+    notificacion_compra_completada,
+    notificacion_compra_eliminada,
+)
 from ...models import Compra, Proveedor, Producto
 
 
-# ─────────────────────────────────────────────
-# Helpers de stock
-# ─────────────────────────────────────────────
-
 def _sumar_stock(producto_id, cantidad):
-    """Aumenta el stock del producto. Llamar dentro de transaction.atomic()."""
     producto = Producto.objects.select_for_update().get(pk=producto_id)
     producto.stock += cantidad
     producto.save()
 
 
 def _restar_stock(producto_id, cantidad):
-    """Reduce el stock del producto. Llamar dentro de transaction.atomic()."""
     producto = Producto.objects.select_for_update().get(pk=producto_id)
     producto.stock = max(0, producto.stock - cantidad)
     producto.save()
-    # Notificar si stock queda bajo
     if producto.stock <= 5:
         notificacion_stock_bajo(producto)
 
-
-# ─────────────────────────────────────────────
-# Helpers de validación
-# ─────────────────────────────────────────────
 
 def _validar_fecha_nueva(fecha_str):
     try:
@@ -58,7 +52,6 @@ def _validar_fecha_editar(fecha_str):
 
 
 def _validar_cantidad_precio(cantidad_str, precio_str):
-    """Valida y convierte cantidad y precio. Retorna (cantidad_int, precio_float, error)."""
     if not cantidad_str.isdigit() or int(cantidad_str) < 1:
         return None, None, 'La cantidad debe ser un número entero mayor a 0.'
     try:
@@ -69,10 +62,6 @@ def _validar_cantidad_precio(cantidad_str, precio_str):
         return None, None, 'El precio debe ser un número mayor a 0.'
     return int(cantidad_str), precio, None
 
-
-# ─────────────────────────────────────────────
-# Vistas
-# ─────────────────────────────────────────────
 
 @method_decorator(admin_login_required, name='dispatch')
 class ComprasView(View):
@@ -95,27 +84,26 @@ class ComprasView(View):
 
         fecha_desde = request.GET.get('fecha_desde', '').strip()
         fecha_hasta = request.GET.get('fecha_hasta', '').strip()
-
         if fecha_desde:
             try:
-                desde_date = date.fromisoformat(fecha_desde)
-                lista_compras = lista_compras.filter(fechaCompra__gte=desde_date)
+                lista_compras = lista_compras.filter(fechaCompra__gte=date.fromisoformat(fecha_desde))
             except ValueError:
                 pass
-
         if fecha_hasta:
             try:
-                hasta_date = date.fromisoformat(fecha_hasta)
-                lista_compras = lista_compras.filter(fechaCompra__lte=hasta_date)
+                lista_compras = lista_compras.filter(fechaCompra__lte=date.fromisoformat(fecha_hasta))
             except ValueError:
                 pass
 
+        mes_inicio = date(hoy.year, hoy.month, 1)
         return render(request, 'Compras/Compras.html', {
             'compras':     lista_compras,
             'proveedores': Proveedor.objects.all(),
             'productos':   Producto.objects.all(),
-            'fecha_min':   hoy.strftime('%Y-%m-%d'),
-            'fecha_max':   (hoy + timedelta(days=7)).strftime('%Y-%m-%d'),
+            'fecha_min':   mes_inicio.strftime('%Y-%m-%d'),
+            'fecha_max':   hoy.strftime('%Y-%m-%d'),
+            'mes_inicio':  mes_inicio.strftime('%Y-%m-%d'),
+            'hoy':         hoy.strftime('%Y-%m-%d'),
         })
 
 
@@ -150,15 +138,16 @@ class CrearCompraView(View):
                     estado          = estado_str,
                     cantidad        = cantidad,
                     precio_unitario = precio,
-                    usuario         = request.user,   # ← CORRECCIÓN: usa auth.User directamente
+                    usuario         = request.user,
                     Producto_id     = int(producto_id),
                     Proveedor_id    = int(proveedor_id),
                 )
                 if estado_str == 'Completada':
                     _sumar_stock(int(producto_id), cantidad)
 
-            # Enviar notificación de nueva compra
             notificacion_compra_creada(compra)
+            if estado_str == 'Completada':
+                notificacion_compra_completada(compra)
             messages.success(request, f'Compra #{compra.idCompra} registrada exitosamente.')
         except Exception as e:
             messages.error(request, f'Error al crear la compra: {str(e)}')
@@ -200,7 +189,6 @@ class EditarCompraView(View):
 
                 if estado_anterior == 'Completada' and producto_anterior:
                     _restar_stock(producto_anterior, cantidad_anterior)
-
                 if estado_nuevo == 'Completada':
                     _sumar_stock(producto_nuevo, cantidad_nueva)
 
@@ -208,10 +196,14 @@ class EditarCompraView(View):
                 compra.estado          = estado_nuevo
                 compra.cantidad        = cantidad_nueva
                 compra.precio_unitario = precio_nuevo
-                compra.usuario         = request.user   # ← CORRECCIÓN
+                compra.usuario         = request.user
                 compra.Producto_id     = producto_nuevo
                 compra.Proveedor_id    = int(proveedor_id)
                 compra.save()
+
+            # Notificar si pasó a Completada
+            if estado_anterior != 'Completada' and estado_nuevo == 'Completada':
+                notificacion_compra_completada(compra)
 
             messages.success(request, f'Compra #{compra.idCompra} actualizada exitosamente.')
         except Exception as e:
@@ -228,6 +220,7 @@ class EliminarCompraView(View):
                 if compra.estado == 'Completada' and compra.Producto_id:
                     _restar_stock(compra.Producto_id, compra.cantidad)
                 compra_id = compra.idCompra
+                notificacion_compra_eliminada(compra, request.user)
                 compra.delete()
             messages.success(request, f'Compra #{compra_id} eliminada exitosamente.')
         except Exception as e:
@@ -250,9 +243,7 @@ class ComprasJsonView(View):
                 'producto':        c.Producto.nombre  if c.Producto  else '',
                 'proveedor':       c.Proveedor.nombre if c.Proveedor else '',
             }
-            for c in Compra.objects.select_related(
-                'usuario', 'Producto', 'Proveedor'
-            ).order_by('-fechaCompra')
+            for c in Compra.objects.select_related('usuario', 'Producto', 'Proveedor').order_by('-fechaCompra')
         ]
         return JsonResponse({'compras': lista})
 
