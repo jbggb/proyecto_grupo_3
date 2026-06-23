@@ -7,6 +7,12 @@
 <style>
 .pp-card { user-select: none; }
 .pp-card:hover { border-color: var(--c-info) !important; background: rgba(52,152,219,.06) !important; }
+.chip-producto {
+  display:inline-flex;align-items:center;gap:5px;
+  background:rgba(41,128,185,0.12);border:1px solid rgba(41,128,185,0.25);
+  border-radius:20px;padding:3px 10px;font-size:.75rem;color:var(--tx-primary);
+  font-weight:600;margin:2px;
+}
 </style>
 
 <div class="page-header animate-slide-right">
@@ -41,15 +47,6 @@
           <input id="filtro-email-prov" type="search" class="rt-filter-input" data-filter-col="email" placeholder="Filtrar por email..." autocomplete="off">
         </div>
       </div>
-      <div class="rt-filter-group">
-        <label for="filtro-envio-prov" class="rt-filter-label"><i class="fa-solid fa-gauge"></i> Velocidad de envío</label>
-        <select id="filtro-envio-prov" class="rt-filter-select" data-filter-col="envio-cat">
-          <option value="">Todas las velocidades</option>
-          <option value="rapido">🟢 Rápido (1-7 días)</option>
-          <option value="normal">🟡 Normal (8-15 días)</option>
-          <option value="lento">🔴 Lento (15+ días)</option>
-        </select>
-      </div>
       <div class="rt-filter-actions">
         <button type="button" class="rt-btn-clear" data-filter-clear>
           <i class="fa-solid fa-xmark"></i> Limpiar filtros
@@ -82,8 +79,7 @@
             <th>Proveedor</th>
             <th>Teléfono</th>
             <th>Email</th>
-            <th>Envío</th>
-            <th>Velocidad</th>
+            <th>Categoría principal</th>
             <th>Productos</th>
             <th>Fecha</th>
             <th>Acciones</th>
@@ -101,23 +97,11 @@
             </td>
             <td data-col="telefono" style="font-family:var(--font-mono);font-size:.85rem;">{{ p.telefono }}</td>
             <td data-col="email" style="font-size:.85rem;color:var(--tx-secondary);">{{ p.email }}</td>
-            <td data-col="envio">
-              {% if p.envio <= 7 %}
-                <span class="badge badge-success"><i class="fa-solid fa-circle" style="font-size:.5rem;"></i> {{ p.envio }} días</span>
-              {% elif p.envio <= 15 %}
-                <span class="badge badge-warning">{{ p.envio }} días</span>
+            <td data-col="categoria" style="font-size:.83rem;color:var(--tx-secondary);">
+              {% if p.categoria_principal != '—' %}
+                <span class="badge badge-info">{{ p.categoria_principal }}</span>
               {% else %}
-                <span class="badge badge-danger">{{ p.envio }} días</span>
-              {% endif %}
-            </td>
-            <td data-col="envio-cat" style="display:none;">{% if p.envio <= 7 %}rapido{% elif p.envio <= 15 %}normal{% else %}lento{% endif %}</td>
-            <td data-col="velocidad">
-              {% if p.envio <= 7 %}
-                <span class="badge badge-success"><i class="fa-solid fa-bolt"></i> Rápido</span>
-              {% elif p.envio <= 15 %}
-                <span class="badge badge-warning"><i class="fa-solid fa-gauge"></i> Normal</span>
-              {% else %}
-                <span class="badge badge-danger"><i class="fa-solid fa-snail" style="font-size:.7rem;"></i> Lento</span>
+                <span style="color:var(--tx-muted);">Sin asignar</span>
               {% endif %}
             </td>
             <td data-col="productos">
@@ -131,12 +115,12 @@
             <td>
               <div class="tbl-actions">
                 <button class="btn btn-sm btn-info btn-icon-sq"
-                  onclick="verProveedor('{{ p.id }}','{{ p.nombre|escapejs }}','{{ p.telefono|escapejs }}','{{ p.email|escapejs }}','{{ p.envio }}','{{ p.fechaRegistro }}')"
+                  onclick="verProveedor('{{ p.id }}','{{ p.nombre|escapejs }}','{{ p.telefono|escapejs }}','{{ p.email|escapejs }}','{{ p.envio }}','{{ p.fechaRegistro }}','{{ p.observaciones|escapejs }}',{{ p.id }})"
                   title="Ver detalle">
                   <i class="fa-solid fa-eye"></i>
                 </button>
                 <button class="btn btn-sm btn-secondary btn-icon-sq"
-                  onclick="abrirEditar({{ p.id }},'{{ p.nombre|escapejs }}','{{ p.telefono|escapejs }}','{{ p.email|escapejs }}',{{ p.envio }})"
+                  onclick="abrirEditar({{ p.id }},'{{ p.nombre|escapejs }}','{{ p.telefono|escapejs }}','{{ p.email|escapejs }}',{{ p.envio }},'{{ p.observaciones|escapejs }}')"
                   title="Editar">
                   <i class="fa-solid fa-pen"></i>
                 </button>
@@ -153,14 +137,14 @@
           </tr>
           {% empty %}
           <tr data-filter-row>
-            <td colspan="9" style="text-align:center;padding:48px;color:var(--tx-muted);">
+            <td colspan="8" style="text-align:center;padding:48px;color:var(--tx-muted);">
               <i class="fa-solid fa-truck" style="font-size:2rem;display:block;margin-bottom:10px;opacity:.3;"></i>
               No hay proveedores registrados
             </td>
           </tr>
           {% endfor %}
           <tr data-filter-empty style="display:none;">
-            <td colspan="9" style="text-align:center;padding:32px;color:var(--tx-muted);">
+            <td colspan="8" style="text-align:center;padding:32px;color:var(--tx-muted);">
               <i class="fa-solid fa-filter-circle-xmark me-2"></i> Ningún proveedor coincide con los filtros.
             </td>
           </tr>
@@ -171,35 +155,57 @@
 
 </div>
 
-<!-- Modal Ver -->
-<div class="modal fade modal-detalle" id="modalVerProveedor" tabindex="-1" aria-modal="true" role="dialog">
-  <div class="modal-dialog modal-dialog-centered">
+<!-- ── Modal Ver Proveedor ── -->
+<div class="modal fade" id="modalVerProveedor" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header">
+        <h5 class="modal-title"><i class="fa-solid fa-truck"></i> Detalle del Proveedor</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
       <div class="modal-body">
-        <div class="modal-detalle-icon"><i class="fa-solid fa-truck"></i></div>
-        <h4 class="modal-detalle-title">Detalle del Proveedor</h4>
-        <table class="modal-detalle-table">
-          <tr><td>ID</td><td id="ver_id"></td></tr>
-          <tr><td>Nombre</td><td id="ver_nombre"></td></tr>
-          <tr><td>Teléfono</td><td id="ver_telefono"></td></tr>
-          <tr><td>Email</td><td id="ver_email"></td></tr>
-          <tr><td>Días de envío</td><td id="ver_envio"></td></tr>
-          <tr><td>Velocidad</td><td id="ver_velocidad"></td></tr>
-          <tr><td>Entrega estimada</td><td id="ver_estimada"></td></tr>
-          <tr><td>Fecha Registro</td><td id="ver_fecha"></td></tr>
-        </table>
-        <button type="button" class="btn modal-detalle-btn-cerrar" data-bs-dismiss="modal">Cerrar</button>
+        <div class="row g-3">
+          <!-- Info básica -->
+          <div class="col-12 col-md-6">
+            <table class="modal-detalle-table">
+              <tr><td>ID</td><td id="ver_id"></td></tr>
+              <tr><td>Nombre</td><td id="ver_nombre"></td></tr>
+              <tr><td>Teléfono</td><td id="ver_telefono"></td></tr>
+              <tr><td>Email</td><td id="ver_email"></td></tr>
+              
+              <tr><td>Fecha Registro</td><td id="ver_fecha"></td></tr>
+            </table>
+          </div>
+          <!-- Productos asignados + Observaciones -->
+          <div class="col-12 col-md-6">
+            <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx-secondary);margin-bottom:8px;">
+              <i class="fa-solid fa-box me-1"></i> Productos asignados
+            </div>
+            <div id="ver_productos_chips" style="min-height:40px;margin-bottom:10px;">
+              <span style="color:var(--tx-muted);font-size:.82rem;">Cargando...</span>
+            </div>
+            <button type="button" class="btn btn-sm btn-info" id="ver_btn_gestionar">
+              <i class="fa-solid fa-pen"></i> Gestionar productos
+            </button>
+
+            <div style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx-secondary);margin-top:16px;margin-bottom:6px;">
+              <i class="fa-solid fa-note-sticky me-1"></i> Observaciones
+            </div>
+            <div id="ver_observaciones"
+                 style="background:var(--bg-card);border:1px solid var(--bd-default);border-radius:var(--r-md);padding:12px;font-size:.84rem;color:var(--tx-primary);min-height:60px;white-space:pre-wrap;"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>
 </div>
 
-<!-- Modal Crear -->
+<!-- ── Modal Crear Proveedor ── -->
 <div class="modal fade" id="modalCrearProveedor" tabindex="-1" aria-modal="true" role="dialog">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title"><i class="fa-solid fa-plus"></i> Nuevo Proveedor</h5>
@@ -217,21 +223,19 @@
           <div class="mb-3">
             <label class="form-label">Teléfono <span style="color:var(--c-danger);">*</span></label>
             <input type="text" name="telefono" class="form-control"
-              maxlength="10" pattern="[0-9]+" title="Solo números (7-10 dígitos)"
-              oninput="this.value = this.value.replace(/[^\d]/g, '');"
+              maxlength="10" oninput="this.value = this.value.replace(/[^\d]/g, '');"
               placeholder="3001234567" required>
           </div>
           <div class="mb-3">
             <label class="form-label">Email <span style="color:var(--c-danger);">*</span></label>
             <input type="text" name="email" class="form-control"
-              placeholder="proveedor@empresa.com"
-              pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"
-              required>
+              placeholder="proveedor@empresa.com" required>
           </div>
           <div class="mb-3">
-            <label class="form-label">Días de envío <span style="color:var(--c-danger);">*</span></label>
-            <input type="number" name="envio" class="form-control" min="1" max="30" placeholder="1–30" required>
-            <div class="form-text">🟢 Rápido: 1–7 &nbsp;|&nbsp; 🟡 Normal: 8–15 &nbsp;|&nbsp; 🔴 Lento: 16–30</div>
+            <label class="form-label">Observaciones</label>
+            <textarea name="observaciones" class="form-control" rows="3"
+              placeholder="Ej: Entrega martes y jueves. Pago a 30 días. Contacto: Juan 310..."></textarea>
+            <div class="form-text">Campo libre — días de entrega, condiciones de pago, contacto adicional, etc.</div>
           </div>
         </div>
         <div class="modal-footer">
@@ -243,9 +247,9 @@
   </div>
 </div>
 
-<!-- Modal Editar -->
+<!-- ── Modal Editar Proveedor ── -->
 <div class="modal fade" id="modalEditarProveedor" tabindex="-1" aria-modal="true" role="dialog">
-  <div class="modal-dialog">
+  <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
         <h5 class="modal-title"><i class="fa-solid fa-pen"></i> Editar Proveedor</h5>
@@ -269,8 +273,10 @@
             <input id="edit_email" type="text" name="email" class="form-control" required>
           </div>
           <div class="mb-3">
-            <label class="form-label">Días de envío <span style="color:var(--c-danger);">*</span></label>
-            <input id="edit_envio" type="number" name="envio" class="form-control" min="1" max="30" required>
+            <label class="form-label">Observaciones</label>
+            <textarea id="edit_observaciones" name="observaciones" class="form-control" rows="3"
+              placeholder="Ej: Entrega martes y jueves. Pago a 30 días..."></textarea>
+            <div class="form-text">Campo libre — días de entrega, condiciones de pago, contacto adicional, etc.</div>
           </div>
         </div>
         <div class="modal-footer">
@@ -282,8 +288,7 @@
   </div>
 </div>
 
-
-<!-- Modal Gestión de Productos del Proveedor -->
+<!-- ── Modal Gestión de Productos ── -->
 <div class="modal fade" id="modalProductosProveedor" tabindex="-1" aria-modal="true" role="dialog">
   <div class="modal-dialog modal-lg modal-dialog-centered">
     <div class="modal-content">
@@ -296,17 +301,12 @@
       </div>
       <div class="modal-body">
         <p style="font-size:.85rem;color:var(--tx-muted);margin-bottom:14px;">
-          Seleccioná los productos que este proveedor suministra. Solo estos aparecerán al crear una compra con él.
+          Selecciona los productos que este proveedor suministra. Solo estos aparecerán al crear una compra con él.
         </p>
-
-        <!-- Búsqueda dentro del modal -->
         <div style="position:relative;margin-bottom:14px;">
           <i class="fa-solid fa-magnifying-glass" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--tx-muted);pointer-events:none;"></i>
-          <input type="text" id="pp_busqueda" class="form-control"
-                 style="padding-left:36px;" placeholder="Buscar producto...">
+          <input type="text" id="pp_busqueda" class="form-control" style="padding-left:36px;" placeholder="Buscar producto...">
         </div>
-
-        <!-- Grid de productos con checkboxes -->
         <div id="pp_grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;max-height:380px;overflow-y:auto;padding:2px;">
           <div id="pp_loading" style="grid-column:1/-1;text-align:center;padding:32px;color:var(--tx-muted);">
             <i class="fa-solid fa-spinner fa-spin me-2"></i>Cargando productos...
@@ -330,41 +330,50 @@
 
 <script src="{% static 'js/filtros_realtime.js' %}"></script>
 <script>
-function verProveedor(id, nombre, telefono, email, envio, fecha) {
-  document.getElementById('ver_id').textContent = id;
-  document.getElementById('ver_nombre').textContent = nombre;
-  document.getElementById('ver_telefono').textContent = telefono;
-  document.getElementById('ver_email').textContent = email;
-  document.getElementById('ver_envio').textContent = envio + ' días';
-  document.getElementById('ver_fecha').textContent = fecha;
+var verProveedorId = null;
 
-  // Calcular velocidad y fecha estimada de entrega
-  var dias = parseInt(envio);
-  var vel, velClass;
-  if (dias <= 7)       { vel = '🟢 Rápido (1-7 días)';   velClass = 'badge-success'; }
-  else if (dias <= 15) { vel = '🟡 Normal (8-15 días)';   velClass = 'badge-warning'; }
-  else                 { vel = '🔴 Lento (más de 15 días)'; velClass = 'badge-danger'; }
+function verProveedor(id, nombre, telefono, email, envio, fecha, observaciones, provId) {
+  verProveedorId = provId;
+  document.getElementById('ver_id').textContent        = id;
+  document.getElementById('ver_nombre').textContent    = nombre;
+  document.getElementById('ver_telefono').textContent  = telefono;
+  document.getElementById('ver_email').textContent     = email;
+  document.getElementById('ver_envio').textContent     = envio + ' días';
+  document.getElementById('ver_fecha').textContent     = fecha;
+  document.getElementById('ver_observaciones').textContent = observaciones || 'Sin observaciones';
 
-  var velEl = document.getElementById('ver_velocidad');
-  if (velEl) { velEl.innerHTML = '<span class="badge ' + velClass + '">' + vel + '</span>'; }
+  var chipsEl = document.getElementById('ver_productos_chips');
+  chipsEl.innerHTML = '<span style="color:var(--tx-muted);font-size:.8rem;"><i class="fa-solid fa-spinner fa-spin me-1"></i>Cargando...</span>';
+  fetch('/proveedores/' + provId + '/productos/')
+    .then(r => r.json())
+    .then(data => {
+      if (!data.productos || data.productos.length === 0) {
+        chipsEl.innerHTML = '<span style="color:var(--tx-muted);font-size:.82rem;">Sin productos asignados</span>';
+        return;
+      }
+      chipsEl.innerHTML = data.productos.map(p =>
+        '<span class="chip-producto"><i class="fa-solid fa-box" style="font-size:.65rem;opacity:.7;"></i>' + p.nombre + '</span>'
+      ).join('');
+    })
+    .catch(() => { chipsEl.innerHTML = '<span style="color:var(--c-danger);font-size:.8rem;">Error al cargar</span>'; });
 
-  // Fecha estimada = hoy + dias
-  var hoy = new Date();
-  hoy.setDate(hoy.getDate() + dias);
-  var opts = { day: '2-digit', month: '2-digit', year: 'numeric' };
-  var estEl = document.getElementById('ver_estimada');
-  if (estEl) estEl.textContent = hoy.toLocaleDateString('es-CO', opts);
+  document.getElementById('ver_btn_gestionar').onclick = function () {
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalVerProveedor')).hide();
+    setTimeout(() => gestionarProductos(provId, nombre), 300);
+  };
 
   bootstrap.Modal.getOrCreateInstance(document.getElementById('modalVerProveedor')).show();
 }
-function abrirEditar(id, nombre, telefono, email, envio) {
-  document.getElementById('edit_nombre').value = nombre;
-  document.getElementById('edit_telefono').value = telefono;
-  document.getElementById('edit_email').value = email;
-  document.getElementById('edit_envio').value = envio;
+
+function abrirEditar(id, nombre, telefono, email, envio, observaciones) {
+  document.getElementById('edit_nombre').value        = nombre;
+  document.getElementById('edit_telefono').value      = telefono;
+  document.getElementById('edit_email').value         = email;
+  document.getElementById('edit_observaciones').value = observaciones || '';
   document.getElementById('formEditar').action = '/proveedores/editar/' + id + '/';
   bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEditarProveedor')).show();
 }
+
 function confirmarEliminar(id, nombre) {
   Swal.fire({
     icon: 'warning', title: '¿Eliminar proveedor?',
@@ -375,7 +384,6 @@ function confirmarEliminar(id, nombre) {
   }).then(r => { if (r.isConfirmed) document.getElementById('formEliminar' + id).submit(); });
 }
 
-// ── Gestión de productos del proveedor ──
 var ppProveedorId = null;
 var ppTodosProductos = [];
 
@@ -386,21 +394,15 @@ function gestionarProductos(id, nombre) {
   document.getElementById('pp_busqueda').value = '';
   ppTodosProductos = [];
 
-  bootstrap.Modal.getOrCreateInstance(
-    document.getElementById('modalProductosProveedor')
-  ).show();
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalProductosProveedor')).show();
 
-  // 1. Cargar todos los productos disponibles
   fetch('/api/productos/listado/')
     .then(r => r.json())
     .then(todosData => {
-      // 2. Cargar los ya asignados a este proveedor
       fetch('/proveedores/' + id + '/productos/')
         .then(r => r.json())
         .then(asignadosData => {
-          var asignadosIds = new Set(
-            (asignadosData.productos || []).map(p => String(p.id))
-          );
+          var asignadosIds = new Set((asignadosData.productos || []).map(p => String(p.id)));
           ppTodosProductos = todosData.productos || [];
           ppRenderGrid(ppTodosProductos, asignadosIds);
           document.getElementById('pp_loading').style.display = 'none';
@@ -413,20 +415,17 @@ function gestionarProductos(id, nombre) {
 
 function ppRenderGrid(lista, asignadosIds) {
   var grid = document.getElementById('pp_grid');
-  // Limpiar excepto el loading
-  Array.from(grid.children).forEach(c => {
-    if (c.id !== 'pp_loading') c.remove();
-  });
+  Array.from(grid.children).forEach(c => { if (c.id !== 'pp_loading') c.remove(); });
 
   lista.forEach(function (p) {
     var checked = asignadosIds && asignadosIds.has(String(p.id));
     var card = document.createElement('label');
-    card.className = 'pp-card' + (checked ? ' pp-card--checked' : '');
+    card.className = 'pp-card';
     card.dataset.nombre = p.nombre.toLowerCase();
     card.innerHTML =
       '<input type="checkbox" class="pp-check" value="' + p.id + '"' + (checked ? ' checked' : '') + ' style="display:none;">' +
       '<div style="display:flex;justify-content:space-between;align-items:flex-start;">' +
-      '  <span style="font-weight:600;font-size:.84rem;">' + p.nombre + '</span>' +
+      '  <span style="font-weight:600;font-size:.84rem;color:var(--tx-primary);">' + p.nombre + '</span>' +
       '  <i class="fa-solid fa-check pp-check-icon" style="color:var(--c-success);' + (checked ? '' : 'display:none;') + '"></i>' +
       '</div>' +
       '<div style="font-size:.75rem;color:var(--tx-muted);margin-top:4px;">Stock: ' + p.stock + ' · $' + Number(p.precio).toLocaleString('es-CO') + '</div>';
@@ -436,7 +435,7 @@ function ppRenderGrid(lista, asignadosIds) {
       ';border-radius:var(--r-md);padding:12px;cursor:pointer;transition:border-color .15s,background .15s;';
 
     card.addEventListener('click', function () {
-      var cb = this.querySelector('.pp-check');
+      var cb   = this.querySelector('.pp-check');
       var icon = this.querySelector('.pp-check-icon');
       cb.checked = !cb.checked;
       if (cb.checked) {
@@ -462,7 +461,6 @@ function ppActualizarContador() {
   if (el) el.textContent = total;
 }
 
-// Búsqueda en tiempo real dentro del grid
 document.getElementById('pp_busqueda').addEventListener('input', function () {
   var q = this.value.toLowerCase();
   document.querySelectorAll('#pp_grid label').forEach(function (card) {
@@ -470,29 +468,24 @@ document.getElementById('pp_busqueda').addEventListener('input', function () {
   });
 });
 
-// Guardar asignación
 document.getElementById('pp_btn_guardar').addEventListener('click', function () {
   var ids = Array.from(document.querySelectorAll('.pp-check:checked')).map(c => c.value);
-  var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
-  var csrf = csrfToken ? csrfToken.value : '';
+  var csrf = document.querySelector('[name=csrfmiddlewaretoken]');
+  var token = csrf ? csrf.value : '';
 
   fetch('/proveedores/' + ppProveedorId + '/productos/', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': token },
     body: JSON.stringify({ producto_ids: ids })
   })
   .then(r => r.json())
   .then(data => {
     if (data.ok) {
-      bootstrap.Modal.getOrCreateInstance(
-        document.getElementById('modalProductosProveedor')
-      ).hide();
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('modalProductosProveedor')).hide();
       Swal.fire({
-        icon: 'success',
-        title: 'Guardado',
+        icon: 'success', title: 'Guardado',
         text: data.total + ' producto(s) asignados al proveedor.',
-        background: '#0e1420', color: '#f0f4ff',
-        confirmButtonColor: '#27ae60',
+        background: '#0e1420', color: '#f0f4ff', confirmButtonColor: '#27ae60',
         timer: 2000, timerProgressBar: true
       }).then(() => location.reload());
     }

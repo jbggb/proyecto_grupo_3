@@ -112,6 +112,7 @@ class Proveedor(models.Model):
         db_table='proveedor_producto',
         verbose_name='Productos que suministra',
     )
+    observaciones = models.TextField(blank=True, default='', verbose_name='Observaciones')
 
     def __str__(self):
         return self.nombre

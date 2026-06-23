@@ -78,6 +78,20 @@ class ProveedoresView(View):
             except ValueError:
                 pass
 
+        # Calcular categoría principal por proveedor
+        from collections import Counter
+        for p in lista:
+            tipos = list(
+                p.productos
+                .exclude(idTipo=None)
+                .values_list('idTipo__nombre_tipo', flat=True)
+            )
+            if tipos:
+                mas_comun = Counter(tipos).most_common(1)
+                p.categoria_principal = mas_comun[0][0] if mas_comun else '—'
+            else:
+                p.categoria_principal = '—'
+
         return render(request, 'proveedores/proveedores.html', {
             'proveedores':  lista,
             'busqueda':     busqueda,
@@ -91,15 +105,16 @@ class CrearProveedorView(View):
         nombre   = request.POST.get('nombre', '').strip()
         telefono = request.POST.get('telefono', '').strip()
         email    = request.POST.get('email', '').strip()
-        envio    = request.POST.get('envio', '').strip()
-        errores  = _validar_proveedor(nombre, telefono, email, envio)
+        envio = request.POST.get('envio', str(proveedor.envio)).strip()
+        errores = _validar_proveedor(nombre, telefono, email, envio, proveedor_id=id)
         if errores:
             for e in errores:
                 messages.error(request, e)
         else:
             try:
                 proveedor = Proveedor.objects.create(
-                    nombre=nombre, telefono=telefono, email=email, envio=int(envio)
+                    nombre=nombre, telefono=telefono, email=email, envio=int(envio),
+                    observaciones=request.POST.get('observaciones', '').strip()
                 )
                 notificacion_proveedor_creado(proveedor, request.user)
                 messages.success(request, f'Proveedor "{nombre}" creado exitosamente.')
@@ -122,10 +137,11 @@ class EditarProveedorView(View):
                 messages.error(request, e)
         else:
             try:
-                proveedor.nombre   = nombre
-                proveedor.telefono = telefono
-                proveedor.email    = email
-                proveedor.envio    = int(envio)
+                proveedor.nombre        = nombre
+                proveedor.telefono      = telefono
+                proveedor.email         = email
+                proveedor.envio         = int(envio)
+                proveedor.observaciones = request.POST.get('observaciones', '').strip()
                 proveedor.save()
                 messages.success(request, f'Proveedor "{nombre}" actualizado exitosamente.')
             except Exception as e:

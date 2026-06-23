@@ -100,11 +100,6 @@ class CrearClienteView(View):
 class EditarClienteView(View):
     def post(self, request, id):
         cliente = get_object_or_404(Cliente, id=id)
-
-        if cliente.estado == 'activo':
-            messages.error(request, 'No se puede editar un cliente activo.')
-            return redirect('clientes')
-
         nombre    = request.POST.get('nombre', '').strip()
         documento = request.POST.get('documento', '').strip()
         telefono  = request.POST.get('telefono', '').strip()

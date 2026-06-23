@@ -47,16 +47,6 @@
           <option value="pendiente">Pendiente</option>
         </select>
       </div>
-      <!-- NUEVO: filtro velocidad envío del proveedor -->
-      <div class="rt-filter-group">
-        <label for="filtro-velocidad-compra" class="rt-filter-label"><i class="fa-solid fa-gauge"></i> Vel. envío proveedor</label>
-        <select id="filtro-velocidad-compra" class="rt-filter-select" data-filter-col="vel-envio">
-          <option value="">Todas las velocidades</option>
-          <option value="rapido">🟢 Rápido (1-7 días)</option>
-          <option value="normal">🟡 Normal (8-15 días)</option>
-          <option value="lento">🔴 Lento (15+ días)</option>
-        </select>
-      </div>
       <!-- Fechas limitadas al mes actual -->
       <div class="rt-filter-group">
         <label for="filtro-desde-compra" class="rt-filter-label"><i class="fa-solid fa-calendar-days"></i> Desde</label>
@@ -123,10 +113,6 @@
             <td data-col="fecha" style="font-size:.84rem;color:var(--tx-secondary);">{{ compra.fechaCompra|date:"d/m/Y" }}</td>
             <td data-col="fecha-desde" style="display:none;">{{ compra.fechaCompra|date:"Y-m-d" }}</td>
             <td data-col="fecha-hasta" style="display:none;">{{ compra.fechaCompra|date:"Y-m-d" }}</td>
-            <!-- col oculta para filtro velocidad -->
-            <td data-col="vel-envio" style="display:none;">
-              {% if compra.Proveedor.envio <= 7 %}rapido{% elif compra.Proveedor.envio <= 15 %}normal{% else %}lento{% endif %}
-            </td>
             <td data-col="estado">
               {% if compra.estado == 'Completada' %}
                 <span class="badge badge-success"><i class="fa-solid fa-check"></i> Completada</span>

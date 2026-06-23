@@ -116,14 +116,9 @@
                         title="Ver detalle">
                   <i class="fa-solid fa-eye"></i>
                 </button>
-                <button type="button" class="btn btn-sm btn-icon-sq
-                  {% if cliente.estado == 'activo' %}btn-secondary{% else %}btn-warning{% endif %}"
-                  {% if cliente.estado == 'activo' %}
-                    disabled title="No se puede editar un cliente activo"
-                  {% else %}
-                    data-bs-toggle="modal" data-bs-target="#modalEditarCliente{{ cliente.id }}" title="Editar"
-                  {% endif %}>
-                  <i class="fa-solid fa-pen"></i>
+                <button type="button" class="btn btn-sm btn-warning btn-icon-sq"
+                    data-bs-toggle="modal" data-bs-target="#modalEditarCliente{{ cliente.id }}" title="Editar">
+                    <i class="fa-solid fa-pen"></i>
                 </button>
                 <button type="button" class="btn btn-sm btn-danger btn-icon-sq"
                         data-bs-toggle="modal" data-bs-target="#modalEliminarCliente{{ cliente.id }}"
