@@ -43,6 +43,7 @@ urlpatterns = [
     path('notificaciones/limpiar/', index_views.limpiar_notificaciones, name='limpiar_notificaciones'),
     path('notificaciones/leer/<int:id>/', index_views.marcar_leida_notificacion, name='marcar_leida_notificacion'),
     path('notificaciones/eliminar/<int:id>/', index_views.eliminar_notificacion, name='eliminar_notificacion'),
+    path('notificaciones/historial/',           index_views.historial_notificaciones, name='historial_notificaciones'),
 
     # ── Productos ──────────────────────────────────────────────────
     path('productos/',                    productos_views.productos,        name='productos'),

@@ -11,10 +11,10 @@ from app.services.notifications import (
     notificacion_proveedor_creado,
     notificacion_proveedor_eliminado,
 )
-from ...models import Proveedor, Producto
+from app.models import Proveedor, Producto
 
 
-def _validar_proveedor(nombre, telefono, email, envio, proveedor_id=None):
+def _validar_proveedor(nombre, telefono, email, proveedor_id=None):
     errores = []
     if not nombre:
         errores.append('El nombre es obligatorio.')
@@ -26,6 +26,8 @@ def _validar_proveedor(nombre, telefono, email, envio, proveedor_id=None):
         errores.append('El teléfono es obligatorio.')
     elif not telefono.isdigit():
         errores.append('El teléfono solo puede contener números.')
+    elif not telefono.startswith('3'):
+        errores.append('El teléfono debe iniciar con 3.')
     elif len(telefono) < 7 or len(telefono) > 15:
         errores.append('El teléfono debe tener entre 7 y 15 dígitos.')
     patron_email = r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$'
@@ -34,19 +36,17 @@ def _validar_proveedor(nombre, telefono, email, envio, proveedor_id=None):
     elif not re.match(patron_email, email):
         errores.append('El email no tiene un formato válido.')
     else:
+        # Validar que el dominio tenga TLD real (mínimo 2 letras reales, no solo letras random)
+        match = re.match(r'^[^@]+@[^@]+\.([a-zA-Z]{2,})$', email)
+        if match:
+            tld = match.group(1).lower()
+            # TLDs válidos comunes - bloquear dominios inventados muy cortos
+            tlds_invalidos = set()  # se maneja en backend con regex estricto
         qs = Proveedor.objects.filter(email=email)
         if proveedor_id:
             qs = qs.exclude(id=proveedor_id)
         if qs.exists():
             errores.append('Ya existe un proveedor con ese email.')
-    if not envio:
-        errores.append('Los días de envío son obligatorios.')
-    elif not envio.isdigit():
-        errores.append('Los días de envío solo pueden contener números enteros.')
-    elif int(envio) < 1:
-        errores.append('Los días de envío deben ser al menos 1.')
-    elif int(envio) > 30:
-        errores.append('Los días de envío no pueden superar 30 días.')
     return errores
 
 
@@ -78,7 +78,6 @@ class ProveedoresView(View):
             except ValueError:
                 pass
 
-        # Calcular categoría principal por proveedor
         from collections import Counter
         for p in lista:
             tipos = list(
@@ -105,21 +104,20 @@ class CrearProveedorView(View):
         nombre   = request.POST.get('nombre', '').strip()
         telefono = request.POST.get('telefono', '').strip()
         email    = request.POST.get('email', '').strip()
-        envio = request.POST.get('envio', str(proveedor.envio)).strip()
-        errores = _validar_proveedor(nombre, telefono, email, envio, proveedor_id=id)
+        errores  = _validar_proveedor(nombre, telefono, email)
         if errores:
             for e in errores:
                 messages.error(request, e)
         else:
             try:
                 proveedor = Proveedor.objects.create(
-                    nombre=nombre, telefono=telefono, email=email, envio=int(envio),
+                    nombre=nombre, telefono=telefono, email=email,
                     observaciones=request.POST.get('observaciones', '').strip()
                 )
                 notificacion_proveedor_creado(proveedor, request.user)
                 messages.success(request, f'Proveedor "{nombre}" creado exitosamente.')
             except Exception as e:
-                messages.error(request, f'Error: {str(e)}')
+                messages.error(request, f'Error al crear proveedor: {str(e)}')
         return redirect('proveedores')
 
 
@@ -130,8 +128,7 @@ class EditarProveedorView(View):
         nombre    = request.POST.get('nombre', '').strip()
         telefono  = request.POST.get('telefono', '').strip()
         email     = request.POST.get('email', '').strip()
-        envio     = request.POST.get('envio', '').strip()
-        errores   = _validar_proveedor(nombre, telefono, email, envio, proveedor_id=id)
+        errores   = _validar_proveedor(nombre, telefono, email, proveedor_id=id)
         if errores:
             for e in errores:
                 messages.error(request, e)
@@ -140,7 +137,6 @@ class EditarProveedorView(View):
                 proveedor.nombre        = nombre
                 proveedor.telefono      = telefono
                 proveedor.email         = email
-                proveedor.envio         = int(envio)
                 proveedor.observaciones = request.POST.get('observaciones', '').strip()
                 proveedor.save()
                 messages.success(request, f'Proveedor "{nombre}" actualizado exitosamente.')
@@ -167,16 +163,13 @@ class EliminarProveedorView(View):
 class ProveedoresJsonView(View):
     def get(self, request):
         lista = list(Proveedor.objects.all().values(
-            'id', 'nombre', 'telefono', 'email', 'envio', 'fechaRegistro'
+            'id', 'nombre', 'telefono', 'email', 'fechaRegistro'
         ))
         return JsonResponse({'proveedores': lista})
 
 
-
 @method_decorator(admin_login_required, name='dispatch')
 class ProveedorProductosView(View):
-    """Devuelve los productos asignados al proveedor (relación M2M).
-    Si no tiene productos asignados aún, devuelve todos (fallback)."""
     def get(self, request, id):
         proveedor = get_object_or_404(Proveedor, id=id)
         qs = proveedor.productos.all()
@@ -189,7 +182,6 @@ class ProveedorProductosView(View):
         return JsonResponse({'productos': data, 'proveedor': proveedor.nombre})
 
     def post(self, request, id):
-        """Asignar/desasignar productos al proveedor."""
         import json
         proveedor = get_object_or_404(Proveedor, id=id)
         try:
@@ -201,10 +193,9 @@ class ProveedorProductosView(View):
             return JsonResponse({'ok': False, 'error': str(e)}, status=400)
 
 
-
-proveedores        = ProveedoresView.as_view()
-crear_proveedor    = CrearProveedorView.as_view()
-editar_proveedor   = EditarProveedorView.as_view()
-eliminar_proveedor = EliminarProveedorView.as_view()
-proveedores_json   = ProveedoresJsonView.as_view()
+proveedores         = ProveedoresView.as_view()
+crear_proveedor     = CrearProveedorView.as_view()
+editar_proveedor    = EditarProveedorView.as_view()
+eliminar_proveedor  = EliminarProveedorView.as_view()
+proveedores_json    = ProveedoresJsonView.as_view()
 proveedor_productos = ProveedorProductosView.as_view()

@@ -95,6 +95,9 @@ class VentasView(View):
             except ValueError:
                 pass
 
+        import datetime as _dt
+        _hoy = ahora.date()
+        _mes_inicio = _dt.date(_hoy.year, _hoy.month, 1)
         return render(request, 'Ventas/Ventas.html', {
             'ventas':       lista_ventas,
             'ventas_hoy':   ventas_hoy,
@@ -102,6 +105,8 @@ class VentasView(View):
             'total_ventas': Venta.objects.count(),
             'clientes':     Cliente.objects.filter(estado='activo'),
             'productos':    Producto.objects.all(),
+            'hoy':          _hoy.strftime('%Y-%m-%d'),
+            'mes_inicio':   _mes_inicio.strftime('%Y-%m-%d'),
         })
 
 

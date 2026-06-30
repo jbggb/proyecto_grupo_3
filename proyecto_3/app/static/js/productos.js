@@ -2,11 +2,11 @@
 
 function bloquearNumeros(input, errorId) {
     var antes = input.value;
-    var limpio = input.value.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚüÜñÑ\s\-\.%&\/]/g, '');
+    var limpio = input.value.replace(/[^a-zA-ZáéíóúÁÉÍÓÚüÜñÑ\s\-\.%&\/]/g, '');
     limpio = limpio.replace(/ {2,}/g, ' ');
     if (antes !== limpio) {
         input.value = limpio;
-        mostrarError(errorId, 'Solo se permiten letras, números y caracteres especiales básicos.');
+        mostrarError(errorId, 'El nombre solo permite letras. No se aceptan números.');
     } else {
         ocultarError(errorId);
     }
@@ -29,8 +29,8 @@ function validarStock(input, errorId) {
     if (limpio.length > 1) limpio = limpio.replace(/^0+/, '');
     if (parseInt(limpio) > 1000) {
         limpio = '1000';
-    }
-    if (input.value !== limpio) {
+        mostrarError(errorId, '⚠ Has llegado al límite máximo de stock (1000 unidades).');
+    } else if (input.value !== limpio) {
         mostrarError(errorId, '⚠ El stock solo acepta números enteros.');
     }
     input.value = limpio;

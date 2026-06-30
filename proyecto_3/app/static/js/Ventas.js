@@ -169,6 +169,24 @@
     });
   });
 
+  // ── Confirmar completar venta ──
+  window.confirmarCompletarVenta = function (id, cliente) {
+    Swal.fire({
+      icon: 'question',
+      title: '¿Confirmar venta?',
+      html: '¿Deseas confirmar la venta del cliente <strong>' + cliente + '</strong>?<br><span style="font-size:.85rem;color:var(--tx-muted);">Esta acción marcará la venta como completada.</span>',
+      showCancelButton: true,
+      confirmButtonText: '<i class="fa-solid fa-check me-1"></i> Sí, confirmar',
+      cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#27ae60',
+      cancelButtonColor: '#555',
+      background: '#0e1420',
+      color: '#f0f4ff',
+    }).then(function(r) {
+      if (r.isConfirmed) document.getElementById('formCompletar' + id).submit();
+    });
+  };
+
   // ── Exponer para el escáner de ventas ──
   // El escáner llama a esta función cuando lee un producto en modo venta
   window.carritoVentaAgregar = function (id, nombre, precio, stock) {

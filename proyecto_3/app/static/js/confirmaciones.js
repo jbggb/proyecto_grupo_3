@@ -1,15 +1,7 @@
 /**
  * confirmaciones.js — Diálogos de confirmación globales (SweetAlert2)
  * Namespace: window.App.confirmar
- *
- * MIGRACIÓN: La función global confirmarEliminar() fue separada en
- * funciones con nombre específico para evitar conflictos con
- * marcas.js y unidades.js.
- *
- * USO EN TEMPLATES:
- *   onclick="App.confirmar.eliminar('Nombre', this.closest('form'))"
- *   onclick="App.confirmar.eliminarMarca('Nombre', this.closest('form'))"
- *   onclick="App.confirmar.eliminarUnidad('Nombre', this.closest('form'))"
+ * Estilo unificado con fondo oscuro y colores del sistema.
  */
 
 (function () {
@@ -18,75 +10,56 @@
   window.App = window.App || {};
   window.App.confirmar = window.App.confirmar || {};
 
-  /**
-   * Diálogo genérico de eliminación.
-   * @param {string} nombre     - Nombre del elemento a eliminar.
-   * @param {HTMLFormElement} formulario - Formulario que se enviará si confirma.
-   */
-  App.confirmar.eliminar = function (nombre, formulario) {
+  function _swalEliminar(titulo, html, form) {
     Swal.fire({
-      title: 'Eliminar "' + nombre + '"?',
-      text: 'Esta acción no se puede deshacer.',
       icon: 'warning',
+      title: titulo,
+      html: html,
       showCancelButton: true,
-      confirmButtonColor: '#dc3545',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Sí, eliminar',
+      confirmButtonText: '<i class="fa-solid fa-trash me-1"></i> Sí, eliminar',
       cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#c0392b',
+      cancelButtonColor: '#555',
+      background: '#0e1420',
+      color: '#f0f4ff',
     }).then(function (result) {
-      if (result.isConfirmed) {
-        formulario.submit();
-      }
+      if (result.isConfirmed) form.submit();
     });
+  }
+
+  App.confirmar.eliminar = function (nombre, form) {
+    _swalEliminar(
+      '¿Eliminar elemento?',
+      '¿Estás seguro de eliminar <strong>' + nombre + '</strong>?<br><span style="color:#e74c3c;font-size:.88rem;">Esta acción no se puede deshacer.</span>',
+      form
+    );
   };
 
-  /**
-   * Alias de compatibilidad — Marcas.
-   * Igual al genérico pero con título específico.
-   */
   App.confirmar.eliminarMarca = function (nombre, form) {
-    Swal.fire({
-      title: '¿Eliminar marca?',
-      html: 'Estás a punto de eliminar <strong>"' + nombre + '"</strong>.<br>Esta acción no se puede deshacer.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#dc3545',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar',
-    }).then(function (result) {
-      if (result.isConfirmed) { form.submit(); }
-    });
+    _swalEliminar(
+      '¿Eliminar marca?',
+      '¿Estás seguro de eliminar la marca <strong>' + nombre + '</strong>?<br><span style="color:#e74c3c;font-size:.88rem;">Esta acción no se puede deshacer.</span>',
+      form
+    );
   };
 
-  /**
-   * Alias de compatibilidad — Unidades de medida.
-   */
   App.confirmar.eliminarUnidad = function (nombre, form) {
-    Swal.fire({
-      title: '¿Eliminar unidad?',
-      html: 'Estás a punto de eliminar <strong>"' + nombre + '"</strong>.<br>Esta acción no se puede deshacer.',
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#dc3545',
-      cancelButtonColor: '#6c757d',
-      confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar',
-    }).then(function (result) {
-      if (result.isConfirmed) { form.submit(); }
-    });
+    _swalEliminar(
+      '¿Eliminar unidad?',
+      '¿Estás seguro de eliminar la unidad <strong>' + nombre + '</strong>?<br><span style="color:#e74c3c;font-size:.88rem;">Esta acción no se puede deshacer.</span>',
+      form
+    );
   };
 
-  /**
-   * Alias de compatibilidad — Tipos de producto.
-   */
   App.confirmar.eliminarTipo = function (nombre, form) {
-    App.confirmar.eliminar(nombre, form);
+    _swalEliminar(
+      '¿Eliminar tipo?',
+      '¿Estás seguro de eliminar el tipo <strong>' + nombre + '</strong>?<br><span style="color:#e74c3c;font-size:.88rem;">Esta acción no se puede deshacer.</span>',
+      form
+    );
   };
 
-  // ── Retrocompatibilidad global ──────────────────────────────────
-  // Mantiene confirmarEliminar() funcional mientras se migran los
-  // templates. REMOVER en la siguiente iteración.
+  // Retrocompatibilidad global
   window.confirmarEliminar = App.confirmar.eliminar;
 
 })();

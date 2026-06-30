@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% block page_header_title %}<i class="fa-solid fa-bag-shopping me-2"></i>Compras{% endblock %}
+
 {% load static humanize %}
 
 {% block title %}Compras{% endblock %}
@@ -91,7 +93,6 @@
             <th>Producto</th>
             <th>Cant.</th>
             <th>Total</th>
-            <th>Administrador</th>
             <th>Fecha</th>
             <th>Estado</th>
             <th>Acciones</th>
@@ -106,9 +107,6 @@
             <td data-col="cantidad" style="font-family:var(--font-mono);">{{ compra.cantidad }}</td>
             <td data-col="total" style="font-family:var(--font-mono);font-weight:700;color:var(--c-gold);">
               ${{ compra.total|floatformat:0|intcomma }}
-            </td>
-            <td data-col="admin" style="font-size:.84rem;color:var(--tx-secondary);">
-              {% if compra.usuario %}{{ compra.usuario.get_full_name|default:compra.usuario.username }}{% else %}—{% endif %}
             </td>
             <td data-col="fecha" style="font-size:.84rem;color:var(--tx-secondary);">{{ compra.fechaCompra|date:"d/m/Y" }}</td>
             <td data-col="fecha-desde" style="display:none;">{{ compra.fechaCompra|date:"Y-m-d" }}</td>
@@ -146,7 +144,7 @@
           </tr>
           {% empty %}
           <tr data-filter-row>
-            <td colspan="9" style="text-align:center;padding:48px;color:var(--tx-muted);">
+            <td colspan="8" style="text-align:center;padding:48px;color:var(--tx-muted);">
               <i class="fa-solid fa-bag-shopping" style="font-size:2rem;display:block;margin-bottom:10px;opacity:.3;"></i>
               No hay compras registradas
             </td>

@@ -119,7 +119,7 @@ def notificacion_producto_editado(producto, usuario):
         f"Stock:  {producto.stock} unidades\n\n"
         f"Modificado por: {usuario.get_full_name() or usuario.username}"
     )
-    _notificar_a_todos(asunto, mensaje, 'info', excluir=usuario)
+    _notificar_a_todos(asunto, mensaje, 'info')
 
 
 def notificacion_producto_eliminado(nombre_producto, usuario):
@@ -241,7 +241,7 @@ def notificacion_venta_creada(venta, usuario):
         f"Fecha:   {venta.fecha.strftime('%d/%m/%Y %H:%M')}\n\n"
         f"Registrada por: {usuario.get_full_name() or usuario.username}"
     )
-    _notificar_a_todos(asunto, mensaje, 'info', excluir=usuario)
+    _notificar_a_todos(asunto, mensaje, 'info')
 
 
 def notificacion_venta_eliminada(venta, usuario):
@@ -270,7 +270,7 @@ def notificacion_cliente_creado(cliente, usuario):
         f"Dirección: {cliente.direccion or 'No especificada'}\n\n"
         f"Registrado por: {usuario.get_full_name() or usuario.username}"
     )
-    _notificar_a_todos(asunto, mensaje, 'info', excluir=usuario)
+    _notificar_a_todos(asunto, mensaje, 'info')
 
 
 def notificacion_cliente_inactivo(cliente, usuario):
@@ -280,7 +280,7 @@ def notificacion_cliente_inactivo(cliente, usuario):
         f"Desactivado por: {usuario.get_full_name() or usuario.username}\n"
         f"Fecha: {timezone.now().strftime('%d/%m/%Y %H:%M')}"
     )
-    _notificar_a_todos(asunto, mensaje, 'alerta', excluir=usuario)
+    _notificar_a_todos(asunto, mensaje, 'alerta')
 
 
 # ══════════════════════════════════════════════════════
@@ -296,7 +296,7 @@ def notificacion_proveedor_creado(proveedor, usuario):
         f"Email:     {proveedor.email}\n\n"
         f"Registrado por: {usuario.get_full_name() or usuario.username}"
     )
-    _notificar_a_todos(asunto, mensaje, 'info', excluir=usuario)
+    _notificar_a_todos(asunto, mensaje, 'info')
 
 
 def notificacion_proveedor_eliminado(nombre_proveedor, usuario):
@@ -306,4 +306,4 @@ def notificacion_proveedor_eliminado(nombre_proveedor, usuario):
         f"Eliminado por: {usuario.get_full_name() or usuario.username}\n"
         f"Fecha: {timezone.now().strftime('%d/%m/%Y %H:%M')}"
     )
-    _notificar_a_todos(asunto, mensaje, 'alerta', excluir=usuario)
+    _notificar_a_todos(asunto, mensaje, 'alerta', )

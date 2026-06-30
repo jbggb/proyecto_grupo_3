@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% block page_header_title %}<i class="fa-solid fa-chart-line me-2"></i>Reportes{% endblock %}
+
 {% load static %}
 
 {% block content %}
@@ -90,12 +92,12 @@
   <!-- Tabs -->
   <div class="tabs-wrap">
     <div class="tabs-header">
-      <button class="tab-btn" onclick="switchTab('productos',this)"><i class="fa-solid fa-box"></i> Productos</button>
-      <button class="tab-btn" onclick="switchTab('clientes',this)"><i class="fa-solid fa-users"></i> Clientes</button>
-      <button class="tab-btn" onclick="switchTab('ventas',this)"><i class="fa-solid fa-cart-shopping"></i> Ventas</button>
-      <button class="tab-btn" onclick="switchTab('proveedores',this)"><i class="fa-solid fa-truck"></i> Proveedores</button>
-      <button class="tab-btn" onclick="switchTab('compras',this)"><i class="fa-solid fa-bag-shopping"></i> Compras</button>
-      <button class="tab-btn active" onclick="switchTab('todo',this)"><i class="fa-solid fa-table-cells"></i> Todo</button>
+      <button class="tab-btn" onclick="switchTabReporte('productos',this)"><i class="fa-solid fa-box"></i> Productos</button>
+      <button class="tab-btn" onclick="switchTabReporte('clientes',this)"><i class="fa-solid fa-users"></i> Clientes</button>
+      <button class="tab-btn" onclick="switchTabReporte('ventas',this)"><i class="fa-solid fa-cart-shopping"></i> Ventas</button>
+      <button class="tab-btn" onclick="switchTabReporte('proveedores',this)"><i class="fa-solid fa-truck"></i> Proveedores</button>
+      <button class="tab-btn" onclick="switchTabReporte('compras',this)"><i class="fa-solid fa-bag-shopping"></i> Compras</button>
+      <button class="tab-btn active" onclick="switchTabReporte('todo',this)"><i class="fa-solid fa-table-cells"></i> Todo</button>
     </div>
 
     <!-- PRODUCTOS -->
@@ -244,5 +246,15 @@
   };
 </script>
 <script src="{% static 'js/reporte.js' %}"></script>
+
+<script>
+function switchTabReporte(tabId, btn) {
+  document.querySelectorAll('.tab-panel').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+  var panel = document.getElementById('panel-' + tabId);
+  if (panel) panel.classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+</script>
 
 {% endblock %}

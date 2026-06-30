@@ -1,11 +1,12 @@
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
+from django.db.models import Sum
 import requests
 import json
 import os
 
-from app.models import Producto, Cliente, Venta, DetalleVenta, Compra, Proveedor
+from app.models import Producto, Cliente, Venta, Compra, Proveedor
 
 
 def obtener_contexto():
@@ -24,10 +25,9 @@ def obtener_contexto():
 
         ventas_completadas = Venta.objects.filter(estado='Completada').count()
         ventas_pendientes  = Venta.objects.filter(estado='Pendiente').count()
-        from django.db.models import Sum
         total_vendido = Venta.objects.filter(estado='Completada').aggregate(t=Sum('total'))['t'] or 0
 
-        ultimas_ventas = Venta.objects.all()[:5]
+        ultimas_ventas = Venta.objects.order_by('-id')[:5]
         lista_ventas = "\n".join([
             f"- Venta #{v.id} | Cliente: {v.cliente} | Total: ${v.total} | Estado: {v.estado}"
             for v in ultimas_ventas
@@ -42,9 +42,10 @@ def obtener_contexto():
             for p in Proveedor.objects.all()[:10]
         ])
 
-        return f"""Eres un asistente inteligente del Sistema de Inventario.
+        return f"""Eres un asistente inteligente del Sistema de Inventario de la Tienda El Despecho.
 DEBES responder SIEMPRE en español, nunca en inglés.
-Responde de forma clara y concisa.
+Responde de forma clara, concisa y amigable.
+Si no tienes información suficiente para responder algo, dilo con honestidad.
 
 === PRODUCTOS (primeros 30) ===
 {lista_productos}
@@ -72,7 +73,7 @@ Responde de forma clara y concisa.
 {lista_proveedores}"""
 
     except Exception as e:
-        return f"Eres un asistente de inventario. Responde SIEMPRE en español. Error al cargar datos: {str(e)}"
+        return f"Eres un asistente de inventario de la Tienda El Despecho. Responde SIEMPRE en español. Error al cargar datos: {str(e)}"
 
 
 def ia_index(request):
@@ -81,45 +82,53 @@ def ia_index(request):
 
 @csrf_exempt
 def ia_chat(request):
-    if request.method == 'POST':
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+    try:
         data = json.loads(request.body)
-        user_message = data.get('message', '')
+    except Exception:
+        return JsonResponse({'reply': 'Error al procesar la solicitud.', 'status': 'error'})
 
-        contexto = obtener_contexto()
+    user_message = data.get('message', '').strip()
+    if not user_message:
+        return JsonResponse({'reply': 'Por favor escribe un mensaje.', 'status': 'error'})
 
-        GROQ_API_KEY = os.environ.get('GROQ_API_KEY', '')
+    contexto = obtener_contexto()
+    GROQ_KEY = os.environ.get('GROQ_API_KEY', '')
 
-        headers = {
-            'Authorization': f'Bearer {GROQ_API_KEY}',
-            'Content-Type': 'application/json',
-        }
+    if not GROQ_KEY:
+        return JsonResponse({
+            'reply': 'El asistente no está configurado. Contacta al administrador del sistema.',
+            'status': 'error'
+        })
 
-        payload = {
-            'model': 'llama-3.1-8b-instant',
-            'messages': [
-                {'role': 'system', 'content': contexto},
-                {'role': 'user',   'content': user_message},
-            ],
-            'max_tokens': 512,
-            'temperature': 0.5,
-        }
+    try:
+        response = requests.post(
+            'https://api.groq.com/openai/v1/chat/completions',
+            headers={
+                'Content-Type': 'application/json',
+                'Authorization': f'Bearer {GROQ_KEY}',
+            },
+            json={
+                'model': 'llama-3.1-8b-instant',
+                'messages': [
+                    {'role': 'system', 'content': contexto},
+                    {'role': 'user',   'content': user_message},
+                ],
+                'max_tokens': 512,
+                'temperature': 0.5,
+            },
+            timeout=30
+        )
+        result = response.json()
 
-        try:
-            response = requests.post(
-                'https://api.groq.com/openai/v1/chat/completions',
-                headers=headers,
-                json=payload,
-                timeout=30
-            )
-            result = response.json()
-
-            if 'choices' not in result:
-                return JsonResponse({'reply': str(result), 'status': 'error'})
-
+        if 'choices' in result and result['choices']:
             reply = result['choices'][0]['message']['content']
             return JsonResponse({'reply': reply, 'status': 'ok'})
 
-        except Exception as e:
-            return JsonResponse({'reply': f'Error con la IA: {str(e)}', 'status': 'error'})
+        error_msg = result.get('error', {}).get('message', 'Sin respuesta del asistente.')
+        return JsonResponse({'reply': f'Error: {error_msg}', 'status': 'error'})
 
-    return JsonResponse({'error': 'Método no permitido'}, status=405)
+    except Exception as e:
+        return JsonResponse({'reply': f'Error de conexión: {str(e)}', 'status': 'error'})

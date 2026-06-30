@@ -12,7 +12,7 @@ from app.services.notifications import (
 )
 from ...models import Cliente
 
-PATRON_EMAIL = r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$'
+PATRON_EMAIL = r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9\-]+(\.[a-zA-Z0-9\-]+)*\.[a-zA-Z]{2,}$'
 
 
 def _validar_cliente(nombre, documento, telefono, email, direccion, estado, cliente_id=None):
@@ -43,6 +43,10 @@ def _validar_cliente(nombre, documento, telefono, email, direccion, estado, clie
         errores.append('El email es obligatorio.')
     elif not re.match(PATRON_EMAIL, email):
         errores.append('El email no tiene un formato válido.')
+    elif '.' not in email.split('@')[-1] or len(email.split('@')[-1].split('.')[-1]) < 2:
+        errores.append('El dominio del email no es válido.')
+    elif len(email.split('@')[0]) < 2:
+        errores.append('La dirección de email es demasiado corta.')
     else:
         qs = Cliente.objects.filter(email=email)
         if cliente_id:

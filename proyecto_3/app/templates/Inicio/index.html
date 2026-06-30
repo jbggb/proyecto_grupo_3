@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static humanize %}
 
-{% block title %}Dashboard{% endblock %}
+{% block title %}Inicio{% endblock %}
 
 {% block content %}
 
@@ -10,7 +10,7 @@
   <div class="page-header-left">
     <div class="page-title">
       <div class="page-title-icon"><i class="fa-solid fa-gauge-high"></i></div>
-      Dashboard
+      Inicio
     </div>
     <div class="page-subtitle">Bienvenido, {{ request.user.get_full_name|default:request.user.username }} — resumen general del sistema</div>
   </div>
@@ -30,7 +30,7 @@
       <div class="stat-card-glow"></div>
       <div class="stat-icon"><i class="fa-solid fa-box"></i></div>
       <div class="stat-label">Productos</div>
-      <div class="stat-value">{{ total_productos|default:"—" }}</div>
+      <div class="stat-value">{{ total_productos|default:"0" }}</div>
       <div class="stat-sub"><i class="fa-solid fa-layer-group"></i> en catálogo</div>
     </div>
   </div>
@@ -40,7 +40,7 @@
       <div class="stat-card-glow"></div>
       <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
       <div class="stat-label">Clientes</div>
-      <div class="stat-value">{{ total_clientes|default:"—" }}</div>
+      <div class="stat-value">{{ total_clientes|default:"0" }}</div>
       <div class="stat-sub"><i class="fa-solid fa-user-check"></i> registrados</div>
     </div>
   </div>
@@ -50,7 +50,7 @@
       <div class="stat-card-glow"></div>
       <div class="stat-icon"><i class="fa-solid fa-cart-shopping"></i></div>
       <div class="stat-label">Ventas</div>
-      <div class="stat-value">{{ total_ventas|default:"—" }}</div>
+      <div class="stat-value">{{ total_ventas|default:"0" }}</div>
       <div class="stat-sub"><i class="fa-solid fa-receipt"></i> realizadas</div>
     </div>
   </div>
@@ -60,7 +60,7 @@
       <div class="stat-card-glow"></div>
       <div class="stat-icon"><i class="fa-solid fa-truck"></i></div>
       <div class="stat-label">Proveedores</div>
-      <div class="stat-value">{{ total_proveedores|default:"—" }}</div>
+      <div class="stat-value">{{ total_proveedores|default:"0" }}</div>
       <div class="stat-sub"><i class="fa-solid fa-handshake"></i> activos</div>
     </div>
   </div>
@@ -70,7 +70,7 @@
       <div class="stat-card-glow"></div>
       <div class="stat-icon"><i class="fa-solid fa-bag-shopping"></i></div>
       <div class="stat-label">Compras</div>
-      <div class="stat-value">{{ total_compras|default:"—" }}</div>
+      <div class="stat-value">{{ total_compras|default:"0" }}</div>
       <div class="stat-sub"><i class="fa-solid fa-file-invoice"></i> registradas</div>
     </div>
   </div>
@@ -80,7 +80,7 @@
       <div class="stat-card-glow"></div>
       <div class="stat-icon"><i class="fa-solid fa-chart-line"></i></div>
       <div class="stat-label">Reportes</div>
-      <div class="stat-value">{{ total_reportes|default:"—" }}</div>
+      <div class="stat-value">{{ total_reportes|default:"0" }}</div>
       <div class="stat-sub"><i class="fa-solid fa-chart-bar"></i> generados</div>
     </div>
   </div>

@@ -231,7 +231,7 @@ class PerfilForm(forms.ModelForm):
             }),
             'foto':     forms.ClearableFileInput(attrs={
                 'class': 'form-control',
-                'accept': 'image/*',
+                'accept': 'image/jpeg,image/png', 
             }),
         }
 
@@ -260,11 +260,22 @@ class PerfilForm(forms.ModelForm):
         return telefono
 
     def clean_foto(self):
+        import imghdr
         foto = self.cleaned_data.get('foto')
         if foto and hasattr(foto, 'size'):
             if foto.size > 2 * 1024 * 1024:  # 2 MB
                 raise forms.ValidationError('La imagen no puede superar 2 MB.')
+            # Verificar content-type declarado
             tipo = getattr(foto, 'content_type', '')
             if tipo and not tipo.startswith('image/'):
-                raise forms.ValidationError('El archivo debe ser una imagen válida.')
+                raise forms.ValidationError('El archivo debe ser una imagen válida (JPG, PNG o GIF).')
+            # Verificar magic bytes reales del archivo (evita renombrar .txt a .png)
+            foto.seek(0)
+            cabecera = foto.read(12)
+            foto.seek(0)
+            tipo_real = imghdr.what(None, h=cabecera)
+            if tipo_real not in ('jpeg', 'png'):
+                raise forms.ValidationError(
+                    'El archivo no es una imagen válida. No se aceptan archivos de texto u otros formatos renombrados como imagen.'
+                )
         return foto

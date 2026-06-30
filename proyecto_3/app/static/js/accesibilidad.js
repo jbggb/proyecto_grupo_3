@@ -143,6 +143,16 @@
               <span class="acc-toggle-slider"></span>
             </div>
           </label>
+
+          <label class="acc-option">
+            <div class="acc-option-label">
+              <i class="fa-solid fa-volume-high"></i> Leer texto al pasar
+            </div>
+            <div class="acc-toggle">
+              <input type="checkbox" id="acc-toggle-tts" aria-label="Leer texto al pasar el mouse">
+              <span class="acc-toggle-slider"></span>
+            </div>
+          </label>
         </div>
 
         <!-- Reset -->
@@ -203,6 +213,7 @@
       'acc-toggle-links':      'underlineLinks',
       'acc-toggle-dyslexia':   'dyslexia',
       'acc-toggle-cursor':     'bigCursor',
+      'acc-toggle-tts':        'tts',
     };
 
     Object.keys(toggleMap).forEach(function (id) {
@@ -212,14 +223,44 @@
         var p = loadPrefs();
         p[toggleMap[id]] = this.checked;
         savePrefs(p); applyPrefs(p);
+        if (id === 'acc-toggle-tts') toggleTTS(this.checked);
       });
     });
+
+    // TTS — leer en voz alta al pasar el mouse
+    var ttsActive = false;
+    var ttsTimeout = null;
+
+    function toggleTTS(enable) {
+      ttsActive = enable;
+      if (!enable && window.speechSynthesis) window.speechSynthesis.cancel();
+    }
+
+    document.addEventListener('mouseover', function(e) {
+      if (!ttsActive || !window.speechSynthesis) return;
+      var el = e.target.closest('td, th, .stat-label, .stat-value, .nav-label, h1, h2, h3, p, label, .glass-card-title, .page-title');
+      if (!el) return;
+      var text = el.textContent.trim().replace(/\s+/g, ' ');
+      if (!text || text.length < 2) return;
+      clearTimeout(ttsTimeout);
+      ttsTimeout = setTimeout(function() {
+        window.speechSynthesis.cancel();
+        var utt = new SpeechSynthesisUtterance(text);
+        utt.lang = 'es-CO';
+        utt.rate = 0.95;
+        window.speechSynthesis.speak(utt);
+      }, 400);
+    });
+
+    // Aplicar TTS si estaba activo
+    if (prefs.tts) { syncToggle('acc-toggle-tts', true); ttsActive = true; }
 
     // Reset
     document.getElementById('acc-reset-btn').addEventListener('click', function () {
       savePrefs({});
       applyPrefs({});
       ROOT.style.fontSize = '';
+      toggleTTS(false);
     });
 
     // Cerrar con Escape

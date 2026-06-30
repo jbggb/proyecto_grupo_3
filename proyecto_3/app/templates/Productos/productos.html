@@ -1,7 +1,47 @@
 {% extends 'base.html' %}
+{% block page_header_title %}<i class="fa-solid fa-box me-2"></i>Productos{% endblock %}
+
 {% load static humanize %}
 
-{% block title %}Productos{% endblock %}
+{% block title %}Productos
+<script>
+// Modal Ver Producto
+document.addEventListener('click', function(e) {
+  var btnVer = e.target.closest('.btn-ver-producto');
+  if (btnVer) {
+    var d = btnVer.dataset;
+    document.getElementById('ver_prod_nombre').textContent  = d.nombre;
+    document.getElementById('ver_prod_id').textContent      = '#' + d.id;
+    document.getElementById('ver_prod_precio').textContent  = '$' + Number(d.precio).toLocaleString('es-CO');
+    var stock = parseInt(d.stock);
+    var stockEl = document.getElementById('ver_prod_stock');
+    if (stock === 0) stockEl.innerHTML = '<span class="badge badge-danger">Agotado (0)</span>';
+    else if (stock <= 5) stockEl.innerHTML = '<span class="badge badge-warning">Bajo (' + stock + ')</span>';
+    else stockEl.innerHTML = '<span class="badge badge-success">' + stock + ' unidades</span>';
+    document.getElementById('ver_prod_marca').textContent   = d.marca;
+    document.getElementById('ver_prod_tipo').textContent    = d.tipo;
+    document.getElementById('ver_prod_unidad').textContent  = d.unidad + ' (' + d.abrev + ')';
+    var barrasRow = document.getElementById('ver_prod_barras_row');
+    if (d.barras) {
+      document.getElementById('ver_prod_barras').textContent = d.barras;
+      barrasRow.style.display = '';
+    } else {
+      barrasRow.style.display = 'none';
+    }
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalVerProducto')).show();
+  }
+
+  // Modal Eliminar Producto
+  var btnDel = e.target.closest('.btn-eliminar-producto');
+  if (btnDel) {
+    document.getElementById('del_prod_nombre').textContent    = btnDel.dataset.nombre;
+    document.getElementById('formEliminarProducto').action    = btnDel.dataset.url;
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEliminarProducto')).show();
+  }
+});
+</script>
+
+{% endblock %}
 
 {% block content %}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css">
@@ -135,18 +175,33 @@
             </td>
             <td>
               <div class="tbl-actions">
-                <button class="btn btn-sm btn-info btn-icon-sq"
-                        data-bs-toggle="modal" data-bs-target="#modalVerProducto{{ producto.idProducto }}"
+                <button class="btn btn-sm btn-info btn-icon-sq btn-ver-producto"
+                        data-id="{{ producto.idProducto }}"
+                        data-nombre="{{ producto.nombre|escapejs }}"
+                        data-precio="{{ producto.precio }}"
+                        data-stock="{{ producto.stock }}"
+                        data-marca="{{ producto.idMarca.nombreMarca|escapejs }}"
+                        data-tipo="{{ producto.idTipo.nombre_tipo|escapejs }}"
+                        data-unidad="{{ producto.idUnidad.nombre_unidad|escapejs }}"
+                        data-abrev="{{ producto.idUnidad.abreviatura|escapejs }}"
+                        data-barras="{{ producto.codigo_barras|default:''|escapejs }}"
                         title="Ver detalle">
                   <i class="fa-solid fa-eye"></i>
                 </button>
-                <button class="btn btn-sm btn-warning btn-icon-sq"
-                        data-bs-toggle="modal" data-bs-target="#modalEditar{{ producto.idProducto }}"
+                <button class="btn btn-sm btn-warning btn-icon-sq btn-editar-producto"
+                        data-id="{{ producto.idProducto }}"
+                        data-nombre="{{ producto.nombre|escapejs }}"
+                        data-precio="{{ producto.precio|floatformat:0 }}"
+                        data-stock="{{ producto.stock }}"
+                        data-marca="{{ producto.idMarca.idMarca }}"
+                        data-tipo="{{ producto.idTipo.idTipo }}"
+                        data-unidad="{{ producto.idUnidad.idUnidad }}"
                         title="Editar">
                   <i class="fa-solid fa-pen"></i>
                 </button>
-                <button class="btn btn-sm btn-danger btn-icon-sq"
-                        onclick="eliminarProducto('{% url 'eliminar_producto' producto.idProducto %}', '{{ producto.nombre|escapejs }}')"
+                <button class="btn btn-sm btn-danger btn-icon-sq btn-eliminar-producto"
+                        data-url="{% url 'eliminar_producto' producto.idProducto %}"
+                        data-nombre="{{ producto.nombre|escapejs }}"
                         title="Eliminar">
                   <i class="fa-solid fa-trash"></i>
                 </button>
@@ -174,42 +229,53 @@
 </div>
 
 {% include 'Productos/Modal_agregar.html' %}
-{% for producto in productos %}
-  {% include 'Productos/Modal_editar.html' %}
-  <div class="modal fade modal-detalle" id="modalVerProducto{{ producto.idProducto }}" tabindex="-1" aria-modal="true" role="dialog">
-    <div class="modal-dialog modal-dialog-centered">
-      <div class="modal-content">
-        <div class="modal-header">
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <div class="modal-detalle-icon"><i class="fa-solid fa-box"></i></div>
-          <h4 class="modal-detalle-title">{{ producto.nombre }}</h4>
-          <table class="modal-detalle-table">
-            <tr><td>ID</td><td>#{{ producto.idProducto }}</td></tr>
-            <tr><td>Precio</td><td style="color:var(--c-gold);font-weight:700;">${{ producto.precio|floatformat:0|intcomma }}</td></tr>
-            <tr><td>Stock</td><td>
-              {% if producto.stock == 0 %}
-                <span class="badge badge-danger">Agotado ({{ producto.stock }})</span>
-              {% elif producto.stock <= 5 %}
-                <span class="badge badge-warning">Bajo ({{ producto.stock }})</span>
-              {% else %}
-                <span class="badge badge-success">{{ producto.stock }} unidades</span>
-              {% endif %}
-            </td></tr>
-            <tr><td>Marca</td><td>{{ producto.idMarca.nombreMarca }}</td></tr>
-            <tr><td>Tipo</td><td>{{ producto.idTipo.nombre_tipo }}</td></tr>
-            <tr><td>Unidad</td><td>{{ producto.idUnidad.nombre_unidad }} ({{ producto.idUnidad.abreviatura }})</td></tr>
-            {% if producto.codigo_barras %}
-            <tr><td>Código de barras</td><td style="font-family:var(--font-mono);">{{ producto.codigo_barras }}</td></tr>
-            {% endif %}
-          </table>
-          <button type="button" class="btn modal-detalle-btn-cerrar" data-bs-dismiss="modal">Cerrar</button>
-        </div>
+<!-- Modal Ver Producto (único dinámico) -->
+<div class="modal fade modal-detalle" id="modalVerProducto" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="modal-detalle-icon"><i class="fa-solid fa-box"></i></div>
+        <h4 class="modal-detalle-title" id="ver_prod_nombre"></h4>
+        <table class="modal-detalle-table">
+          <tr><td>ID</td><td id="ver_prod_id"></td></tr>
+          <tr><td>Precio</td><td id="ver_prod_precio" style="color:var(--c-gold);font-weight:700;"></td></tr>
+          <tr><td>Stock</td><td id="ver_prod_stock"></td></tr>
+          <tr><td>Marca</td><td id="ver_prod_marca"></td></tr>
+          <tr><td>Tipo</td><td id="ver_prod_tipo"></td></tr>
+          <tr><td>Unidad</td><td id="ver_prod_unidad"></td></tr>
+          <tr id="ver_prod_barras_row" style="display:none;"><td>Código de barras</td><td id="ver_prod_barras" style="font-family:var(--font-mono);"></td></tr>
+        </table>
+        <button type="button" class="btn modal-detalle-btn-cerrar" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>
-{% endfor %}
+</div>
+
+<!-- Modal Eliminar Producto (único dinámico) -->
+<div class="modal fade" id="modalEliminarProducto" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fa-solid fa-triangle-exclamation" style="color:var(--c-danger);"></i> Eliminar Producto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" id="formEliminarProducto" action="">
+        {% csrf_token %}
+        <div class="modal-body">
+          <p style="color:var(--tx-primary);">¿Eliminar el producto <strong style="color:var(--c-gold);" id="del_prod_nombre"></strong>?</p>
+          <p style="font-size:.84rem;color:var(--c-danger);">Esta acción no se puede deshacer.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-danger"><i class="fa-solid fa-trash"></i> Sí, eliminar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 
 <!-- Modal Escáner -->
 <div class="modal fade" id="modalEscaner" tabindex="-1" aria-modal="true" role="dialog">
@@ -325,15 +391,7 @@ $(document).ready(function () {
       }
     }
   });
-  $('[id^="modalEditar"]').each(function () {
-    var $modal = $(this);
-    var pid = $modal.attr('id').replace('modalEditar', '');
-    $modal.on('shown.bs.modal', function () {
-      $modal.find('.select2-editar-' + pid).each(function () {
-        if (!$(this).hasClass('select2-hidden-accessible')) {
-          $(this).select2({ ...s2opts, dropdownParent: $modal, placeholder: $(this).find('option:first').text() });
-        }
-      });
+
     });
   });
   {% if abrir_modal_agregar %}
@@ -348,5 +406,131 @@ $(document).ready(function () {
 });
 </script>
 {% include "escaner_modal.html" %}
+
+
+<script>
+// Modal Ver Producto
+document.addEventListener('click', function(e) {
+  var btnVer = e.target.closest('.btn-ver-producto');
+  if (btnVer) {
+    var d = btnVer.dataset;
+    document.getElementById('ver_prod_nombre').textContent  = d.nombre;
+    document.getElementById('ver_prod_id').textContent      = '#' + d.id;
+    document.getElementById('ver_prod_precio').textContent  = '$' + Number(d.precio).toLocaleString('es-CO');
+    var stock = parseInt(d.stock);
+    var stockEl = document.getElementById('ver_prod_stock');
+    if (stock === 0) stockEl.innerHTML = '<span class="badge badge-danger">Agotado (0)</span>';
+    else if (stock <= 5) stockEl.innerHTML = '<span class="badge badge-warning">Bajo (' + stock + ')</span>';
+    else stockEl.innerHTML = '<span class="badge badge-success">' + stock + ' unidades</span>';
+    document.getElementById('ver_prod_marca').textContent   = d.marca;
+    document.getElementById('ver_prod_tipo').textContent    = d.tipo;
+    document.getElementById('ver_prod_unidad').textContent  = d.unidad + ' (' + d.abrev + ')';
+    var barrasRow = document.getElementById('ver_prod_barras_row');
+    if (d.barras) {
+      document.getElementById('ver_prod_barras').textContent = d.barras;
+      barrasRow.style.display = '';
+    } else {
+      barrasRow.style.display = 'none';
+    }
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalVerProducto')).show();
+  }
+
+  // Modal Eliminar Producto
+  var btnDel = e.target.closest('.btn-eliminar-producto');
+  if (btnDel) {
+    document.getElementById('del_prod_nombre').textContent    = btnDel.dataset.nombre;
+    document.getElementById('formEliminarProducto').action    = btnDel.dataset.url;
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEliminarProducto')).show();
+  }
+});
+</script>
+
+
+<!-- Modal Editar Producto (único dinámico) -->
+<div class="modal fade" id="modalEditarProducto" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title"><i class="fa-solid fa-pen me-2"></i>Editar Producto</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="POST" id="formEditarProducto" action="">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Nombre <span class="text-danger">*</span></label>
+              <input type="text" name="nombre" id="edit_prod_nombre" class="form-control" required minlength="3" maxlength="100">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Precio <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <span class="input-group-text">$</span>
+                <input type="number" name="precio" id="edit_prod_precio" class="form-control" required min="1" max="800000">
+              </div>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Stock <span class="text-danger">*</span></label>
+              <input type="number" name="stock" id="edit_prod_stock" class="form-control" required min="0" max="1000">
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Marca <span class="text-danger">*</span></label>
+              <select name="idMarca" id="edit_prod_marca" class="form-select" required>
+                <option value="">Seleccione una marca</option>
+                {% for marca in marcas %}
+                <option value="{{ marca.idMarca }}">{{ marca.nombreMarca }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Tipo de Producto <span class="text-danger">*</span></label>
+              <select name="idTipo" id="edit_prod_tipo" class="form-select" required>
+                <option value="">Seleccione un tipo</option>
+                {% for tipo in tipos %}
+                <option value="{{ tipo.idTipo }}">{{ tipo.nombre_tipo }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold">Unidad de Medida <span class="text-danger">*</span></label>
+              <select name="idUnidad" id="edit_prod_unidad" class="form-select" required>
+                <option value="">Seleccione una unidad</option>
+                {% for unidad in unidades %}
+                <option value="{{ unidad.idUnidad }}">{{ unidad.nombre_unidad }} ({{ unidad.abreviatura }})</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-primary px-4">
+            <i class="fa-solid fa-floppy-disk me-1"></i> Actualizar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('click', function(e) {
+  var btnEdit = e.target.closest('.btn-editar-producto');
+  if (!btnEdit) return;
+  var d = btnEdit.dataset;
+  document.getElementById('edit_prod_nombre').value  = d.nombre;
+  document.getElementById('edit_prod_precio').value  = d.precio;
+  document.getElementById('edit_prod_stock').value   = d.stock;
+  document.getElementById('edit_prod_marca').value   = d.marca;
+  document.getElementById('edit_prod_tipo').value    = d.tipo;
+  document.getElementById('edit_prod_unidad').value  = d.unidad;
+  document.getElementById('formEditarProducto').action = '/productos/editar/' + d.id + '/';
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEditarProducto')).show();
+});
+</script>
 
 {% endblock %}

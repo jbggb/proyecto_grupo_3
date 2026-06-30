@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% block page_header_title %}<i class="fa-solid fa-cart-shopping me-2"></i>Ventas{% endblock %}
+
 {% load static humanize %}
 
 {% block title %}Ventas{% endblock %}
@@ -14,7 +16,7 @@
     <div class="page-subtitle">Registro y control de ventas</div>
   </div>
   <div style="display:flex;gap:8px;align-items:center;">
-    <button id="btnEscanerVenta" class="btn btn-secondary">
+    <button id="btnEscanerVenta" class="btn btn-info">
       <i class="fa-solid fa-barcode"></i> Escanear venta
     </button>
     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalCrearVenta">
@@ -68,11 +70,11 @@
       </div>
       <div class="rt-filter-group">
         <label class="rt-filter-label"><i class="fa-solid fa-calendar"></i> Desde</label>
-        <input type="date" name="fecha_desde" class="rt-filter-input" value="{{ request.GET.fecha_desde }}">
+        <input type="date" name="fecha_desde" class="rt-filter-input" value="{{ request.GET.fecha_desde }}" min="{{ mes_inicio }}" max="{{ hoy }}" id="venta_fecha_desde">
       </div>
       <div class="rt-filter-group">
         <label class="rt-filter-label"><i class="fa-solid fa-calendar"></i> Hasta</label>
-        <input type="date" name="fecha_hasta" class="rt-filter-input" value="{{ request.GET.fecha_hasta }}">
+        <input type="date" name="fecha_hasta" class="rt-filter-input" value="{{ request.GET.fecha_hasta }}" min="{{ mes_inicio }}" max="{{ hoy }}" id="venta_fecha_hasta">
       </div>
       <div style="display:flex;gap:8px;">
         <button type="submit" class="btn btn-primary">
@@ -158,9 +160,10 @@
                         data-bs-toggle="modal" data-bs-target="#modalEditarVenta{{ v.id }}" title="Editar">
                   <i class="fa-solid fa-pen"></i>
                 </button>
-                <form method="post" action="{% url 'completar_venta' v.id %}" class="d-inline">
+                <form method="post" action="{% url 'completar_venta' v.id %}" class="d-inline" id="formCompletar{{ v.id }}">
                   {% csrf_token %}
-                  <button type="submit" class="btn btn-sm btn-success btn-icon-sq" title="Completar">
+                  <button type="button" class="btn btn-sm btn-success btn-icon-sq" title="Confirmar venta"
+                          onclick="confirmarCompletarVenta({{ v.id }}, '{{ v.cliente|escapejs }}')">
                     <i class="fa-solid fa-check"></i>
                   </button>
                 </form>
@@ -272,11 +275,22 @@
               <div id="camposOcultosProductos"></div>
               <hr style="border-color:var(--bd-default);">
               <div class="mb-3">
-                <label class="form-label">Nombre del Cliente <span style="color:var(--c-danger);">*</span></label>
+                <label class="form-label">Cliente <span style="color:var(--c-danger);">*</span></label>
                 <input type="text" name="cliente" id="inputClienteCrear" class="form-control"
-                       placeholder="Solo letras y espacios" maxlength="30" autocomplete="off">
+                       placeholder="Selecciona o escribe el nombre" maxlength="30" autocomplete="off"
+                       list="listaClientesVenta">
+                <datalist id="listaClientesVenta">
+                  {% for c in clientes %}
+                  <option value="{{ c.nombre }}">{{ c.nombre }}</option>
+                  {% endfor %}
+                </datalist>
                 <div id="feedbackCliente" class="form-text" style="color:var(--c-danger);"></div>
                 <small id="contadorCliente" class="form-text">0/30 caracteres</small>
+                <div style="margin-top:6px;">
+                  <a href="{% url 'clientes' %}" target="_blank" style="font-size:.8rem;color:var(--c-info);">
+                    <i class="fa-solid fa-user-plus me-1"></i>¿Cliente nuevo? Créalo aquí
+                  </a>
+                </div>
               </div>
               <div class="mb-3">
                 <label class="form-label">Estado <span style="color:var(--c-danger);">*</span></label>

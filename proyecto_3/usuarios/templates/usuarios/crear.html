@@ -1,4 +1,6 @@
 {% extends 'base.html' %}
+{% block page_header_title %}<i class="fa-solid fa-user-plus me-2"></i>Crear Administrador{% endblock %}
+
 {% load static %}
 
 {% block title %}Crear Administrador{% endblock %}
@@ -13,9 +15,7 @@
     </div>
     <div class="page-subtitle">Crear nuevo acceso al sistema</div>
   </div>
-  <a href="{% url 'usuarios:listar' %}" class="btn btn-secondary">
-    <i class="fa-solid fa-arrow-left"></i> Volver
-  </a>
+
 </div>
 
 <form method="post" action="." enctype="multipart/form-data" class="animate-fade-up">

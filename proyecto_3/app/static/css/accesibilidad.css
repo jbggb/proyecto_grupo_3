@@ -297,3 +297,26 @@ body.acc-big-cursor,
 body.acc-big-cursor * {
   cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'%3E%3Cpath fill='white' stroke='black' stroke-width='2' d='M4 2L4 26L10 20L14 30L17 29L13 19L22 19Z'/%3E%3C/svg%3E") 4 2, auto !important;
 }
+
+/* Foco visible en toggles de accesibilidad */
+.acc-toggle input:focus-visible + .acc-toggle-slider {
+  outline: 3px solid var(--c-gold, #e8a838);
+  outline-offset: 2px;
+}
+
+/* Enlace saltar contenido */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  background: var(--c-gold, #e8a838);
+  color: #000;
+  padding: 8px 16px;
+  border-radius: 0 0 8px 8px;
+  font-weight: 700;
+  font-size: .85rem;
+  z-index: 99999;
+  text-decoration: none;
+  transition: top .2s;
+}
+.skip-link:focus { top: 0; }

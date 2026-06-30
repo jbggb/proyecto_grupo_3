@@ -1,16 +1,20 @@
 """Vista principal del sistema — Dashboard con gráficas"""
 import json
 from datetime import date, timedelta
-from django.shortcuts import render
+from django.contrib import messages
+from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views import View
 from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
+from django.conf import settings
+from django.utils import timezone
 from django.db.models import Sum, Count, F
 from django.db.models.functions import TruncMonth
 from app.decorators import admin_login_required
 from app.context_processors import notificaciones
-from ...models import Producto, Cliente, Venta, Proveedor, Compra, Reporte, DetalleVenta
+from app.models import Producto, Cliente, Venta, Proveedor, Compra, Reporte, DetalleVenta, NotificacionEmail
 
 
 STOCK_BAJO = 10   # umbral para alertas
@@ -20,7 +24,6 @@ STOCK_BAJO = 10   # umbral para alertas
 class IndexView(View):
     def get(self, request):
         try:
-            # ── Totales ──────────────────────────────────────────────────
             total_productos   = Producto.objects.count()
             total_clientes    = Cliente.objects.count()
             total_ventas      = Venta.objects.count()
@@ -28,12 +31,10 @@ class IndexView(View):
             total_compras     = Compra.objects.count()
             total_reportes    = Reporte.objects.count()
 
-            # ── Ingresos totales ─────────────────────────────────────────
             ingresos = Venta.objects.aggregate(
                 total=Sum(F('cantidad') * F('precio_unitario'))
             )['total'] or 0
 
-            # ── Ventas por mes (últimos 6 meses) ─────────────────────────
             hace_6_meses = date.today() - timedelta(days=180)
             ventas_mes_qs = (
                 Venta.objects
@@ -50,7 +51,6 @@ class IndexView(View):
                 meses_labels.append(f"{MESES_ES[v['mes'].month - 1]} {v['mes'].year}")
                 meses_data.append(v['total'])
 
-            # ── Ingresos por mes (últimos 6 meses) ───────────────────────
             ingresos_mes_qs = (
                 Venta.objects
                 .filter(fechaVenta__gte=hace_6_meses)
@@ -61,7 +61,6 @@ class IndexView(View):
             )
             ingresos_data = [float(v['total'] or 0) for v in ingresos_mes_qs]
 
-            # ── Compras por mes (últimos 6 meses) ────────────────────────
             compras_mes_qs = (
                 Compra.objects
                 .filter(fechaCompra__gte=hace_6_meses)
@@ -70,14 +69,12 @@ class IndexView(View):
                 .annotate(total=Count('idCompra'))
                 .order_by('mes')
             )
-            # Alinear con los mismos labels de ventas
             compras_map = {}
             for c in compras_mes_qs:
                 key = f"{MESES_ES[c['mes'].month - 1]} {c['mes'].year}"
                 compras_map[key] = c['total']
             compras_data = [compras_map.get(l, 0) for l in meses_labels]
 
-            # ── Top 5 productos más vendidos ─────────────────────────────
             try:
                 top_productos_qs = (
                     DetalleVenta.objects
@@ -91,7 +88,6 @@ class IndexView(View):
                 top_productos_labels = []
                 top_productos_data   = []
 
-            # ── Productos con stock bajo ─────────────────────────────────
             stock_bajo = (
                 Producto.objects
                 .filter(stock__lte=STOCK_BAJO)
@@ -99,13 +95,16 @@ class IndexView(View):
                 .values('nombre', 'stock')[:8]
             )
 
-            # ── Clientes activos vs inactivos ────────────────────────────
             clientes_activos   = Cliente.objects.filter(estado='activo').count()
             clientes_inactivos = Cliente.objects.filter(estado='inactivo').count()
 
         except Exception:
-            total_productos = total_clientes = total_ventas = 0
-            total_proveedores = total_compras = total_reportes = 0
+            total_productos   = Producto.objects.count()
+            total_clientes    = Cliente.objects.count()
+            total_ventas      = Venta.objects.count()
+            total_proveedores = Proveedor.objects.count()
+            total_compras     = Compra.objects.count()
+            total_reportes    = Reporte.objects.count()
             ingresos = 0
             meses_labels = meses_data = ingresos_data = compras_data = []
             top_productos_labels = top_productos_data = []
@@ -113,7 +112,6 @@ class IndexView(View):
             clientes_activos = clientes_inactivos = 0
 
         return render(request, 'Inicio/index.html', {
-            # Totales
             'total_productos':   total_productos,
             'total_clientes':    total_clientes,
             'total_ventas':      total_ventas,
@@ -121,7 +119,6 @@ class IndexView(View):
             'total_compras':     total_compras,
             'total_reportes':    total_reportes,
             'ingresos_totales':  ingresos,
-            # Gráficas (JSON para JS)
             'meses_labels':           json.dumps(meses_labels),
             'ventas_por_mes':         json.dumps(meses_data),
             'ingresos_por_mes':       json.dumps(ingresos_data),
@@ -130,7 +127,6 @@ class IndexView(View):
             'top_productos_data':     json.dumps(top_productos_data),
             'clientes_activos':       clientes_activos,
             'clientes_inactivos':     clientes_inactivos,
-            # Stock bajo
             'stock_bajo':        stock_bajo,
             'stock_bajo_count':  len(list(stock_bajo)),
         })
@@ -146,12 +142,12 @@ def notificaciones_data(request):
     payload = []
     for n in lista:
         payload.append({
-            'tipo':     n.get('tipo', 'info'),
-            'icono':    n.get('icono', '🔔'),
-            'mensaje':  n.get('mensaje', ''),
-            'url':      n.get('url', '#'),
-            'prioridad':n.get('prioridad', 4),
-            'notif_id': n.get('notif_id', None),
+            'tipo':      n.get('tipo', 'info'),
+            'icono':     n.get('icono', '🔔'),
+            'mensaje':   n.get('mensaje', ''),
+            'url':       n.get('url', '#'),
+            'prioridad': n.get('prioridad', 4),
+            'notif_id':  n.get('notif_id', None),
         })
     return JsonResponse({
         'ok': True,
@@ -162,7 +158,6 @@ def notificaciones_data(request):
 
 @login_required
 def limpiar_notificaciones(request):
-    from app.models import NotificacionEmail
     if request.method == 'POST':
         total = NotificacionEmail.objects.filter(usuario=request.user).delete()[0]
         return JsonResponse({'ok': True, 'eliminadas': total})
@@ -171,8 +166,6 @@ def limpiar_notificaciones(request):
 
 @login_required
 def marcar_leida_notificacion(request, id):
-    from django.shortcuts import get_object_or_404
-    from app.models import NotificacionEmail
     if request.method == 'POST':
         notif = get_object_or_404(NotificacionEmail, id=id, usuario=request.user)
         notif.leida = True
@@ -183,10 +176,77 @@ def marcar_leida_notificacion(request, id):
 
 @login_required
 def eliminar_notificacion(request, id):
-    from django.shortcuts import get_object_or_404
-    from app.models import NotificacionEmail
     if request.method == 'POST':
         notif = get_object_or_404(NotificacionEmail, id=id, usuario=request.user)
         notif.delete()
         return JsonResponse({'ok': True})
     return JsonResponse({'ok': False, 'error': 'Método no permitido'}, status=405)
+
+
+@admin_login_required
+def historial_notificaciones(request):
+    """Página completa de historial — solo accesible desde la campanita."""
+    if request.method == 'POST':
+        accion   = request.POST.get('accion')
+        notif_id = request.POST.get('notif_id')
+
+        if accion == 'eliminar' and notif_id:
+            NotificacionEmail.objects.filter(id=notif_id, usuario=request.user).delete()
+            messages.success(request, 'Notificación eliminada.')
+
+        elif accion == 'eliminar_todas':
+            NotificacionEmail.objects.filter(usuario=request.user).delete()
+            messages.success(request, 'Historial limpiado.')
+
+        elif accion == 'enviar_correo' and notif_id:
+            try:
+                notif = NotificacionEmail.objects.get(id=notif_id, usuario=request.user)
+                send_mail(
+                    subject=notif.asunto,
+                    message=notif.mensaje,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[request.user.email],
+                    fail_silently=False,
+                )
+                notif.enviada    = True
+                notif.fecha_envio = timezone.now()
+                notif.save()
+                messages.success(request, f'Notificación enviada a {request.user.email}.')
+            except NotificacionEmail.DoesNotExist:
+                messages.error(request, 'Notificación no encontrada.')
+            except Exception as e:
+                messages.error(request, f'Error al enviar correo: {e}')
+
+        elif accion == 'enviar_todas':
+            enviadas = 0
+            errores  = 0
+            for notif in NotificacionEmail.objects.filter(usuario=request.user):
+                try:
+                    send_mail(
+                        subject=notif.asunto,
+                        message=notif.mensaje,
+                        from_email=settings.DEFAULT_FROM_EMAIL,
+                        recipient_list=[request.user.email],
+                        fail_silently=False,
+                    )
+                    notif.enviada     = True
+                    notif.fecha_envio = timezone.now()
+                    notif.save()
+                    enviadas += 1
+                except Exception:
+                    errores += 1
+            if enviadas:
+                messages.success(request, f'{enviadas} notificación(es) enviadas a {request.user.email}.')
+            if errores:
+                messages.error(request, f'{errores} notificación(es) no pudieron enviarse.')
+
+        return redirect('historial_notificaciones')
+
+    notifs = NotificacionEmail.objects.filter(
+        usuario=request.user
+    ).order_by('-fecha_creacion')
+
+    return render(request, 'Notificaciones/historial.html', {
+        'notifs': notifs,
+        'total':  notifs.count(),
+    })
