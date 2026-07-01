@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 {% block page_header_title %}<i class="fa-solid fa-chart-line me-2"></i>Reportes{% endblock %}
 
 {% load static %}
@@ -11,13 +11,19 @@
 <div class="rep-wrap">
 
   <!-- Header -->
-  <div class="rep-header">
-    <div class="rep-header-icon"><i class="fa-solid fa-chart-line"></i></div>
-    <div>
-      <h1>Sistema de Reportes</h1>
-      <p>Dashboard · Inventario · Análisis</p>
+  <div class="rep-header" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+      <div class="rep-header-icon"><i class="fa-solid fa-chart-line"></i></div>
+      <div>
+        <h1>Sistema de Reportes</h1>
+        <p>Dashboard . Inventario . Analisis</p>
+      </div>
     </div>
-
+    <div>
+      <a href="{% url 'descargar_general_pdf' %}" class="btn-pdf-general">
+        <i class="fa-solid fa-file-pdf"></i> Descargar Reporte PDF
+      </a>
+    </div>
   </div>
 
   <!-- Alertas -->
@@ -29,7 +35,7 @@
       </div>
       <div class="alert-banner-body">
         <div class="alert-banner-title">
-          ¡Acción requerida! —
+          Â¡AcciÃ³n requerida! â€”
           {% with out=alertas_stock|length %}
             {{ out }} producto{{ out|pluralize }} con problemas de inventario
           {% endwith %}
@@ -123,7 +129,7 @@
         <div class="chart-card"><div class="chart-card-title"><i class="fa-solid fa-chart-pie"></i> Activos vs Inactivos</div><canvas id="chartClientesEstado" height="160"></canvas></div>
       </div>
       <div class="section-label">Clientes registrados</div>
-      <div class="table-wrap"><table><thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Total Compras</th><th>Estado</th></tr></thead><tbody>
+      <div class="table-wrap"><table><thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>TelÃ©fono</th><th>Total Compras</th><th>Estado</th></tr></thead><tbody>
         {% for c in clientes_data %}
         <tr><td>#{{ c.id }}</td><td>{{ c.nombre }}</td><td>{{ c.email }}</td><td>{{ c.telefono }}</td>
         <td class="price">$ {{ c.total_compras|floatformat:0 }}</td>
@@ -135,7 +141,7 @@
     <!-- VENTAS -->
     <div id="panel-ventas" class="tab-panel">
       <div class="chart-row">
-        <div class="chart-card"><div class="chart-card-title"><i class="fa-solid fa-chart-line"></i> <span class="live-dot" style="margin-right:4px"></span>Ventas por día</div><canvas id="chartVentasDia" height="160"></canvas></div>
+        <div class="chart-card"><div class="chart-card-title"><i class="fa-solid fa-chart-line"></i> <span class="live-dot" style="margin-right:4px"></span>Ventas por dÃ­a</div><canvas id="chartVentasDia" height="160"></canvas></div>
         <div class="chart-card"><div class="chart-card-title"><i class="fa-solid fa-chart-pie"></i> Estado de ventas</div><canvas id="chartVentasEstado" height="160"></canvas></div>
       </div>
       <div class="section-label">Ventas registradas</div>
@@ -154,10 +160,10 @@
         <div class="chart-card" style="grid-column:1/-1"><div class="chart-card-title"><i class="fa-solid fa-chart-bar"></i> Compras por proveedor</div><canvas id="chartProveedores" height="90"></canvas></div>
       </div>
       <div class="section-label">Proveedores registrados</div>
-      <div class="table-wrap"><table><thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Días Envío</th><th>Compras</th><th>Registro</th></tr></thead><tbody>
+      <div class="table-wrap"><table><thead><tr><th>ID</th><th>Nombre</th><th>Email</th><th>TelÃ©fono</th><th>DÃ­as EnvÃ­o</th><th>Compras</th><th>Registro</th></tr></thead><tbody>
         {% for p in proveedores_data %}
         <tr><td>#{{ p.id }}</td><td>{{ p.nombre }}</td><td>{{ p.email }}</td><td>{{ p.telefono }}</td>
-        <td>{{ p.envio }} días</td><td><span class="badge badge-compra">{{ p.num_compras }}</span></td><td>{{ p.fecha }}</td></tr>
+        <td>{{ p.envio }} dÃ­as</td><td><span class="badge badge-compra">{{ p.num_compras }}</span></td><td>{{ p.fecha }}</td></tr>
         {% empty %}<tr><td colspan="7" style="text-align:center;padding:24px;color:#94a3b8">Sin datos</td></tr>{% endfor %}
       </tbody></table></div>
     </div>
@@ -165,7 +171,7 @@
     <!-- COMPRAS -->
     <div id="panel-compras" class="tab-panel">
       <div class="chart-row">
-        <div class="chart-card"><div class="chart-card-title"><i class="fa-solid fa-chart-line"></i> Compras por día</div><canvas id="chartComprasDia" height="160"></canvas></div>
+        <div class="chart-card"><div class="chart-card-title"><i class="fa-solid fa-chart-line"></i> Compras por dÃ­a</div><canvas id="chartComprasDia" height="160"></canvas></div>
         <div class="chart-card"><div class="chart-card-title"><i class="fa-solid fa-chart-pie"></i> Estado de compras</div><canvas id="chartComprasEstado" height="160"></canvas></div>
       </div>
       <div class="section-label">Compras registradas</div>
@@ -182,7 +188,7 @@
     <div id="panel-todo" class="tab-panel active">
       <div class="chart-row">
         <div class="chart-card" style="grid-column:1/-1">
-          <div class="chart-card-title"><i class="fa-solid fa-chart-bar"></i> <span class="live-dot" style="margin-right:4px"></span>Ventas vs Compras por período</div>
+          <div class="chart-card-title"><i class="fa-solid fa-chart-bar"></i> <span class="live-dot" style="margin-right:4px"></span>Ventas vs Compras por perÃ­odo</div>
           <canvas id="chartTodo" height="90"></canvas>
         </div>
       </div>
@@ -194,19 +200,19 @@
           {% for c in clientes_mini %}<div class="mc-row"><span class="mc-name">{{ c.nombre }}</span><span class="mc-val mv-ok">$ {{ c.total_compras|floatformat:0 }}</span></div>{% endfor %}
         </div>
         <div class="mc"><div class="mc-head"><i class="fa-solid fa-cart-shopping"></i> Ventas recientes</div>
-          {% for v in ventas_mini %}<div class="mc-row"><span class="mc-name">V{{ v.id|stringformat:"03d" }} · {{ v.producto }}</span><span class="mc-val {% if v.estado == 'Completada' %}mv-ok{% else %}mv-low{% endif %}">{% if v.estado == 'Completada' %}$ {{ v.total|floatformat:0 }}{% else %}Pendiente{% endif %}</span></div>{% endfor %}
+          {% for v in ventas_mini %}<div class="mc-row"><span class="mc-name">V{{ v.id|stringformat:"03d" }} Â· {{ v.producto }}</span><span class="mc-val {% if v.estado == 'Completada' %}mv-ok{% else %}mv-low{% endif %}">{% if v.estado == 'Completada' %}$ {{ v.total|floatformat:0 }}{% else %}Pendiente{% endif %}</span></div>{% endfor %}
         </div>
         <div class="mc"><div class="mc-head"><i class="fa-solid fa-truck"></i> Proveedores</div>
           {% for p in proveedores_mini %}<div class="mc-row"><span class="mc-name">{{ p.nombre }}</span><span class="mc-val mv-def">{{ p.num_compras }} compras</span></div>{% endfor %}
         </div>
       </div>
       <div class="table-header-bar">Todas las transacciones</div>
-      <div class="table-wrap"><table><thead><tr><th>ID</th><th>Módulo</th><th>Descripción</th><th>Valor</th><th>Fecha</th><th>Estado</th></tr></thead><tbody>
+      <div class="table-wrap"><table><thead><tr><th>ID</th><th>MÃ³dulo</th><th>DescripciÃ³n</th><th>Valor</th><th>Fecha</th><th>Estado</th></tr></thead><tbody>
         {% for t in todas %}
         <tr><td>{{ t.id }}</td>
         <td>{% if t.tipo == 'venta' %}<span class="badge badge-venta">Venta</span>{% else %}<span class="badge badge-compra">Compra</span>{% endif %}</td>
         <td>{{ t.descripcion }}</td>
-        <td class="price">{% if t.valor %}$ {{ t.valor|floatformat:0 }}{% else %}—{% endif %}</td>
+        <td class="price">{% if t.valor %}$ {{ t.valor|floatformat:0 }}{% else %}â€”{% endif %}</td>
         <td>{{ t.fecha }}</td>
         <td>{% if t.estado == 'Completada' or t.estado == True %}<span class="badge badge-paid">Completada</span>{% else %}<span class="badge badge-pend">Pendiente</span>{% endif %}</td></tr>
         {% empty %}<tr><td colspan="6" style="text-align:center;padding:24px;color:#94a3b8">Sin datos</td></tr>{% endfor %}

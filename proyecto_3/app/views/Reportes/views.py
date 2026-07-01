@@ -8,8 +8,8 @@ from django.db.models.functions import TruncDate
 from django.http import JsonResponse
 from app.decorators import admin_login_required
 from app.models import Producto, Cliente, Venta, Compra, Proveedor
-
-
+from app.utils import exportar_pdf
+from django.utils import timezone
 @method_decorator(admin_login_required, name='dispatch')
 class ReportesView(View):
     def get(self, request):
@@ -235,3 +235,46 @@ class ReportesDataView(View):
 
 reportes      = ReportesView.as_view()
 reportes_data = ReportesDataView.as_view()
+
+@method_decorator(admin_login_required, name='dispatch')
+class ReportePdfView(View):
+    def get(self, request):
+        # 1. Obtenemos los productos con sus relaciones
+        productos = Producto.objects.select_related('idTipo', 'idMarca', 'idUnidad').all()
+        
+        # 2. Estructuramos los datos en una lista de diccionarios genéricos
+        datos_reporte = []
+        for p in productos:
+            # Determinamos el texto del estado según tu lógica de negocio
+            if p.stock == 0:
+                estado = 'Sin stock'
+            elif p.stock <= 10:
+                estado = 'Bajo'
+            else:
+                estado = 'Normal'
+                
+            # Cada fila debe tener como llaves los nombres que renderizarás o mapearás
+            datos_reporte.append({
+                'id': p.idProducto,
+                'nombre': p.nombre,
+                'precio': f"${p.precio:,.2f}", # Formateado con pesos y decimales
+                'stock': p.stock,
+                'estado': estado
+            })
+
+        # 3. Definimos las columnas que queremos mostrar en el orden correcto
+        columnas = ['ID', 'Nombre del Producto', 'Precio', 'Stock', 'Estado Actual']
+        
+        # 4. Nombre del archivo de descarga
+        nombre_archivo = f"Reporte_General_Inventario_{timezone.now().strftime('%Y%m%d')}"
+        
+        # 5. Llamamos a TU función tal y como está construida
+        return exportar_pdf(
+            titulo="REPORTE GENERAL DE INVENTARIO",
+            columnas=columnas,
+            datos=datos_reporte,
+            nombre_archivo=nombre_archivo
+        )
+
+# Instancia para exponer en tus URLs
+reporte_general_pdf = ReportePdfView.as_view()

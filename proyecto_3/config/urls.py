@@ -114,6 +114,12 @@ urlpatterns = [
     # ── Reportes ───────────────────────────────────────────────────
     path('reportes/',       reportes_views.reportes,      name='reportes'),
     path('reportes/data/',  reportes_views.reportes_data, name='reportes_data'),
+    path(
+    'reportes/pdf/',
+    reportes_views.reporte_general_pdf,
+    name='descargar_general_pdf'
+),
+    
 
     # ── Backup y Restauración ──────────────────────────────────────
     path('backup/',             backup_views.backup,           name='backup'),
