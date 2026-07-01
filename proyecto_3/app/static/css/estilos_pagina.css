@@ -1216,3 +1216,72 @@ body::after {
   .page-title { font-size: 1.3rem; }
   .page-header { flex-direction: column; }
 }
+
+/* ══════════════════════════════════════════════════════
+   FIXES RÁPIDOS — agregar al FINAL de estilos_pagina.css
+   ══════════════════════════════════════════════════════ */
+
+/* ── 1. Sidebar colapsado: ajustar main-content y topbar ── */
+#sidebar.collapsed ~ #main-content,
+body:has(#sidebar.collapsed) #main-content {
+  margin-left: 60px;
+}
+
+#sidebar.collapsed ~ .topbar,
+body:has(#sidebar.collapsed) .topbar {
+  left: 60px;
+}
+
+/* ── 2. Tooltips en sidebar colapsado ── */
+#sidebar.collapsed .nav-link {
+  position: relative;
+}
+
+#sidebar.collapsed .nav-link::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: calc(100% + 10px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(20, 20, 28, 0.95);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: .75rem;
+  font-weight: 600;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .15s;
+  border: 1px solid rgba(255,255,255,0.1);
+  z-index: 9999;
+}
+
+#sidebar.collapsed .nav-link:hover::after {
+  opacity: 1;
+}
+
+/* Flecha del tooltip */
+#sidebar.collapsed .nav-link::before {
+  content: '';
+  position: absolute;
+  left: calc(100% + 4px);
+  top: 50%;
+  transform: translateY(-50%);
+  border: 5px solid transparent;
+  border-right-color: rgba(20, 20, 28, 0.95);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .15s;
+  z-index: 9999;
+}
+
+#sidebar.collapsed .nav-link:hover::before {
+  opacity: 1;
+}
+
+/* ── 3. Chatbot estático — quitar transform del drag ── */
+#chat-btn {
+  transform: none !important;
+  transition: transform 0s !important;
+}
