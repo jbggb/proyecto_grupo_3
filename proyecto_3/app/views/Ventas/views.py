@@ -12,7 +12,8 @@ from django.db.models import Sum
 from django.http import JsonResponse
 from app.decorators import admin_login_required
 from app.services.notifications import (notificacion_stock_bajo,notificacion_venta_completada,notificacion_venta_creada,notificacion_venta_eliminada,)
-from ...models import Venta, DetalleVenta, Producto, Cliente
+from app.services.vencimientos import contexto_alertas_vencimiento
+from ...models import Venta, DetalleVenta, Producto, Cliente, DevolucionVenta
 
 
 def _descontar_stock(ids, cantidades):
@@ -98,7 +99,7 @@ class VentasView(View):
         import datetime as _dt
         _hoy = ahora.date()
         _mes_inicio = _dt.date(_hoy.year, _hoy.month, 1)
-        return render(request, 'Ventas/Ventas.html', {
+        contexto = {
             'ventas':       lista_ventas,
             'ventas_hoy':   ventas_hoy,
             'total_mes':    total_mes,
@@ -107,7 +108,9 @@ class VentasView(View):
             'productos':    Producto.objects.all(),
             'hoy':          _hoy.strftime('%Y-%m-%d'),
             'mes_inicio':   _mes_inicio.strftime('%Y-%m-%d'),
-        })
+        }
+        contexto.update(contexto_alertas_vencimiento())
+        return render(request, 'Ventas/Ventas.html', contexto)
 
 
 @method_decorator(admin_login_required, name='dispatch')
@@ -181,6 +184,63 @@ class DetalleVentaView(View):
 
 
 @method_decorator(admin_login_required, name='dispatch')
+class CrearDevolucionVentaView(View):
+    def post(self, request, id):
+        detalle = get_object_or_404(DetalleVenta, id=id)
+        venta   = detalle.venta
+
+        if venta.estado != 'Completada':
+            messages.error(request, 'Solo se pueden registrar devoluciones de ventas completadas.')
+            return redirect('detalle_venta', id=venta.id)
+
+        cantidad_str  = request.POST.get('cantidad', '').strip()
+        motivo        = request.POST.get('motivo', 'vencido').strip()
+        observaciones = request.POST.get('observaciones', '').strip()
+
+        if not cantidad_str.isdigit() or int(cantidad_str) <= 0:
+            messages.error(request, 'La cantidad a devolver debe ser un número mayor a 0.')
+            return redirect('detalle_venta', id=venta.id)
+
+        cantidad = int(cantidad_str)
+        disponible = detalle.cantidad_disponible_devolucion
+        if cantidad > disponible:
+            messages.error(
+                request,
+                f'No puedes devolver {cantidad} unidades: solo quedan {disponible} disponibles '
+                f'para devolver de "{detalle.producto_nombre}".'
+            )
+            return redirect('detalle_venta', id=venta.id)
+
+        # Si el motivo es vencido/dañado, el producto NO vuelve a estar disponible para la venta.
+        restablecer_stock = motivo not in ('vencido', 'danado')
+
+        try:
+            with transaction.atomic():
+                DevolucionVenta.objects.create(
+                    detalle=detalle,
+                    cantidad=cantidad,
+                    motivo=motivo,
+                    observaciones=observaciones,
+                    restablecer_stock=restablecer_stock,
+                    usuario=request.user,
+                )
+                if restablecer_stock and detalle.producto_id:
+                    producto = Producto.objects.select_for_update().get(pk=detalle.producto_id)
+                    producto.stock += cantidad
+                    producto.save()
+
+            if restablecer_stock:
+                messages.success(request, f'Devolución registrada: {cantidad} unidad(es) devuelta(s) y repuesta(s) al inventario.')
+            else:
+                motivo_label = dict(DevolucionVenta.MOTIVO_CHOICES).get(motivo, motivo)
+                messages.success(request, f'Devolución registrada: {cantidad} unidad(es) descartada(s) por "{motivo_label}" (no se repuso al inventario).')
+        except Exception as e:
+            messages.error(request, f'Error al registrar la devolución: {str(e)}')
+
+        return redirect('detalle_venta', id=venta.id)
+
+
+@method_decorator(admin_login_required, name='dispatch')
 class EditarVentaView(View):
     def post(self, request, id):
         venta          = get_object_or_404(Venta, id=id)
@@ -209,6 +269,13 @@ class EditarVentaView(View):
         cant_int   = []
         prec_float = []
         for i in range(len(ids)):
+            if not ids[i] or not ids[i].isdigit():
+                messages.error(
+                    request,
+                    f'El producto "{nombres[i]}" ya no existe en el catálogo (fue eliminado). '
+                    f'Quítalo del carrito (botón de basura) antes de guardar los cambios.'
+                )
+                return redirect('ventas')
             if not cantidades[i].isdigit() or int(cantidades[i]) < 1:
                 messages.error(request, 'Las cantidades deben ser números enteros mayores a 0.')
                 return redirect('ventas')
@@ -302,6 +369,7 @@ class EstadisticasVentasView(View):
 ventas              = VentasView.as_view()
 crear_venta         = CrearVentaView.as_view()
 detalle_venta       = DetalleVentaView.as_view()
+crear_devolucion_venta = CrearDevolucionVentaView.as_view()
 editar_venta        = EditarVentaView.as_view()
 completar_venta     = CompletarVentaView.as_view()
 eliminar_venta      = EliminarVentaView.as_view()

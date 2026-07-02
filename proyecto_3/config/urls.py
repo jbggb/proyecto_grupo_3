@@ -87,6 +87,7 @@ urlpatterns = [
     path('ventas/',                      ventas_views.ventas,           name='ventas'),
     path('ventas/crear/',                ventas_views.crear_venta,      name='crear_venta'),
     path('ventas/detalle/<int:id>/',     ventas_views.detalle_venta,    name='detalle_venta'),
+    path('ventas/detalle/<int:id>/devolucion/', ventas_views.crear_devolucion_venta, name='crear_devolucion_venta'),
     path('ventas/editar/<int:id>/',      ventas_views.editar_venta,     name='editar_venta'),
     path('ventas/completar/<int:id>/',   ventas_views.completar_venta,  name='completar_venta'),
     path('ventas/eliminar/<int:id>/',    ventas_views.eliminar_venta,   name='eliminar_venta'),
@@ -108,12 +109,15 @@ urlpatterns = [
     path('compras/crear/',             compras_views.crear_compra,        name='crear_compra'),
     path('compras/editar/<int:id>/',   compras_views.modal_editar_compra, name='modal_editar_compra'),
     path('compras/eliminar/<int:id>/', compras_views.modal_eliminar_compra, name='modal_eliminar_compra'),
+    path('compras/<int:id>/devolucion/', compras_views.crear_devolucion_compra, name='crear_devolucion_compra'),
     path('reporte/compras/pdf',   exportar_views.ExportarComprasPDF.as_view(),   name='exportar_compras_pdf'),
     path('reporte/compras/excel', exportar_views.ExportarComprasExcel.as_view(), name='exportar_compras_excel'),
 
     # ── Reportes ───────────────────────────────────────────────────
     path('reportes/',       reportes_views.reportes,      name='reportes'),
     path('reportes/data/',  reportes_views.reportes_data, name='reportes_data'),
+    path('reporte/general/pdf',   exportar_views.ExportarGeneralPDF.as_view(),   name='exportar_general_pdf'),
+    path('reporte/general/excel', exportar_views.ExportarGeneralExcel.as_view(), name='exportar_general_excel'),
 
     # ── Backup y Restauración ──────────────────────────────────────
     path('backup/',             backup_views.backup,           name='backup'),

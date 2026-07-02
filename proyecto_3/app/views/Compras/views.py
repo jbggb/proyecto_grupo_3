@@ -13,7 +13,8 @@ from app.services.notifications import (
     notificacion_compra_completada,
     notificacion_compra_eliminada,
 )
-from ...models import Compra, Proveedor, Producto
+from app.services.vencimientos import contexto_alertas_vencimiento
+from ...models import Compra, Proveedor, Producto, DevolucionCompra
 
 
 def _sumar_stock(producto_id, cantidad):
@@ -96,7 +97,7 @@ class ComprasView(View):
                 pass
 
         mes_inicio = date(hoy.year, hoy.month, 1)
-        return render(request, 'Compras/Compras.html', {
+        contexto = {
             'compras':     lista_compras,
             'proveedores': Proveedor.objects.all(),
             'productos':   Producto.objects.all(),
@@ -104,7 +105,9 @@ class ComprasView(View):
             'fecha_max':   hoy.strftime('%Y-%m-%d'),
             'mes_inicio':  mes_inicio.strftime('%Y-%m-%d'),
             'hoy':         hoy.strftime('%Y-%m-%d'),
-        })
+        }
+        contexto.update(contexto_alertas_vencimiento())
+        return render(request, 'Compras/Compras.html', contexto)
 
 
 @method_decorator(admin_login_required, name='dispatch')
@@ -229,6 +232,56 @@ class EliminarCompraView(View):
 
 
 @method_decorator(admin_login_required, name='dispatch')
+class CrearDevolucionCompraView(View):
+    def post(self, request, id):
+        compra = get_object_or_404(Compra, idCompra=id)
+
+        if compra.estado != 'Completada':
+            messages.error(request, 'Solo se pueden registrar devoluciones de compras completadas.')
+            return redirect('compras')
+
+        cantidad_str = request.POST.get('cantidad', '').strip()
+        motivo       = request.POST.get('motivo', 'vencido').strip()
+        observaciones = request.POST.get('observaciones', '').strip()
+
+        if not cantidad_str.isdigit() or int(cantidad_str) <= 0:
+            messages.error(request, 'La cantidad a devolver debe ser un número mayor a 0.')
+            return redirect('compras')
+
+        cantidad = int(cantidad_str)
+        disponible = compra.cantidad_disponible_devolucion
+        if cantidad > disponible:
+            messages.error(
+                request,
+                f'No puedes devolver {cantidad} unidades: solo quedan {disponible} disponibles '
+                f'para devolver de la Compra #{compra.idCompra}.'
+            )
+            return redirect('compras')
+
+        try:
+            with transaction.atomic():
+                DevolucionCompra.objects.create(
+                    compra=compra,
+                    cantidad=cantidad,
+                    motivo=motivo,
+                    observaciones=observaciones,
+                    usuario=request.user,
+                )
+                # Las unidades devueltas al proveedor salen del inventario vendible.
+                if compra.Producto_id:
+                    _restar_stock(compra.Producto_id, cantidad)
+            messages.success(
+                request,
+                f'Devolución registrada: {cantidad} unidad(es) de la Compra #{compra.idCompra} '
+                f'devuelta(s) a {compra.Proveedor.nombre}.'
+            )
+        except Exception as e:
+            messages.error(request, f'Error al registrar la devolución: {str(e)}')
+
+        return redirect('compras')
+
+
+@method_decorator(admin_login_required, name='dispatch')
 class ComprasJsonView(View):
     def get(self, request):
         lista = [
@@ -252,4 +305,5 @@ compras               = ComprasView.as_view()
 crear_compra          = CrearCompraView.as_view()
 modal_editar_compra   = EditarCompraView.as_view()
 modal_eliminar_compra = EliminarCompraView.as_view()
+crear_devolucion_compra = CrearDevolucionCompraView.as_view()
 compras_json          = ComprasJsonView.as_view()

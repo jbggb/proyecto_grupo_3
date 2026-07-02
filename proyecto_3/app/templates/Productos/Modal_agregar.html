@@ -83,6 +83,16 @@
                             <a href="{% url 'unidades' %}?next=productos" onclick="guardarBorrador()" class="text-success small mt-1 d-block">+ Gestionar Unidades</a>
                         </div>
                     </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-semibold" title="Opcional. Activa la alerta automática de vencimiento en Compras y Ventas.">
+                                Fecha de vencimiento <i class="fa-solid fa-circle-info text-muted" style="font-size:.75rem;"></i>
+                            </label>
+                            <input type="date" class="form-control" name="fecha_vencimiento"
+                                   value="{{ form_data.fecha_vencimiento }}"
+                                   title="Fecha en la que el producto vence">
+                        </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>

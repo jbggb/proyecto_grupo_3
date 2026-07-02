@@ -18,6 +18,17 @@
       <p>Dashboard · Inventario · Análisis</p>
     </div>
 
+    <div class="rep-export-actions" style="margin-left:auto;display:flex;gap:8px;">
+      <a href="{% url 'exportar_general_excel' %}" class="btn rep-btn-export rep-btn-excel"
+         title="Descargar reporte general en Excel (todos los módulos, una hoja por módulo)">
+        <i class="fa-solid fa-file-excel"></i> Excel general
+      </a>
+      <a href="{% url 'exportar_general_pdf' %}" class="btn rep-btn-export rep-btn-pdf"
+         title="Descargar reporte general en PDF (todos los módulos)">
+        <i class="fa-solid fa-file-pdf"></i> PDF general
+      </a>
+    </div>
+
   </div>
 
   <!-- Alertas -->

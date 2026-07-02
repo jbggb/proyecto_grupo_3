@@ -28,6 +28,8 @@
     background-color: var(--rep-bg-body);
     font-family: 'DM Sans', sans-serif;
     color: var(--rep-text-main);
+    font-size: 16px;
+    line-height: 1.55;
 }
 
 /* ── Header ───────────────────────────────────────────────────── */
@@ -86,6 +88,39 @@
     0%   { opacity: 1; }
     50%  { opacity: 0.3; }
     100% { opacity: 1; }
+}
+
+/* ── Botones de exportación general ──────────────────────────── */
+.rep-wrap .rep-btn-export {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.rep-wrap .rep-btn-export:hover {
+    transform: translateY(-1px);
+}
+.rep-wrap .rep-btn-excel {
+    background: #e8f7ee;
+    color: #15803d;
+    border-color: rgba(21, 128, 61, 0.25);
+}
+.rep-wrap .rep-btn-excel:hover {
+    box-shadow: 0 4px 10px rgba(21, 128, 61, 0.18);
+}
+.rep-wrap .rep-btn-pdf {
+    background: #fdecec;
+    color: #b91c1c;
+    border-color: rgba(185, 28, 28, 0.25);
+}
+.rep-wrap .rep-btn-pdf:hover {
+    box-shadow: 0 4px 10px rgba(185, 28, 28, 0.18);
 }
 
 /* ── Alertas ──────────────────────────────────────────────────── */
@@ -226,8 +261,8 @@
 
 /* Nota: se usan clases específicas para no chocar con .table global de modulos.css */
 .rep-wrap table  { width: 100%; border-collapse: collapse; }
-.rep-wrap th     { background: #f8fafc; text-align: left; padding: 12px 16px; font-size: 0.8rem; color: var(--rep-text-muted); text-transform: uppercase; }
-.rep-wrap td     { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; font-size: 0.9rem; }
+.rep-wrap th     { background: #f8fafc; text-align: left; padding: 12px 16px; font-size: 0.85rem; color: var(--rep-text-muted); text-transform: uppercase; font-weight: 700; letter-spacing: 0.02em; }
+.rep-wrap td     { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; font-size: 0.95rem; }
 .rep-wrap .price { font-weight: 700; color: var(--rep-text-main); }
 
 /* ── Badges (scoped, no interfieren con .badge global) ───────── */

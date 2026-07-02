@@ -42,6 +42,7 @@ class CrearProductoView(View):
             'idMarca':  request.POST.get('idMarca', ''),
             'idTipo':   request.POST.get('idTipo', ''),
             'idUnidad': request.POST.get('idUnidad', ''),
+            'fecha_vencimiento': request.POST.get('fecha_vencimiento', '').strip(),
         }
 
         def error(msg):
@@ -81,6 +82,7 @@ class CrearProductoView(View):
             return error('El stock debe ser un número entre 0 y 1.000.')
 
         codigo_barras = request.POST.get('codigo_barras', '').strip()
+        fecha_vencimiento = request.POST.get('fecha_vencimiento', '').strip() or None
 
         try:
             Producto.objects.create(
@@ -91,6 +93,7 @@ class CrearProductoView(View):
                 idTipo=get_object_or_404(TipoProductos, idTipo=idTipo),
                 idUnidad=get_object_or_404(unidad_medida, idUnidad=idUnidad),
                 codigo_barras=codigo_barras,
+                fecha_vencimiento=fecha_vencimiento,
             )
             messages.success(request, f'Producto "{nombre}" creado correctamente.')
         except Exception as e:
@@ -147,6 +150,7 @@ class EditarProductoView(View):
         producto.idMarca  = get_object_or_404(Marca, idMarca=idMarca)
         producto.idTipo   = get_object_or_404(TipoProductos, idTipo=idTipo)
         producto.idUnidad = get_object_or_404(unidad_medida, idUnidad=idUnidad)
+        producto.fecha_vencimiento = request.POST.get('fecha_vencimiento', '').strip() or None
         producto.save()
         messages.success(request, f'Producto "{nombre}" actualizado correctamente.')
         return redirect('productos')

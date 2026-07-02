@@ -25,6 +25,8 @@
   </div>
 </div>
 
+{% include 'partials/alerta_vencimiento.html' %}
+
 <!-- Stat cards -->
 <div class="row g-3 mb-4 animate-stagger">
   <div class="col-12 col-sm-4 animate-item">
@@ -463,18 +465,35 @@
                 <th style="text-align:center;">Cant.</th>
                 <th style="text-align:right;">Precio</th>
                 <th style="text-align:right;">Subtotal</th>
+                <th style="text-align:center;">Devolución</th>
               </tr>
             </thead>
             <tbody>
               {% for d in v.detalles.all %}
               <tr>
-                <td>{{ d.producto_nombre }}</td>
+                <td>{{ d.producto_nombre }}
+                  {% if d.cantidad_devuelta > 0 %}
+                    <br><span class="badge badge-warning" style="font-size:.68rem;">{{ d.cantidad_devuelta }} devuelta(s)</span>
+                  {% endif %}
+                </td>
                 <td style="text-align:center;font-family:var(--font-mono);">{{ d.cantidad }}</td>
                 <td style="text-align:right;font-family:var(--font-mono);">${{ d.precio|floatformat:0|intcomma }}</td>
                 <td style="text-align:right;font-family:var(--font-mono);font-weight:700;color:var(--c-gold);">${{ d.subtotal|floatformat:0|intcomma }}</td>
+                <td style="text-align:center;">
+                  {% if v.estado == 'Completada' and d.cantidad_disponible_devolucion > 0 %}
+                  <button type="button" class="btn btn-sm btn-icon-sq"
+                          style="background:var(--c-gold-l);color:var(--c-gold-d);border:1px solid rgba(232,168,56,.35);"
+                          data-bs-toggle="modal" data-bs-target="#modalDevolverDetalle{{ d.id }}"
+                          title="Registrar devolución">
+                    <i class="fa-solid fa-rotate-left"></i>
+                  </button>
+                  {% else %}
+                    <span style="color:var(--tx-muted);">—</span>
+                  {% endif %}
+                </td>
               </tr>
               {% empty %}
-              <tr><td colspan="4" style="text-align:center;color:var(--tx-muted);">Sin productos</td></tr>
+              <tr><td colspan="5" style="text-align:center;color:var(--tx-muted);">Sin productos</td></tr>
               {% endfor %}
             </tbody>
           </table>
@@ -484,6 +503,55 @@
     </div>
   </div>
 </div>
+
+{% for d in v.detalles.all %}
+{% if v.estado == 'Completada' and d.cantidad_disponible_devolucion > 0 %}
+<div class="modal fade" id="modalDevolverDetalle{{ d.id }}" tabindex="-1" aria-modal="true" role="dialog">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form method="POST" action="{% url 'crear_devolucion_venta' d.id %}">
+        {% csrf_token %}
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="fa-solid fa-rotate-left me-1"></i> Devolución — {{ d.producto_nombre }}</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <p style="color:var(--tx-secondary);font-size:.88rem;">
+            Venta #{{ v.id }} · Cliente: {{ v.cliente }}<br>
+            Disponibles para devolver: <strong>{{ d.cantidad_disponible_devolucion }}</strong> de {{ d.cantidad }}
+          </p>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Cantidad a devolver</label>
+            <input type="number" name="cantidad" class="form-control" min="1"
+                   max="{{ d.cantidad_disponible_devolucion }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-semibold">Motivo</label>
+            <select name="motivo" class="form-select" required>
+              <option value="vencido">Producto vencido</option>
+              <option value="danado">Producto dañado</option>
+              <option value="arrepentimiento">Cliente se arrepintió</option>
+              <option value="otro">Otro motivo</option>
+            </select>
+            <small style="color:var(--tx-muted);">Si es "vencido" o "dañado", el producto NO vuelve al inventario.</small>
+          </div>
+          <div class="mb-1">
+            <label class="form-label fw-semibold">Observaciones (opcional)</label>
+            <textarea name="observaciones" class="form-control" rows="2"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="submit" class="btn btn-warning px-4">
+            <i class="fa-solid fa-rotate-left me-1"></i> Registrar devolución
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endfor %}
 {% endfor %}
 
 <!-- Modales Eliminar -->
@@ -521,7 +589,7 @@
   var VID = {{ v.id }};
   var carrito = [
     {% for d in v.detalles.all %}
-    { productoId: '{{ d.producto_id }}', nombre: '{{ d.producto_nombre|escapejs }}', precio: {{ d.precio|stringformat:'.2f' }}, cantidad: {{ d.cantidad }} }{% if not forloop.last %},{% endif %}
+    { productoId: '{{ d.producto_id|default_if_none:"" }}', nombre: '{{ d.producto_nombre|escapejs }}', precio: {{ d.precio|stringformat:'.2f' }}, cantidad: {{ d.cantidad }} }{% if not forloop.last %},{% endif %}
     {% endfor %}
   ];
 

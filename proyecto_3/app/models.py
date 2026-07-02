@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models import Sum
 from datetime import datetime
 
 
@@ -87,6 +88,13 @@ class Producto(models.Model):
         db_index=True,
         verbose_name='Código de barras',
     )
+    # ── Campo nuevo: fecha de vencimiento (para alertas reutilizables) ──
+    fecha_vencimiento = models.DateField(
+        null=True,
+        blank=True,
+        db_index=True,
+        verbose_name='Fecha de vencimiento',
+    )
 
     def __str__(self):
         return self.nombre
@@ -154,6 +162,14 @@ class DetalleVenta(models.Model):
     def subtotal(self):
         return self.precio * self.cantidad
 
+    @property
+    def cantidad_devuelta(self):
+        return self.devoluciones.aggregate(total=Sum('cantidad'))['total'] or 0
+
+    @property
+    def cantidad_disponible_devolucion(self):
+        return self.cantidad - self.cantidad_devuelta
+
     def __str__(self):
         return f"{self.producto_nombre} x{self.cantidad}"
 
@@ -186,6 +202,14 @@ class Compra(models.Model):
     @property
     def total(self):
         return self.cantidad * self.precio_unitario
+
+    @property
+    def cantidad_devuelta(self):
+        return self.devoluciones.aggregate(total=Sum('cantidad'))['total'] or 0
+
+    @property
+    def cantidad_disponible_devolucion(self):
+        return self.cantidad - self.cantidad_devuelta
 
     def __str__(self):
         return f"Compra #{self.idCompra}"
@@ -269,3 +293,70 @@ class NotificacionEmail(models.Model):
         verbose_name_plural = 'notificaciones email'
         db_table            = 'notificacion_email'
         ordering            = ['-fecha_creacion']
+
+# ══════════════════════════════════════════════════════
+# DEVOLUCIONES
+# ══════════════════════════════════════════════════════
+
+class DevolucionCompra(models.Model):
+    """
+    Devolución parcial o total de una compra a un proveedor.
+    Ej: se compraron 10 yogures y 3 llegaron vencidos/dañados.
+    """
+    MOTIVO_CHOICES = [
+        ('vencido', 'Producto vencido'),
+        ('danado',  'Producto dañado'),
+        ('otro',    'Otro motivo'),
+    ]
+    compra        = models.ForeignKey(Compra, on_delete=models.CASCADE, related_name='devoluciones')
+    cantidad      = models.PositiveIntegerField()
+    motivo        = models.CharField(max_length=20, choices=MOTIVO_CHOICES, default='vencido')
+    observaciones = models.TextField(blank=True, default='')
+    fecha         = models.DateTimeField(auto_now_add=True)
+    usuario       = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='devoluciones_compra', verbose_name='Usuario',
+    )
+
+    def __str__(self):
+        return f"Devolución compra #{self.compra_id} — {self.cantidad} uds."
+
+    class Meta:
+        verbose_name        = 'devolución de compra'
+        verbose_name_plural  = 'devoluciones de compra'
+        db_table             = 'devolucion_compra'
+        ordering              = ['-fecha']
+
+
+class DevolucionVenta(models.Model):
+    """
+    Devolución parcial o total de un producto vendido a un cliente.
+    Ej: se vendieron 5 yogures y el cliente devuelve 2 porque vencieron.
+    Si el motivo es 'vencido' o 'danado', NO se repone el stock (se descarta).
+    Para cualquier otro motivo, el producto vuelve a estar disponible.
+    """
+    MOTIVO_CHOICES = [
+        ('vencido',         'Producto vencido'),
+        ('danado',          'Producto dañado'),
+        ('arrepentimiento', 'Cliente se arrepintió'),
+        ('otro',            'Otro motivo'),
+    ]
+    detalle           = models.ForeignKey(DetalleVenta, on_delete=models.CASCADE, related_name='devoluciones')
+    cantidad          = models.PositiveIntegerField()
+    motivo            = models.CharField(max_length=20, choices=MOTIVO_CHOICES, default='vencido')
+    observaciones     = models.TextField(blank=True, default='')
+    restablecer_stock = models.BooleanField(default=False, verbose_name='¿Vuelve al inventario?')
+    fecha             = models.DateTimeField(auto_now_add=True)
+    usuario           = models.ForeignKey(
+        User, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='devoluciones_venta', verbose_name='Usuario',
+    )
+
+    def __str__(self):
+        return f"Devolución venta #{self.detalle.venta_id} — {self.cantidad} uds."
+
+    class Meta:
+        verbose_name        = 'devolución de venta'
+        verbose_name_plural  = 'devoluciones de venta'
+        db_table             = 'devolucion_venta'
+        ordering              = ['-fecha']

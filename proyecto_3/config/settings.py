@@ -106,6 +106,7 @@ THOUSAND_SEPARATOR = '.'
 
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'app' / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 # ── Archivos subidos por el usuario (fotos de admins, etc.) ──────
 MEDIA_URL  = '/media/'

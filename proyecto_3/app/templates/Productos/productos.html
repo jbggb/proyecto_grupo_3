@@ -196,6 +196,7 @@ document.addEventListener('click', function(e) {
                         data-marca="{{ producto.idMarca.idMarca }}"
                         data-tipo="{{ producto.idTipo.idTipo }}"
                         data-unidad="{{ producto.idUnidad.idUnidad }}"
+                        data-vencimiento="{{ producto.fecha_vencimiento|date:'Y-m-d' }}"
                         title="Editar">
                   <i class="fa-solid fa-pen"></i>
                 </button>
@@ -505,6 +506,15 @@ document.addEventListener('click', function(e) {
               </select>
             </div>
           </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label fw-semibold" title="Opcional. Activa la alerta automática de vencimiento en Compras y Ventas.">
+                Fecha de vencimiento <i class="fa-solid fa-circle-info text-muted" style="font-size:.75rem;"></i>
+              </label>
+              <input type="date" name="fecha_vencimiento" id="edit_prod_vencimiento" class="form-control"
+                     title="Fecha en la que el producto vence">
+            </div>
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -528,6 +538,7 @@ document.addEventListener('click', function(e) {
   document.getElementById('edit_prod_marca').value   = d.marca;
   document.getElementById('edit_prod_tipo').value    = d.tipo;
   document.getElementById('edit_prod_unidad').value  = d.unidad;
+  document.getElementById('edit_prod_vencimiento').value = d.vencimiento || '';
   document.getElementById('formEditarProducto').action = '/productos/editar/' + d.id + '/';
   bootstrap.Modal.getOrCreateInstance(document.getElementById('modalEditarProducto')).show();
 });

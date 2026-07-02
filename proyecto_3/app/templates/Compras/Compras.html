@@ -20,6 +20,8 @@
   </button>
 </div>
 
+{% include 'partials/alerta_vencimiento.html' %}
+
 <div data-filter-container class="animate-fade-up">
 
   <!-- Filtros -->
@@ -139,6 +141,13 @@
                         title="Eliminar">
                   <i class="fa-solid fa-trash"></i>
                 </button>
+                {% if compra.estado == 'Completada' and compra.cantidad_disponible_devolucion > 0 %}
+                <button class="btn btn-sm btn-icon-sq" style="background:var(--c-gold-l);color:var(--c-gold-d);border:1px solid rgba(232,168,56,.35);"
+                        data-bs-toggle="modal" data-bs-target="#modalDevolverCompra{{ compra.idCompra }}"
+                        title="Registrar devolución al proveedor">
+                  <i class="fa-solid fa-rotate-left"></i>
+                </button>
+                {% endif %}
               </div>
             </td>
           </tr>
@@ -271,7 +280,11 @@
               </span>
             </td></tr>
             <tr><td>Producto</td><td>{{ compra.Producto.nombre }}</td></tr>
-            <tr><td>Cantidad</td><td>{{ compra.cantidad }} unidades</td></tr>
+            <tr><td>Cantidad</td><td>{{ compra.cantidad }} unidades
+              {% if compra.cantidad_devuelta > 0 %}
+                <span class="badge badge-warning ms-1">{{ compra.cantidad_devuelta }} devuelta(s)</span>
+              {% endif %}
+            </td></tr>
             <tr><td>Precio unitario</td><td style="font-family:var(--font-mono);">${{ compra.precio_unitario|floatformat:2|intcomma }}</td></tr>
             <tr><td>Total</td><td style="font-family:var(--font-mono);font-weight:800;color:var(--c-gold);">${{ compra.total|floatformat:2|intcomma }}</td></tr>
             <tr><td>Administrador</td><td>{% if compra.usuario %}{{ compra.usuario.get_full_name|default:compra.usuario.username }}{% else %}—{% endif %}</td></tr>
@@ -284,11 +297,72 @@
               {% endif %}
             </td></tr>
           </table>
+          {% if compra.devoluciones.all %}
+          <div style="margin-top:14px;text-align:left;">
+            <div style="font-weight:700;font-size:.85rem;color:var(--tx-secondary);margin-bottom:6px;">
+              <i class="fa-solid fa-rotate-left"></i> Historial de devoluciones
+            </div>
+            {% for d in compra.devoluciones.all %}
+            <div style="font-size:.82rem;padding:6px 10px;border-radius:8px;background:rgba(232,168,56,.08);margin-bottom:4px;">
+              <strong>{{ d.cantidad }} uds.</strong> — {{ d.get_motivo_display }}
+              <span style="color:var(--tx-muted);">· {{ d.fecha|date:"d/m/Y" }}</span>
+              {% if d.observaciones %}<br><span style="color:var(--tx-muted);">{{ d.observaciones }}</span>{% endif %}
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
           <button type="button" class="btn modal-detalle-btn-cerrar" data-bs-dismiss="modal">Cerrar</button>
         </div>
       </div>
     </div>
   </div>
+
+  {% if compra.estado == 'Completada' and compra.cantidad_disponible_devolucion > 0 %}
+  <div class="modal fade" id="modalDevolverCompra{{ compra.idCompra }}" tabindex="-1" aria-modal="true" role="dialog">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <form method="POST" action="{% url 'crear_devolucion_compra' compra.idCompra %}">
+          {% csrf_token %}
+          <div class="modal-header">
+            <h5 class="modal-title"><i class="fa-solid fa-rotate-left me-1"></i> Devolución — Compra #{{ compra.idCompra }}</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <p style="color:var(--tx-secondary);font-size:.88rem;">
+              {{ compra.Producto.nombre }} · Proveedor: {{ compra.Proveedor.nombre }}<br>
+              Disponibles para devolver: <strong>{{ compra.cantidad_disponible_devolucion }}</strong> de {{ compra.cantidad }}
+            </p>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Cantidad a devolver</label>
+              <input type="number" name="cantidad" class="form-control" min="1"
+                     max="{{ compra.cantidad_disponible_devolucion }}" required
+                     title="No puede superar las unidades disponibles">
+            </div>
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Motivo</label>
+              <select name="motivo" class="form-select" required>
+                <option value="vencido">Producto vencido</option>
+                <option value="danado">Producto dañado</option>
+                <option value="otro">Otro motivo</option>
+              </select>
+            </div>
+            <div class="mb-1">
+              <label class="form-label fw-semibold">Observaciones (opcional)</label>
+              <textarea name="observaciones" class="form-control" rows="2"
+                        placeholder="Ej: 3 unidades vencidas desde fábrica, se notificó al proveedor"></textarea>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-warning px-4">
+              <i class="fa-solid fa-rotate-left me-1"></i> Registrar devolución
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 {% endfor %}
 
 <script src="{% static 'js/filtros_realtime.js' %}"></script>
