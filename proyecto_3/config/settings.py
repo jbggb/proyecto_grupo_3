@@ -77,18 +77,10 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': _env('DB_NAME', 'proyecto'),
-        'USER': _env('DB_USER', 'root'),
-        'PASSWORD': _env('DB_PASSWORD', '12345678',),
-        'HOST': _env('DB_HOST', 'localhost'),
-        'PORT': _env('DB_PORT', '3306'),
-        'OPTIONS': {
-            'init_command': "SET time_zone = '-05:00'",
-        },
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},

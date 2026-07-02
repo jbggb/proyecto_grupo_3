@@ -4,8 +4,6 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 RUN apt-get update && apt-get install -y \
-    default-libmysqlclient-dev \
-    default-mysql-client \
     gcc \
     pkg-config \
     libcairo2-dev \
